@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GLN 好感生活提案 — 生活習慣討論表</title>
+  <meta name="description" content="GLN 生活習慣討論表：家庭結構、生活習慣、風格偏好、設備需求、收納清單" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;600&family=Ibarra+Real+Nova:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#" class="site-logo-link" aria-label="GLN 好感生活提案">
+        <img src="assets/gln-circle.png" alt="GLN" class="site-logo-img" />
+        <span class="site-logo-text">好感生活提案 · 生活習慣討論表</span>
+      </a>
+      <div id="autosave-status" class="muted" aria-live="polite">已自動儲存</div>
+    </div>
+  </header>
+
+  <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+    <div class="container" style="padding: 0 1.5rem;">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-label" id="progress-label">0%</div>
+    </div>
+  </div>
+
+  <main class="container">
+
+    <div id="token-banner" class="status-banner info" style="display:none;"></div>
+
+    <div class="hero">
+      <img src="assets/gln-circle.png" alt="GLN" class="hero-logo" />
+      <h1>生活習慣討論表</h1>
+      <p class="intro">
+        謝謝你選擇 GLN，讓我們有機會走進你的家。<br />
+        這份討論表的每一道題，都是為了真正認識住在這個空間裡的每一個人——你們的作息、習慣、喜好，甚至是還沒說出口的小小願望。<br />
+        我們會仔細傾聽，把這些日常的細節，轉化為一份專屬於你們家的住宅設計生活提案。<br />
+        慢慢來、誠實寫；你說得越多，我們就越能為你打造一個真正屬於你的家。
+      </p>
+      <p class="muted" style="margin-top: 1.5rem; font-size: 0.85rem;">
+        ⏱ 預計填寫時間 30-60 分鐘 · 系統會自動儲存草稿，可隨時關閉再回來繼續
+      </p>
+    </div>
+
+    <form id="survey-form" autocomplete="off">
+
+      <!-- ============ Section A：基本資料（家庭成員）============ -->
+      <section class="section" data-section="A">
+        <h2>Section A — 你的家庭成員</h2>
+        <p class="section-meta">為每位同住家人新增一張卡片。寵物也算！</p>
+
+        <div id="members-list" class="member-list"></div>
+
+        <button type="button" class="add-member-btn" id="add-member">
+          + 新增家庭成員
+        </button>
+      </section>
+
+      <!-- ============ Section B：生活習慣 ============ -->
+      <section class="section" data-section="B">
+        <h2>Section B — 全家的生活習慣</h2>
+
+        <h3>烹飪習慣</h3>
+        <div class="field-row">
+          <div class="field">
+            <label>開伙頻率</label>
+            <select name="cooking_frequency">
+              <option value="">請選擇</option>
+              <option>每天</option>
+              <option>每週 3-5 次</option>
+              <option>每週 1-2 次</option>
+              <option>幾乎不開伙</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>平日用餐人數</label>
+            <input type="number" name="dining_count" min="1" max="20" />
+          </div>
+        </div>
+        <div class="field">
+          <label>料理需求（可複選）</label>
+          <div class="checkbox-group" data-name="cooking_styles">
+            <label class="chip"><input type="checkbox" value="中式快炒" /><span>中式快炒</span></label>
+            <label class="chip"><input type="checkbox" value="西式烘焙" /><span>西式烘焙</span></label>
+            <label class="chip"><input type="checkbox" value="煎烤" /><span>煎烤</span></label>
+            <label class="chip"><input type="checkbox" value="火鍋" /><span>火鍋</span></label>
+            <label class="chip"><input type="checkbox" value="輕食" /><span>輕食</span></label>
+            <label class="chip"><input type="checkbox" value="宴客" /><span>宴客料理</span></label>
+          </div>
+        </div>
+
+        <h3>收納物品</h3>
+        <div class="field-row">
+          <div class="field"><label>大行李箱</label><input type="number" name="luggage_large" min="0" /></div>
+          <div class="field"><label>登機箱</label><input type="number" name="luggage_carry" min="0" /></div>
+          <div class="field">
+            <label>書籍數量</label>
+            <select name="books">
+              <option value="">請選擇</option>
+              <option>少於 50 本</option>
+              <option>50–200 本</option>
+              <option>200–500 本</option>
+              <option>500 本以上</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>蒐藏品（種類與數量）</label>
+            <input type="text" name="collections" placeholder="例：黑膠 200 張 / 模型 50 件" />
+          </div>
+          <div class="field">
+            <label>大型物品</label>
+            <input type="text" name="large_items" placeholder="例：鋼琴、按摩椅、跑步機" />
+          </div>
+        </div>
+
+        <h3>社交習慣</h3>
+        <div class="field-row">
+          <div class="field">
+            <label>朋友訪客頻率</label>
+            <select name="visitor_frequency">
+              <option value="">請選擇</option>
+              <option>幾乎不</option>
+              <option>每月 1-2 次</option>
+              <option>每週 1 次以上</option>
+              <option>經常宴客</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>常見訪客人數</label>
+            <input type="number" name="visitor_count" min="0" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>插座使用習慣（哪個空間需要多插座？）</label>
+          <textarea name="outlets" placeholder="例：床頭兩側各 2 組、書桌附近 4 組、廚房中島 3 組"></textarea>
+        </div>
+      </section>
+
+      <!-- ============ Section C：風格愛好 ============ -->
+      <section class="section" data-section="C">
+        <h2>Section C — 風格愛好</h2>
+
+        <h3>偏好色調</h3>
+        <div class="field-row">
+          <div class="field">
+            <label>空間基底色調（可複選）</label>
+            <div class="checkbox-group" data-name="color_space">
+              <label class="chip"><input type="checkbox" value="暖白" /><span>暖白</span></label>
+              <label class="chip"><input type="checkbox" value="冷白" /><span>冷白</span></label>
+              <label class="chip"><input type="checkbox" value="米杏" /><span>米杏</span></label>
+              <label class="chip"><input type="checkbox" value="灰階" /><span>灰階</span></label>
+              <label class="chip"><input type="checkbox" value="深木色" /><span>深木色</span></label>
+              <label class="chip"><input type="checkbox" value="黑" /><span>黑</span></label>
+              <label class="chip"><input type="checkbox" value="彩色" /><span>彩色</span></label>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>地板色調</label>
+            <div class="checkbox-group" data-name="color_floor">
+              <label class="chip"><input type="checkbox" value="淺木" /><span>淺木</span></label>
+              <label class="chip"><input type="checkbox" value="中木" /><span>中木</span></label>
+              <label class="chip"><input type="checkbox" value="深木" /><span>深木</span></label>
+              <label class="chip"><input type="checkbox" value="石材紋" /><span>石材紋</span></label>
+              <label class="chip"><input type="checkbox" value="水泥" /><span>水泥</span></label>
+            </div>
+          </div>
+          <div class="field">
+            <label>櫃子色調</label>
+            <div class="checkbox-group" data-name="color_cabinet">
+              <label class="chip"><input type="checkbox" value="白" /><span>白</span></label>
+              <label class="chip"><input type="checkbox" value="米色" /><span>米色</span></label>
+              <label class="chip"><input type="checkbox" value="木色" /><span>木色</span></label>
+              <label class="chip"><input type="checkbox" value="灰" /><span>灰</span></label>
+              <label class="chip"><input type="checkbox" value="深色" /><span>深色</span></label>
+            </div>
+          </div>
+        </div>
+
+        <h3>材質喜好（1 不喜歡 — 5 很喜歡）</h3>
+        <div class="field-row">
+          <div class="field">
+            <label>木紋</label>
+            <input type="range" name="material_wood" min="1" max="5" value="3" oninput="this.nextElementSibling.textContent=this.value" />
+            <output>3</output>
+          </div>
+          <div class="field">
+            <label>金屬</label>
+            <input type="range" name="material_metal" min="1" max="5" value="3" oninput="this.nextElementSibling.textContent=this.value" />
+            <output>3</output>
+          </div>
+          <div class="field">
+            <label>石材紋</label>
+            <input type="range" name="material_stone" min="1" max="5" value="3" oninput="this.nextElementSibling.textContent=this.value" />
+            <output>3</output>
+          </div>
+          <div class="field">
+            <label>玻璃清透</label>
+            <input type="range" name="material_glass" min="1" max="5" value="3" oninput="this.nextElementSibling.textContent=this.value" />
+            <output>3</output>
+          </div>
+        </div>
+
+        <h3>痛點與動機</h3>
+        <div class="field">
+          <label>目前屋況痛點（可複選）</label>
+          <div class="checkbox-group" data-name="pain_points">
+            <label class="chip"><input type="checkbox" value="採光不足" /><span>採光不足</span></label>
+            <label class="chip"><input type="checkbox" value="通風差" /><span>通風差</span></label>
+            <label class="chip"><input type="checkbox" value="收納不夠" /><span>收納不夠</span></label>
+            <label class="chip"><input type="checkbox" value="動線不順" /><span>動線不順</span></label>
+            <label class="chip"><input type="checkbox" value="隔音差" /><span>隔音差</span></label>
+            <label class="chip"><input type="checkbox" value="濕氣重" /><span>濕氣重</span></label>
+            <label class="chip"><input type="checkbox" value="老舊" /><span>老舊</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label>想裝修 / 翻新的原因</label>
+          <textarea name="renovation_reason" placeholder="例：結婚、添丁、換屋、老屋翻新、出租..."></textarea>
+        </div>
+      </section>
+
+      <!-- ============ Section D：期待調查（設計師問題）============ -->
+      <section class="section" data-section="D">
+        <h2>Section D — 你對新家的期待</h2>
+
+        <div class="field">
+          <label>新家許願清單</label>
+          <textarea name="wishlist" placeholder="想到什麼寫什麼，盡量列出來"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>最重視的第 1 件事</label><input type="text" name="priority_1" /></div>
+          <div class="field"><label>第 2 件事</label><input type="text" name="priority_2" /></div>
+          <div class="field"><label>第 3 件事</label><input type="text" name="priority_3" /></div>
+        </div>
+        <div class="field">
+          <label>你期待的討論主題（可複選）</label>
+          <div class="checkbox-group" data-name="discussion_topics">
+            <label class="chip"><input type="checkbox" value="風格" /><span>風格</span></label>
+            <label class="chip"><input type="checkbox" value="預算" /><span>預算</span></label>
+            <label class="chip"><input type="checkbox" value="機能" /><span>機能</span></label>
+            <label class="chip"><input type="checkbox" value="工法" /><span>工法</span></label>
+            <label class="chip"><input type="checkbox" value="採購" /><span>採購</span></label>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>如果有更好方案但會超預算</label>
+            <select name="budget_flex">
+              <option value="">請選擇</option>
+              <option>一定要做，不在意預算</option>
+              <option>可接受 +10%</option>
+              <option>可接受 +20%</option>
+              <option>嚴格不可超</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>對於設計建議</label>
+            <select name="design_attitude">
+              <option value="">請選擇</option>
+              <option>完全交給專業</option>
+              <option>高度參與討論</option>
+              <option>我已有具體想法</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>家中最容易亂的地方</label>
+          <textarea name="messy_areas" placeholder="例：玄關、餐桌、書桌"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>希望改善的生活習慣</label>
+            <textarea name="habits_improve"></textarea>
+          </div>
+          <div class="field">
+            <label>希望培養的生活習慣</label>
+            <textarea name="habits_cultivate"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Section E：背景資料 ============ -->
+      <section class="section" data-section="E">
+        <h2>Section E — 房屋與背景資料</h2>
+        <p class="section-meta">這些資訊協助總監評估案件分類與預算規劃</p>
+
+        <div class="field-row">
+          <div class="field"><label>房屋屋齡（年）</label><input type="number" name="house_age" /></div>
+          <div class="field"><label>房屋坪數</label><input type="number" name="house_size" /></div>
+          <div class="field">
+            <label>房屋形態</label>
+            <select name="house_type">
+              <option value="">請選擇</option>
+              <option>新成屋</option>
+              <option>中古屋</option>
+              <option>老屋</option>
+              <option>預售屋</option>
+              <option>透天</option>
+              <option>公寓</option>
+              <option>大樓</option>
+            </select>
+          </div>
+          <div class="field"><label>樓層（例：5/14F）</label><input type="text" name="floor" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>院子</label>
+            <select name="yard">
+              <option value="">請選擇</option>
+              <option>無</option>
+              <option>有，5 坪以下</option>
+              <option>有，5-15 坪</option>
+              <option>有，15 坪以上</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>車位需求</label>
+            <select name="parking">
+              <option value="">請選擇</option>
+              <option>無</option>
+              <option>1 平面</option>
+              <option>1 機械</option>
+              <option>2 個以上</option>
+            </select>
+          </div>
+          <div class="field"><label>房屋預算範圍（NT$）</label><input type="text" name="budget" placeholder="例：500 萬" /></div>
+          <div class="field"><label>希望入住時間</label><input type="date" name="move_in_date" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>未來房屋用途</label>
+            <select name="house_use">
+              <option value="">請選擇</option>
+              <option>自住</option>
+              <option>出租</option>
+              <option>投資</option>
+              <option>二房</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>人口組成型態</label>
+            <select name="household_type">
+              <option value="">請選擇</option>
+              <option>單身</option>
+              <option>雙人</option>
+              <option>小家庭(有小孩)</option>
+              <option>三代同堂</option>
+              <option>多戶</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>案子分類</label>
+            <select name="case_type">
+              <option value="">請選擇</option>
+              <option>老屋翻新</option>
+              <option>新成屋裝修</option>
+              <option>局部翻修</option>
+              <option>商業空間</option>
+              <option>全屋訂製</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>為什麼會想找 GLN</label>
+            <select name="referral">
+              <option value="">請選擇</option>
+              <option>朋友介紹</option>
+              <option>IG</option>
+              <option>Google 搜尋</option>
+              <option>官網</option>
+              <option>實體活動</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>房屋產權 / 所有人</label>
+            <select name="ownership">
+              <option value="">請選擇</option>
+              <option>本人</option>
+              <option>配偶</option>
+              <option>父母</option>
+              <option>共有</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>是否第一次購屋</label>
+            <select name="first_home">
+              <option value="">請選擇</option>
+              <option>是</option>
+              <option>否</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>是否有其他房屋</label>
+            <select name="other_homes">
+              <option value="">請選擇</option>
+              <option>無</option>
+              <option>1 間</option>
+              <option>2 間以上</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 區塊 1：設備品牌採購 ============ -->
+      <section class="section" data-section="EQ">
+        <h2>設備需求 — 品牌規劃</h2>
+        <p class="section-meta">
+          請從下拉選單挑選你想要的品牌。沒看到偏好品牌可選「其他」自填；用不到的可選「不需要」；不確定可留空，設計師會跟你討論。
+        </p>
+        <div id="equipment-list"><!-- 由 app.js 動態渲染 --></div>
+      </section>
+
+      <!-- ============ 區塊 3：收納清單 ============ -->
+      <section class="section" data-section="STORAGE">
+        <h2>房間收納需求</h2>
+        <p class="section-meta">
+          各區域物品的數量與收納位置。沒有的可跳過，最後設計師會與你逐項討論。
+        </p>
+        <div id="storage-list"><!-- 由 app.js 動態渲染 --></div>
+      </section>
+
+      <!-- ============ 同意與送出 ============ -->
+      <div class="submit-area">
+        <label class="consent">
+          <input type="checkbox" id="consent-checkbox" />
+          <span class="consent-text">
+            <strong>我同意以上內容</strong>，並確認所填資訊正確，可作為 GLN 設計團隊規劃依據。
+            提交後資料將傳送給 GLN 總監與案件負責設計師。
+          </span>
+        </label>
+
+        <div id="submit-status" class="status-banner" style="display:none;"></div>
+
+        <button type="submit" id="submit-btn" class="btn btn-primary" disabled>
+          送出問卷
+        </button>
+      </div>
+    </form>
+
+  </main>
+
+  <footer class="site-footer">
+    GLN 好感生活提案 · Good Living Notes ©
+    <span id="year"></span>
+  </footer>
+
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GLN 設計師後台 — 補填與覆寫</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="site-logo">GLN <span>設計師後台</span></div>
+      <div class="muted" id="case-info">—</div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div id="token-banner" class="status-banner info" style="display:none;"></div>
+
+    <h1>客戶問卷補填 / 覆寫</h1>
+    <p class="intro">
+      此頁面顯示客戶提交內容，並開放設計師補填品牌型號、收納位置、配電資訊與備註。
+      <strong>客戶答案不可修改</strong>（總監模式 <code>?admin=1</code> 可覆寫）。
+    </p>
+
+    <div id="designer-content">
+      <p class="muted" style="text-align:center; padding: 3rem 0;">載入中…</p>
+    </div>
+
+    <div class="submit-area">
+      <div id="save-status" class="status-banner" style="display:none;"></div>
+      <button type="button" id="save-btn" class="btn btn-primary">儲存補填內容</button>
+      <a href="report.html" id="view-report" class="btn btn-ghost" style="margin-left: 0.5rem;">查看設計師版報告</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">GLN 好感生活提案 · Good Living Notes ©</footer>
+
+  <script src="designer.js"></script>
+</body>
+</html>

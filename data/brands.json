@@ -1,0 +1,66 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "note": "設備品牌池字典。key 必須與 areas.json equipment_categories items 名稱對齊。客戶下拉選單從這裡讀。",
+    "source": "https://docs.google.com/spreadsheets/d/1y9R0Hbij58vP7ni4mO_l0DUxW8kZQMe17Z0T8MHft8Q/edit"
+  },
+  "brands": {
+    "飲用水": ["VOCA", "CLAR", "諾德", "BRITA", "3M", "宮黛", "賀眾"],
+    "嵌入式洗碗機": ["BOSCH", "MIELE", "ASKO", "Panasonic", "LG", "Amica", "Electrolux"],
+    "嵌入式烤箱": ["BOSCH", "MIELE", "Electrolux", "ASKO", "SAKURA", "Amica", "Rinnai"],
+    "炊飯電器櫃": ["Rinnai", "SAKURA", "Blue Sky", "豪山"],
+    "獨立式家電": ["Panasonic", "大同", "象印", "虎牌", "Tiger", "Zojirushi"],
+    "烹飪熱源(瓦斯爐/IH)": ["Rinnai", "SAKURA", "Amica", "BEST", "BOSCH", "莊頭北", "豪山"],
+    "抽油煙機": ["SAKURA", "Rinnai", "莊頭北", "BEST", "豪山", "喜特麗", "帥福得"],
+    "廚餘機": ["Insinkerator", "Waste King", "愛適易", "日立"],
+    "廚房五金": ["Blum", "Hettich", "SALICE", "Hafele", "Grass", "川湖 Kingslide", "火車頭"],
+    "冰箱": ["Panasonic", "HITACHI", "LG", "LIEBHERR", "Samsung", "Miele", "Sub-Zero"],
+    "酒櫃": ["EuroCave", "Liebherr", "Vinvautz", "Miele", "Dunavox", "海爾"],
+
+    "免治馬桶": ["TOTO", "Panasonic", "凱撒", "HCG", "Lixil", "American Standard", "櫻花"],
+    "馬桶(一般)": ["TOTO", "HCG", "凱撒", "KOHLER", "Duravit", "京典", "電光"],
+    "面盆/面盆龍頭": ["TOTO", "KOHLER", "凱撒", "HCG", "LAUFEN", "Duravit", "BRAVAT"],
+    "暖風機(三合一)": ["Panasonic", "台達", "阿拉斯加", "樂奇", "TOTO", "康乃馨"],
+    "除霧鏡": ["日本 NSD", "德國 Schweigen", "台製 ALAB", "Panasonic"],
+    "蓮蓬頭/淋浴龍頭": ["Hansgrohe", "GROHE", "TOTO", "凱撒", "KOHLER", "LOLAT 羅力", "AXOR"],
+    "淋浴拉門(乾濕分離)": ["itai 一太", "凱撒", "安心牌", "HCG", "新沐", "聯德爾", "莎美爾"],
+    "浴室五金": ["樂家 ROCA", "GROHE", "凱撒", "聯德爾", "合鈺", "新沐", "BRAVAT"],
+    "浴缸": ["TOTO", "凱撒", "HCG", "KOHLER", "Toscano", "大唐衛浴"],
+
+    "全屋淨水": ["3M", "賀眾牌", "愛惠浦", "BWT", "普德", "Aqua-Pure", "拓霖"],
+    "全屋軟水": ["BWT", "3M", "賀眾牌", "Kinetico", "水精靈", "Pentair"],
+    "暖氣設備": ["Stiebel Eltron", "Daikin", "Mitsubishi", "Lifegear 樂奇", "瑞智", "Honeywell"],
+    "防霧霾紗窗": ["清淨家", "雷克斯 LIXIL", "YKK", "3M"],
+    "冷氣(分離式變頻)": ["DAIKIN 大金", "HITACHI 日立", "Panasonic 國際牌", "Mitsubishi 三菱", "TECO 東元", "SAMPO 聲寶"],
+    "熱水器": ["Rinnai 林內", "SAKURA 櫻花", "莊頭北", "豪山", "喜特麗", "和成", "五聯"],
+    "電子鎖": ["APEX", "Yale 耶魯", "Samsung 三星", "Lockly", "Lockin 鹿客", "飛利浦", "小米"],
+    "智能家居": ["Aqara", "小米米家", "Apple HomeKit", "Google Home", "Control4", "Lutron", "HDL", "Sentai 三泰"],
+    "全屋除濕": ["Blauberg", "Mitsubishi 三菱", "Honeywell", "台達 Delta", "LUFTRUM"],
+    "全熱交換機": ["Mitsubishi 三菱電機", "台達 Delta", "Panasonic", "DAIKIN 大金", "LUFTRUM", "Honeywell", "三菱重工"],
+    "落地除濕機": ["Panasonic 國際牌", "HITACHI 日立", "Mitsubishi 三菱", "Whirlpool 惠而浦", "LG", "PHILIPS", "SHARP"],
+    "落地空氣清淨機": ["DAIKIN 大金", "Sharp", "LG", "Dyson", "Coway", "Honeywell", "Blueair"],
+    "電子衣櫥": ["LG Styler", "Samsung 三星 AI 衣管家", "Panasonic"],
+
+    "電動曬衣架": ["兆奇", "三葉", "ANASA", "Mr.Light", "日立", "Panasonic", "香格里拉"],
+    "洗烘衣機": ["LG", "Panasonic", "BOSCH", "Miele", "Electrolux 伊萊克斯", "HITACHI", "惠而浦"],
+    "掃地機": ["Roborock 石頭科技", "iRobot", "ECOVACS 科沃斯", "Dyson", "Dreame 追覓", "Xiaomi", "Eufy"],
+
+    "投影設備": ["BenQ", "EPSON", "SONY", "XGIMI", "Hisense", "JVC", "Optoma"],
+    "音響設備": ["BOSE", "Sonos", "KEF", "Dali", "B&W", "Klipsch", "JBL", "Dynaudio"],
+    "影音線路規劃": ["Crestron", "Control4", "Lutron"],
+
+    "客廳沙發": ["B&B Italia", "Cassina", "Minotti", "Poliform", "Flexform", "Living Divani", "台製訂製"],
+    "餐桌椅": ["Carl Hansen", "Fritz Hansen", "Vitra", "HAY", "&Tradition", "Muuto", "台製訂製"],
+    "床(框/床墊)": ["Hästens", "Tempur 丹普", "Simmons 席夢思", "Serta 舒達", "Sealy 絲漣", "德泰", "床的世界"],
+    "窗簾": ["Hunter Douglas", "Luxaflex", "Silent Gliss", "Norman", "Lafer", "台製"],
+    "燈具": ["Flos", "Artemide", "Vibia", "Louis Poulsen", "Luceplan", "Foscarini", "Tom Dixon"],
+    "地毯": ["Jab Anstoetz", "Nani Marquina", "The Rug Company", "Kasthall", "Cogolin"],
+
+    "驗屋": ["Tip Top 帝寶", "公正驗屋", "豪宅檢驗", "巢屋", "全國公證", "信義驗屋"],
+    "搬家": ["鼎運搬家", "大都會搬家", "東和搬家", "中信", "永盛", "馬可孛羅"],
+    "整理收納": ["Y. Storage 整理師", "日本整理收納協會", "小印日記"],
+    "除蟲": ["白蟻博士", "世達除蟲", "鴻安除蟲", "Rentokil", "優美", "安心"],
+    "除甲醛": ["綠淨家", "Allergy Free", "Air Doctor", "潔氛", "安立淨"],
+    "全屋清潔": ["潔客幫", "Pro 360", "Tasker 出任務", "獅子寶寶", "居家清潔"]
+  }
+}

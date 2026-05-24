@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GLN 客戶報告</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;600&family=Ibarra+Real+Nova:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="report-body">
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="site-logo">
+        GLN <span>好感生活提案 · 客戶報告</span>
+      </div>
+      <div class="report-toggle">
+        <a href="#" data-version="client" class="toggle-btn">客戶版</a>
+        <a href="#" data-version="designer" class="toggle-btn">設計師版</a>
+        <button type="button" id="print-btn" class="btn btn-ghost btn-sm">列印</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container report-container">
+    <div id="report-root">
+      <p class="muted" style="text-align:center; padding: 4rem 0;">載入中…</p>
+    </div>
+  </main>
+
+  <footer class="site-footer no-print">
+    GLN 好感生活提案 · Good Living Notes ©
+  </footer>
+
+  <script src="report.js"></script>
+</body>
+</html>

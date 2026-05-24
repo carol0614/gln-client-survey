@@ -1,0 +1,129 @@
+{
+  "_meta": {
+    "name": "GLN 機能設計知識庫 V3",
+    "version": "3.0",
+    "total_entries": 58,
+    "source": "https://docs.google.com/spreadsheets/d/10EG8F8aM8n9Ta3oukBTknU1c0TmeFw3R/",
+    "note": "整合台灣住宅機能設計研究 + 國際睡眠/健康/建築學研究的設計知識"
+  },
+  "areas": [
+    {
+      "key": "entrance",
+      "name": "玄關",
+      "entries": [
+        { "id": "G-01", "problem": "鞋子收納不足", "applies_to": "通用", "severity": 5, "solution": "360 度旋轉鞋架 + 可調層板 + 懸空落塵區", "tags": ["收納", "鞋類", "玄關"] },
+        { "id": "G-02", "problem": "玄關無落塵區，污塵直上樓", "applies_to": "通用", "severity": 4, "solution": "三段式動線 + 材質分區", "tags": ["過敏", "PM2.5", "玄關", "落塵"] },
+        { "id": "G-03", "problem": "無整裝角落，出門前手忙腳亂", "applies_to": "新屋", "severity": 3, "solution": "出門動線 + 60×80cm 整裝檯面 + 鏡前燈", "tags": ["晨間動線", "出門"] },
+        { "id": "G-04", "problem": "老屋無玄關，家塵與氣味直入", "applies_to": "老屋", "severity": 4, "solution": "屏風式玄關 + 段差 + 過渡帶", "tags": ["老屋", "玄關", "過渡帶"] },
+        { "id": "G-05", "problem": "寵物進出造成清潔與動線問題", "applies_to": "養寵物", "severity": 3, "solution": "寵物清潔站 + 防水引流 + 動線分離", "tags": ["寵物", "清潔", "動線"] },
+        { "id": "G-06", "problem": "雨天濕傘與溼度管理", "applies_to": "通用", "severity": 3, "solution": "傘架 + 乾燥區 + 珪藻土 + 除濕", "tags": ["濕度", "玄關"] }
+      ]
+    },
+    {
+      "key": "living",
+      "name": "客廳",
+      "entries": [
+        { "id": "L-01", "problem": "採光不足（街屋暗房）", "applies_to": "老屋街屋", "severity": 5, "solution": "天井 + 天窗 + 長虹玻璃 + 室內窗", "tags": ["採光", "老屋", "心理健康", "SAD"] },
+        { "id": "L-02", "problem": "坪數過小，客餐廳分離感強", "applies_to": "新屋", "severity": 4, "solution": "LDK 一體化開放式設計", "tags": ["小坪數", "LDK", "開放式"] },
+        { "id": "L-03", "problem": "電線雜亂", "applies_to": "通用", "severity": 4, "solution": "整線槽 + 隱線 + 無線化", "tags": ["電線", "視覺"] },
+        { "id": "L-04", "problem": "共壁漏水 + 壁癌，黴菌氣味", "applies_to": "老屋公寓/華廈", "severity": 5, "solution": "斷開式防水 + 懸空 + 透氣背板 + 維修檢測口", "tags": ["老屋", "漏水", "黴菌", "公寓"] },
+        { "id": "L-05", "problem": "收納不足，客廳堆雜物", "applies_to": "通用", "severity": 4, "solution": "牆面 + 天花 + 高櫃 + 電視牆機能整合", "tags": ["收納", "客廳"] },
+        { "id": "L-06", "problem": "空調效率差，冷熱不均", "applies_to": "通用", "severity": 3, "solution": "變頻多聯機 + 出風管道優化", "tags": ["空調", "節能"] },
+        { "id": "L-07", "problem": "兒童安全隱患（尖角/跌倒/夾手）", "applies_to": "有幼兒", "severity": 5, "solution": "圓角家具 + 護角 + 吸震地墊 + 防夾止擋", "tags": ["兒童安全", "幼兒"] },
+        { "id": "L-08", "problem": "長輩無障礙困難", "applies_to": "三代同堂/長輩", "severity": 5, "solution": "下壓把手 + 靜音鎖舌 + 扶手 + 沙發 ≥45cm", "tags": ["長輩", "無障礙"] },
+        { "id": "L-09", "problem": "色彩與親生物性設計", "applies_to": "通用", "severity": 3, "solution": "大地色客廳 + 室內植栽 + 2700K 暖光", "tags": ["色彩", "心理", "植栽"] }
+      ]
+    },
+    {
+      "key": "kitchen",
+      "name": "廚房",
+      "entries": [
+        { "id": "K-01", "problem": "廚房採光不足，安全隱患", "applies_to": "通用", "severity": 5, "solution": "天窗 + 長虹玻璃 + 工作檯 ≥750 lux LED", "tags": ["採光", "廚房", "食品安全"] },
+        { "id": "K-02", "problem": "檯面過小，烹飪效率低", "applies_to": "通用", "severity": 4, "solution": "L/U 型 + 中島 + 掛牆收納 + 動線 <3m", "tags": ["檯面", "效率", "中島"] },
+        { "id": "K-03", "problem": "油煙排擠不出，廚房油膩", "applies_to": "老屋", "severity": 5, "solution": "強力排油煙機 ≥15m³/分 + 直管 + 防倒風閥", "tags": ["油煙", "老屋", "肺部健康"] },
+        { "id": "K-04", "problem": "檯面材質不耐用", "applies_to": "通用", "severity": 3, "solution": "石英石 + 防汙膜 + 圓弧邊角", "tags": ["檯面", "材質"] },
+        { "id": "K-05", "problem": "廚房收納不足", "applies_to": "通用", "severity": 4, "solution": "吊櫃 + 深抽屜 + 掛牆 + 轉角妙用", "tags": ["收納", "廚房"] },
+        { "id": "K-06", "problem": "爐火近窗戶，油煙外溢與安全", "applies_to": "老屋", "severity": 3, "solution": "爐位 ≥120cm 離窗 + 隔屏 + 防油濺擋", "tags": ["油煙", "防火", "老屋"] }
+      ]
+    },
+    {
+      "key": "bathroom",
+      "name": "衛浴",
+      "entries": [
+        { "id": "B-01", "problem": "浴室濕度過高，黴菌滋生", "applies_to": "通用", "severity": 5, "solution": "排氣扇 (面積×8 CFM) + 濕度感應 + 防黴材", "tags": ["黴菌", "濕度", "過敏"] },
+        { "id": "B-02", "problem": "浴室防滑不足，老人跌倒", "applies_to": "有老人/幼兒", "severity": 5, "solution": "防滑磚 (係數 ≥0.6) + 扶手 + 地墊", "tags": ["防滑", "長輩", "幼兒"] },
+        { "id": "B-03", "problem": "兒童洗漱不便", "applies_to": "有幼兒", "severity": 3, "solution": "兒童洗手檯 40-50cm + 踏腳板 + 安全五金", "tags": ["兒童", "衛生習慣"] },
+        { "id": "B-04", "problem": "沐浴水溫不穩定，燙傷風險", "applies_to": "通用", "severity": 4, "solution": "恆溫水龍頭 (±2°C) + 防燙 ≤43°C", "tags": ["水溫", "燙傷"] },
+        { "id": "B-05", "problem": "衛浴收納不足", "applies_to": "通用", "severity": 3, "solution": "浴室櫃 + 掛牆 + 鏡櫃 + 排水設計", "tags": ["收納", "衛浴"] },
+        { "id": "B-06", "problem": "老屋衛浴漏水，樓下糾紛", "applies_to": "老屋", "severity": 5, "solution": "防水層重做 + 乾濕分離 + 防臭地漏 + 定期檢查", "tags": ["老屋", "漏水", "防水"] }
+      ]
+    },
+    {
+      "key": "bedroom",
+      "name": "臥室",
+      "entries": [
+        { "id": "BR-01", "problem": "衣物收納不足，穿衣選擇困難", "applies_to": "通用", "severity": 3, "solution": "推拉門衣櫃 + 雙層吊掛 + 抽屜分層 + 季節輪換", "tags": ["衣櫃", "收納"] },
+        { "id": "BR-02", "problem": "睡眠環境科學化設計", "applies_to": "通用", "severity": 5, "solution": "溫 18-22°C + 濕 40-60% + 遮光簾 ≥99% + 記憶棉", "tags": ["睡眠科學", "REM", "褪黑激素"] },
+        { "id": "BR-03", "problem": "床頭燈光配置不當", "applies_to": "通用", "severity": 4, "solution": "三層照明 + 2700-3000K + 地腳感應 + 床邊開關", "tags": ["燈光", "色溫", "入睡"] },
+        { "id": "BR-04", "problem": "空調氣流與床位（風直吹偏頭痛）", "applies_to": "通用", "severity": 4, "solution": "床腳兩側牆面 + 吊隱式 ≥3m 離床 + 不在床頭", "tags": ["空調", "偏頭痛", "末梢循環"] },
+        { "id": "BR-05", "problem": "臥室 CO₂ 濃度過高", "applies_to": "通用", "severity": 5, "solution": "全熱交換器 + CO₂ 感應 + PM2.5 過濾 97%", "tags": ["CO₂", "全熱交換", "認知功能"] },
+        { "id": "BR-06", "problem": "臥室隔音不足", "applies_to": "通用", "severity": 4, "solution": "隔音窗 STC ≥32 + 衣櫃靠共壁 + 地毯 + 防震墊", "tags": ["噪音", "睡眠", "隔音"] },
+        { "id": "BR-07", "problem": "臥室色溫與情緒調節", "applies_to": "通用", "severity": 3, "solution": "冷色調牆 + 綠色軟裝 + 避免紅橘", "tags": ["色彩", "睡眠", "情緒"] },
+        { "id": "BR-08", "problem": "兒童房分齡設計", "applies_to": "有兒童/青少年", "severity": 4, "solution": "0-3 安全防護 / 3-12 分區學習 / 12+ 隱私隔間", "tags": ["兒童", "成長", "學習"] },
+        { "id": "BR-09", "problem": "西曬臥室過熱", "applies_to": "西曬", "severity": 3, "solution": "外遮陽 + 隔熱窗膜 + 穿堂風", "tags": ["西曬", "隔熱"] },
+        { "id": "BR-10", "problem": "女性專用空間設計（經期/更年期）", "applies_to": "女性/更年期", "severity": 3, "solution": "快冷暖空調 + 香氛 + 柔和色 + 私密收納", "tags": ["女性", "更年期", "經期"] }
+      ]
+    },
+    {
+      "key": "dining",
+      "name": "餐廳",
+      "entries": [
+        { "id": "D-01", "problem": "餐廳採光不足，失去食慾", "applies_to": "通用", "severity": 3, "solution": "天窗 + 玻璃隔間 + 2700-3000K 吊燈 ≥300 lux", "tags": ["採光", "食慾", "暖光"] },
+        { "id": "D-02", "problem": "餐廳與廚房分離，互動感缺", "applies_to": "新屋", "severity": 3, "solution": "開放式 LDK + 中島吧檯 + 視線穿透", "tags": ["開放式", "互動", "LDK"] },
+        { "id": "D-03", "problem": "餐廳座位不舒適", "applies_to": "通用", "severity": 2, "solution": "餐桌 70-75cm + 椅 40-45cm + 靠背 35-40cm", "tags": ["人體工學", "脊椎"] }
+      ]
+    },
+    {
+      "key": "balcony",
+      "name": "陽台",
+      "entries": [
+        { "id": "BL-01", "problem": "陽台積水堆物，蚊蟲", "applies_to": "通用", "severity": 3, "solution": "1-2% 坡度 + 排水口 + 垂直收納", "tags": ["蚊蟲", "登革熱", "陽台"] },
+        { "id": "BL-02", "problem": "陽台採光與居家聯繫不足，迴遊動線缺", "applies_to": "通用", "severity": 2, "solution": "開放式陽台 + 廚房-洗衣-陽台-臥室環形動線", "tags": ["動線", "家事效率", "迴遊"] },
+        { "id": "BL-03", "problem": "陽台西曬過熱", "applies_to": "西曬", "severity": 2, "solution": "外遮陽 + 隔熱窗膜 + 攀爬植栽", "tags": ["西曬", "陽台"] },
+        { "id": "BL-04", "problem": "陽台防水隱蔽工程隱患", "applies_to": "老屋", "severity": 3, "solution": "防水層重做 + 排水優化 + 檢測口", "tags": ["老屋", "防水", "陽台"] }
+      ]
+    },
+    {
+      "key": "study",
+      "name": "書房 / 多功能房",
+      "entries": [
+        { "id": "S-01", "problem": "書房光線暗淡，視力受損", "applies_to": "有工作/學生", "severity": 3, "solution": "工作檯 ≥500 lux + 4000-4500K + 護眼燈 + 避免逆光", "tags": ["照明", "視力", "WFH"] },
+        { "id": "S-02", "problem": "書房干擾多，專注力難集中", "applies_to": "有工作/學生", "severity": 3, "solution": "隔音窗 + 白噪音 + 吸音材料 + 視覺簡潔", "tags": ["專注", "WFH", "隔音"] },
+        { "id": "S-03", "problem": "書房溫度不適", "applies_to": "有工作/學生", "severity": 2, "solution": "獨立分區空調 + 桌邊冷氣 + 衣物調適", "tags": ["WFH", "溫控"] }
+      ]
+    },
+    {
+      "key": "corridor",
+      "name": "走廊動線",
+      "entries": [
+        { "id": "C-01", "problem": "走廊狹窄昏暗", "applies_to": "老屋", "severity": 3, "solution": "室內窗 + LED + 淺色 + 圓角防撞 + 防滑", "tags": ["老屋", "走廊", "採光"] },
+        { "id": "C-02", "problem": "走廊迴遊動線不良，家事效率低", "applies_to": "通用", "severity": 2, "solution": "環形動線 + 寬度 ≥80cm + 轉角圓弧", "tags": ["動線", "家事"] },
+        { "id": "C-03", "problem": "走廊收納不足，雜物堆放", "applies_to": "老屋", "severity": 2, "solution": "壁面掛牆 + 邊角櫃 + 吊櫃 + 收納盒", "tags": ["走廊", "收納"] }
+      ]
+    },
+    {
+      "key": "whole_house",
+      "name": "全屋通用",
+      "entries": [
+        { "id": "W-01", "problem": "全屋甲醛污染 VOCs 超標", "applies_to": "新屋", "severity": 5, "solution": "F1/F0 建材 + 光觸媒 + 全熱交換器", "tags": ["甲醛", "新屋", "兒童白血病", "孕婦"] },
+        { "id": "W-02", "problem": "全屋空調能耗高", "applies_to": "通用", "severity": 3, "solution": "變頻多聯機 SEER ≥4.5 + 分區 + 隔熱", "tags": ["能耗", "電費", "節能"] },
+        { "id": "W-03", "problem": "全屋照明不足", "applies_to": "老屋", "severity": 3, "solution": "分層照明 + LED 升級 + 智能調控 + 夜燈", "tags": ["照明", "視覺", "老屋"] },
+        { "id": "W-04", "problem": "全屋濕度控制不良", "applies_to": "新屋", "severity": 3, "solution": "獨立除濕 + 濕度感應 + 目標 40-60%", "tags": ["濕度", "家塵螨", "黴菌"] },
+        { "id": "W-05", "problem": "全屋電線雜亂", "applies_to": "老屋", "severity": 4, "solution": "整線槽 + 隱線 + 無線化 + 老化檢查", "tags": ["電線", "老屋", "火災"] },
+        { "id": "W-06", "problem": "全屋無障礙設計缺失", "applies_to": "三代同堂/長輩/幼兒", "severity": 5, "solution": "無高度差 + 扶手 + 防滑 + 緊急鈴", "tags": ["無障礙", "長輩", "幼兒", "跌倒"] },
+        { "id": "W-07", "problem": "全屋室內空氣品質不良", "applies_to": "新屋", "severity": 5, "solution": "全熱交換器 + PM2.5/CO₂ 監測 + 室內植栽", "tags": ["IAQ", "PM2.5", "CO₂", "新屋"] },
+        { "id": "W-08", "problem": "全屋噪音問題", "applies_to": "通用", "severity": 4, "solution": "隔音窗 STC ≥32 + 隔音門 + 家電防震墊", "tags": ["噪音", "睡眠", "專注", "STC"] }
+      ]
+    }
+  ]
+}
