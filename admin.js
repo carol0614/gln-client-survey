@@ -198,27 +198,35 @@ function saveTagState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tagState));
 }
 
-// === 掃描 assets/photos/ 目錄（解析 http-server 的 HTML 索引）===
+// === 載入照片清單（讀 data/photos.json，相容 GitHub Pages 靜態主機）===
+// 註：GitHub Pages 不提供目錄索引，無法靠 fetch('assets/photos/') 解析 HTML 列表，
+// 故改讀 photos.json 既有清單；新增照片時匯出新的 photos.json 覆蓋即可。
 async function rescan() {
-  setStatus('掃描中…');
+  setStatus('載入中…');
   try {
-    const res = await fetch(PHOTOS_DIR, { headers: { Accept: 'text/html' } });
-    if (!res.ok) throw new Error(`掃描失敗 HTTP ${res.status}`);
-    const html = await res.text();
+    const res = await fetch('data/photos.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`讀取 photos.json 失敗 HTTP ${res.status}`);
+    const data = await res.json();
+    const photos = Array.isArray(data.photos) ? data.photos : [];
 
-    // 解析 <a href="..."> 找圖檔
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    const links = Array.from(doc.querySelectorAll('a[href]')).map(a => a.getAttribute('href'));
-    photoFiles = links
-      .map(href => decodeURIComponent(href.split('/').pop()))
-      .filter(name => IMG_EXTS.some(ext => name.toLowerCase().endsWith(ext)))
-      .filter(name => name && !name.startsWith('.'))
+    photoFiles = photos
+      .map(p => p.filename || (p.src || '').split('/').pop())
+      .filter(name => name && !name.startsWith('.') && IMG_EXTS.some(ext => name.toLowerCase().endsWith(ext)))
       .sort();
 
+    // 以 photos.json 既有 tags 補種尚未在 localStorage 編輯過的照片
+    photos.forEach(p => {
+      const name = p.filename || (p.src || '').split('/').pop();
+      if (name && !(name in tagState) && Array.isArray(p.tags)) {
+        tagState[name] = p.tags.slice();
+      }
+    });
+    saveTagState();
+
     renderGrid();
-    setStatus(`已掃描 · ${photoFiles.length} 張照片`);
+    setStatus(`已載入 · ${photoFiles.length} 張照片`);
   } catch (e) {
-    setStatus('掃描失敗：' + e.message, true);
+    setStatus('載入失敗：' + e.message, true);
   }
 }
 
