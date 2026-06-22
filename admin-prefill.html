@@ -239,9 +239,9 @@
       </div>
 
       <div class="field">
-        <label>丈量筆記</label>
-        <textarea id="notes" placeholder="貼上丈量會談的筆記、錄音逐字稿、或任何格式的空間需求記錄。&#10;&#10;例：&#10;1F：大玄關（二進式）+ 雙水槽廚房 + 中島...&#10;2F：主臥 + 書房...&#10;寵物：拉布拉多 30kg + 貓..."></textarea>
-        <p class="hint">格式不限，越詳細越好。Claude AI 會自動整理成表單欄位。</p>
+        <label>丈量筆記 <span style="font-weight:400;color:#9a8878;">（選填）</span></label>
+        <textarea id="notes" placeholder="有筆記 → 貼上，AI 自動預填表單欄位（約 30 秒）&#10;沒有筆記 → 留空，直接產生空白連結（即時）&#10;&#10;例：&#10;1F：大玄關（二進式）+ 雙水槽廚房 + 中島...&#10;2F：主臥 + 書房...&#10;寵物：拉布拉多 30kg + 貓..."></textarea>
+        <p class="hint">有筆記會用 AI 預填；留空則產生空白表單讓客戶自填。</p>
       </div>
 
       <button id="submitBtn" onclick="generate()">產生客戶連結</button>
@@ -258,9 +258,7 @@
           <button class="copy-btn" onclick="copyUrl('clientUrl', this)">複製</button>
         </div>
 
-        <p style="font-size:0.82rem; color:#5a7a68; margin-top:0.5rem;">
-          傳給客戶後，他們打開連結會看到已預填的內容，可以直接確認或補充後送出。
-        </p>
+        <p id="resultDesc" style="font-size:0.82rem; color:#5a7a68; margin-top:0.5rem;"></p>
       </div>
     </div>
   </div>
@@ -286,22 +284,19 @@
       const statusEl = document.getElementById('status');
       const resultCard = document.getElementById('resultCard');
 
-      if (!notes) {
-        showStatus('error', '請貼上丈量筆記。');
-        return;
-      }
-
       btn.disabled = true;
       resultCard.classList.remove('show');
-      showStatus('loading', '⏳ 正在用 AI 解析筆記並建立草稿，約需 15–30 秒...');
+
+      const hasNotes = notes.length > 0;
+      showStatus('loading', hasNotes
+        ? '⏳ 正在用 AI 解析筆記並建立草稿，約需 15–30 秒...'
+        : '⏳ 正在建立空白表單連結...');
 
       try {
-        const data = await callGas({
-          action: 'prefill_from_notes',
-          adminKey,
-          location,
-          notes,
-        });
+        const data = await callGas(hasNotes
+          ? { action: 'prefill_from_notes', adminKey, location, notes }
+          : { action: 'create_token', adminKey, location }
+        );
 
         if (!data.ok) {
           showStatus('error', '錯誤：' + (data.error || '未知錯誤') + (data.detail ? '\n' + data.detail : ''));
@@ -311,6 +306,9 @@
         statusEl.style.display = 'none';
         document.getElementById('projectBadge').textContent = '案件編號 ' + data.projectNumber + (data.location ? ' — ' + data.location : '');
         document.getElementById('clientUrl').textContent = data.clientUrl;
+        document.getElementById('resultDesc').textContent = hasNotes
+          ? '客戶打開連結後，會看到 AI 根據丈量筆記預填的內容，確認補充後送出即可。'
+          : '空白表單連結，傳給客戶後由客戶自行填寫所有欄位。';
         resultCard.classList.add('show');
 
       } catch (err) {

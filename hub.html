@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>GLN 生活習慣整理表 — 後台管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=Noto+Sans+TC:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: #f5f0eb;
+      color: #3a2e28;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: #3a2e28;
+      color: #f5f0eb;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .site-header h1 {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .site-header p {
+      font-size: 0.78rem;
+      opacity: 0.6;
+      margin-top: 0.1rem;
+    }
+
+    /* ── Tab Bar ── */
+    .tab-bar {
+      background: #2b2218;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      padding: 0 1rem;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: rgba(245,240,235,0.55);
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 0.88rem;
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .tab-btn:hover { color: rgba(245,240,235,0.85); }
+
+    .tab-btn.active {
+      color: #f5f0eb;
+      border-bottom-color: #c8a97a;
+    }
+
+    /* ── Tab Content ── */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Shared Card ── */
+    .container { max-width: 720px; margin: 0 auto; padding: 2rem 1rem; }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 12px rgba(90,62,43,0.08);
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1.05rem;
+      color: #5a3e2b;
+      margin-bottom: 0.4rem;
+    }
+
+    .card-desc {
+      font-size: 0.85rem;
+      color: #7a6a5a;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    label {
+      display: block;
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: #5a3e2b;
+      margin-bottom: 0.35rem;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    textarea {
+      width: 100%;
+      border: 1.5px solid #d9cfc4;
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.93rem;
+      font-family: inherit;
+      color: #3a2e28;
+      background: #faf8f5;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus { border-color: #a07c5a; background: #fff; }
+    textarea { resize: vertical; min-height: 220px; line-height: 1.6; }
+
+    .field + .field { margin-top: 1.1rem; }
+
+    .hint {
+      font-size: 0.78rem;
+      color: #9a8878;
+      margin-top: 0.3rem;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.82rem;
+      background: #5a3e2b;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.97rem;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      margin-top: 1.4rem;
+      transition: background 0.2s, opacity 0.2s;
+    }
+
+    .btn-primary:hover:not(:disabled) { background: #3a2e28; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .status-box {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.9rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.87rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .status-box.loading { display: block; background: #f0ece6; color: #7a6a5a; border: 1px solid #d9cfc4; }
+    .status-box.error   { display: block; background: #fdf0f0; color: #b03030; border: 1px solid #e8c0c0; }
+
+    .result-card {
+      display: none;
+      background: #f0faf4;
+      border: 1.5px solid #8cbd9e;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 1.2rem;
+    }
+
+    .result-card.show { display: block; }
+
+    .result-card h3 {
+      font-size: 0.95rem;
+      color: #2d6e4e;
+      margin-bottom: 1rem;
+    }
+
+    .result-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .result-row label {
+      font-size: 0.78rem;
+      color: #5a7a68;
+      white-space: nowrap;
+      width: 80px;
+      flex-shrink: 0;
+      margin-bottom: 0;
+    }
+
+    .url-box {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #8cbd9e;
+      border-radius: 6px;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.82rem;
+      color: #1a5c3a;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      padding: 0.35rem 0.75rem;
+      background: #2d6e4e;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+
+    .copy-btn:hover { background: #1a5c3a; }
+    .copy-btn.copied { background: #7aaa8a; }
+
+    .badge {
+      display: inline-block;
+      background: #d9f0e5;
+      color: #1a5c3a;
+      font-size: 0.73rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 20px;
+      font-weight: 600;
+      margin-bottom: 0.7rem;
+    }
+
+    /* ── Photo Admin Tab ── */
+    .link-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 480px) { .link-grid { grid-template-columns: 1fr; } }
+
+    .link-card {
+      background: #faf8f5;
+      border: 1.5px solid #d9cfc4;
+      border-radius: 10px;
+      padding: 1.2rem 1rem;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, background 0.15s;
+      display: block;
+    }
+
+    .link-card:hover { border-color: #a07c5a; background: #fff; }
+
+    .link-card-icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+
+    .link-card h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #5a3e2b;
+      margin-bottom: 0.25rem;
+    }
+
+    .link-card p { font-size: 0.78rem; color: #7a6a5a; line-height: 1.5; }
+
+    .divider { border: none; border-top: 1px solid #e8e0d8; margin: 1.3rem 0; }
+
+    .key-row {
+      display: flex;
+      gap: 0.8rem;
+      align-items: flex-end;
+      margin-bottom: 1.2rem;
+    }
+
+    .key-row .field { flex: 1; margin-top: 0; }
+  </style>
+</head>
+<body>
+
+<div class="site-header">
+  <div>
+    <h1>GLN 生活習慣整理表 — 後台管理</h1>
+    <p>僅供 GLN 設計團隊內部使用</p>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('generate')">產生客戶連結</button>
+  <button class="tab-btn" onclick="switchTab('designer')">設計師補填</button>
+  <button class="tab-btn" onclick="switchTab('photos')">照片管理</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Tab 1: 產生客戶連結（合併 new-case + admin-prefill）
+══════════════════════════════════════════ -->
+<div id="tab-generate" class="tab-content active">
+  <div class="container">
+
+    <div class="card">
+      <h2>產生客戶連結</h2>
+      <p class="card-desc">
+        填地址後按按鈕，即時拿到客戶填寫連結。<br>
+        有丈量筆記可貼上，AI 會預填表單欄位（約 30 秒）；筆記留空則產生空白表單。
+      </p>
+
+      <!-- 管理員金鑰（一次輸入，三個 tab 共用） -->
+      <div class="key-row">
+        <div class="field">
+          <label>管理員金鑰</label>
+          <input type="password" id="adminKey" placeholder="gln-admin-2026" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>案件地址 / 簡稱</label>
+        <input type="text" id="location" placeholder="例：屏東市明中新村、台北市大安區 XX 路">
+      </div>
+
+      <div class="field">
+        <label>丈量筆記 <span style="font-weight:400;color:#9a8878;">（選填）</span></label>
+        <textarea id="notes" placeholder="有筆記 → 貼上，AI 自動預填表單欄位（約 30 秒）&#10;沒有筆記 → 留空，直接產生空白連結（即時）&#10;&#10;例：&#10;1F：大玄關（二進式）+ 雙水槽廚房 + 中島...&#10;2F：主臥 + 書房...&#10;寵物：拉布拉多 30kg + 貓..."></textarea>
+        <p class="hint">格式不限，越詳細越好。</p>
+      </div>
+
+      <button class="btn-primary" id="genBtn" onclick="generateLink()">產生客戶連結</button>
+
+      <div id="genStatus" class="status-box"></div>
+
+      <div class="result-card" id="genResult">
+        <span class="badge" id="genBadge"></span>
+        <h3>客戶連結已產生</h3>
+        <div class="result-row">
+          <label>客戶連結</label>
+          <div class="url-box" id="genClientUrl"></div>
+          <button class="copy-btn" onclick="copyText('genClientUrl', this)">複製</button>
+        </div>
+        <p id="genDesc" style="font-size:0.8rem;color:#5a7a68;margin-top:0.6rem;line-height:1.5;"></p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Tab 2: 設計師補填
+══════════════════════════════════════════ -->
+<div id="tab-designer" class="tab-content">
+  <div class="container">
+    <div class="card">
+      <h2>設計師補填</h2>
+      <p class="card-desc">輸入案件 ID，進入設計師補填頁面，補充設備品牌型號與位置資訊。</p>
+
+      <div class="field">
+        <label>案件 ID</label>
+        <input type="text" id="designerCaseId" placeholder="例：GLN-202606-001">
+        <p class="hint">在 Google Sheet Submissions 分頁的 CaseID 欄位查找。</p>
+      </div>
+
+      <button class="btn-primary" onclick="openDesigner()">開啟設計師補填頁</button>
+
+      <hr class="divider">
+
+      <p style="font-size:0.83rem;color:#7a6a5a;margin-bottom:0.8rem;">或直接開啟 Demo 版（測試用）：</p>
+      <a href="designer.html?id=GLN-DEMO&demo=1" target="_blank" class="link-card" style="text-decoration:none;">
+        <div style="display:flex;align-items:center;gap:0.6rem;">
+          <span style="font-size:1.2rem;">🧪</span>
+          <div>
+            <div style="font-size:0.87rem;font-weight:600;color:#5a3e2b;">Demo 設計師補填頁</div>
+            <div style="font-size:0.76rem;color:#7a6a5a;">designer.html?id=GLN-DEMO&demo=1</div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Tab 3: 照片管理
+══════════════════════════════════════════ -->
+<div id="tab-photos" class="tab-content">
+  <div class="container">
+    <div class="card">
+      <h2>感覺光譜照片管理</h2>
+      <p class="card-desc">管理感覺光譜照片庫、標記 tag、匯出 photos.json。</p>
+
+      <a href="admin.html?t=admin" target="_blank" class="link-card" style="display:block;text-decoration:none;margin-bottom:1rem;">
+        <div style="display:flex;align-items:center;gap:0.6rem;">
+          <span style="font-size:1.5rem;">🖼</span>
+          <div>
+            <div style="font-size:0.9rem;font-weight:600;color:#5a3e2b;">開啟照片管理後台</div>
+            <div style="font-size:0.78rem;color:#7a6a5a;">掃描照片、勾 tag、匯出 photos.json</div>
+          </div>
+        </div>
+      </a>
+
+      <hr class="divider">
+
+      <p style="font-size:0.83rem;color:#5a3e2b;font-weight:500;margin-bottom:0.7rem;">操作說明</p>
+      <ol style="font-size:0.82rem;color:#7a6a5a;line-height:2;padding-left:1.2rem;">
+        <li>把照片拖進 <code>assets/photos/</code> 資料夾</li>
+        <li>點上方連結開啟後台 → 按「重新掃描」</li>
+        <li>每張照片勾選 3–5 個感覺 tag</li>
+        <li>按「匯出 photos.json」→ 下載</li>
+        <li>把下載的 photos.json 拖到 <code>data/photos.json</code> 覆蓋</li>
+        <li>完成，客戶問卷的感覺光譜即時生效</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GAS = 'https://script.google.com/macros/s/AKfycbzCpoKgXvana8_6cxxB1jrn0qCW8ulw7iX-vVrDJbqCQZ36KjAhHJRNAd489N_z564zsw/exec';
+  const BASE = 'https://carol0614.github.io/gln-client-survey';
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      const names = ['generate','designer','photos'];
+      b.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.tab-content').forEach(c => {
+      c.classList.toggle('active', c.id === 'tab-' + name);
+    });
+  }
+
+  async function callGas(payload) {
+    const res = await fetch(GAS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+
+  async function generateLink() {
+    const adminKey = document.getElementById('adminKey').value.trim() || 'gln-admin-2026';
+    const location = document.getElementById('location').value.trim();
+    const notes    = document.getElementById('notes').value.trim();
+    const btn      = document.getElementById('genBtn');
+    const statusEl = document.getElementById('genStatus');
+    const result   = document.getElementById('genResult');
+
+    btn.disabled = true;
+    result.classList.remove('show');
+    const hasNotes = notes.length > 0;
+    showStatus(statusEl, 'loading', hasNotes
+      ? '⏳ AI 解析筆記中，約需 15–30 秒...'
+      : '⏳ 建立空白表單連結...');
+
+    try {
+      const data = await callGas(hasNotes
+        ? { action: 'prefill_from_notes', adminKey, location, notes }
+        : { action: 'create_token', adminKey, location }
+      );
+
+      if (!data.ok) {
+        showStatus(statusEl, 'error', '錯誤：' + (data.error || '未知') + (data.detail ? '\n' + data.detail : ''));
+        return;
+      }
+
+      statusEl.style.display = 'none';
+      document.getElementById('genBadge').textContent =
+        '案件編號 ' + data.projectNumber + (data.location ? ' — ' + data.location : '');
+      document.getElementById('genClientUrl').textContent = data.clientUrl;
+      document.getElementById('genDesc').textContent = hasNotes
+        ? '客戶打開連結後，會看到 AI 根據丈量筆記預填的內容，確認補充後送出即可。'
+        : '空白表單連結，傳給客戶後由客戶自行填寫所有欄位後送出。';
+      result.classList.add('show');
+
+    } catch (err) {
+      showStatus(statusEl, 'error', '呼叫失敗：' + err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function openDesigner() {
+    const caseId = document.getElementById('designerCaseId').value.trim();
+    if (!caseId) { alert('請輸入案件 ID'); return; }
+    window.open(BASE + '/designer.html?id=' + encodeURIComponent(caseId), '_blank');
+  }
+
+  function showStatus(el, type, msg) {
+    el.className = 'status-box ' + type;
+    el.textContent = msg;
+  }
+
+  function copyText(elId, btn) {
+    navigator.clipboard.writeText(document.getElementById(elId).textContent).then(() => {
+      btn.textContent = '已複製！';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '複製'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
