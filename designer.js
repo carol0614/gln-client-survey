@@ -3,7 +3,7 @@
    URL: /designer.html?t=<designer_token>&id=<caseId>&demo=1
    ============================================================ */
 
-const GAS_ENDPOINT = '';
+const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzCpoKgXvana8_6cxxB1jrn0qCW8ulw7iX-vVrDJbqCQZ36KjAhHJRNAd489N_z564zsw/exec';
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const params = new URLSearchParams(window.location.search);
