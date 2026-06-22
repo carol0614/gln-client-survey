@@ -1,338 +1,50 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow">
-  <title>GLN 丈量筆記代填 — 產生客戶連結</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>已移至後台 — GLN</title>
+  <meta http-equiv="refresh" content="0; url=admin.html?t=admin" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      font-family: 'Noto Serif TC', 'Georgia', serif;
+      font-family: 'Noto Serif TC', Georgia, serif;
       background: #f5f0eb;
       color: #3a2e28;
       min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 2rem 1rem;
-    }
-
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-    }
-
-    header {
       text-align: center;
-      margin-bottom: 2.5rem;
     }
-
-    header h1 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #5a3e2b;
-      letter-spacing: 0.05em;
-    }
-
-    header p {
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      color: #7a6a5a;
-    }
-
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 2px 12px rgba(90,62,43,0.08);
-      margin-bottom: 1.5rem;
-    }
-
-    label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #5a3e2b;
-      margin-bottom: 0.4rem;
-      letter-spacing: 0.03em;
-    }
-
-    input[type="text"],
-    input[type="password"],
-    textarea {
-      width: 100%;
-      border: 1.5px solid #d9cfc4;
-      border-radius: 8px;
-      padding: 0.7rem 0.9rem;
-      font-size: 0.95rem;
-      font-family: inherit;
-      color: #3a2e28;
-      background: #faf8f5;
-      transition: border-color 0.2s;
-      outline: none;
-    }
-
-    input[type="text"]:focus,
-    input[type="password"]:focus,
-    textarea:focus {
-      border-color: #a07c5a;
-      background: #fff;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 280px;
-      line-height: 1.6;
-    }
-
-    .field + .field { margin-top: 1.2rem; }
-
-    .hint {
-      font-size: 0.8rem;
-      color: #9a8878;
-      margin-top: 0.3rem;
-    }
-
-    button {
-      width: 100%;
-      padding: 0.85rem;
+    .box { max-width: 460px; }
+    h1 { font-size: 1.25rem; color: #5a3e2b; margin-bottom: 0.75rem; }
+    p { font-size: 0.92rem; line-height: 1.7; color: #7a6a5a; margin-bottom: 1.5rem; }
+    a {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
       background: #5a3e2b;
       color: #fff;
-      border: none;
+      text-decoration: none;
       border-radius: 8px;
-      font-size: 1rem;
-      font-family: inherit;
       font-weight: 600;
-      cursor: pointer;
-      letter-spacing: 0.05em;
-      transition: background 0.2s, opacity 0.2s;
-      margin-top: 1.5rem;
+      letter-spacing: 0.04em;
     }
-
-    button:hover:not(:disabled) { background: #3a2e28; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    #status {
-      display: none;
-      margin-top: 1.2rem;
-      padding: 1rem 1.2rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      line-height: 1.6;
-    }
-
-    #status.loading {
-      display: block;
-      background: #f0ece6;
-      color: #7a6a5a;
-      border: 1px solid #d9cfc4;
-    }
-
-    #status.error {
-      display: block;
-      background: #fdf0f0;
-      color: #b03030;
-      border: 1px solid #e8c0c0;
-    }
-
-    .result-card {
-      display: none;
-      background: #f0faf4;
-      border: 1.5px solid #8cbd9e;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-top: 1.5rem;
-    }
-
-    .result-card.show { display: block; }
-
-    .result-card h2 {
-      font-size: 1rem;
-      color: #2d6e4e;
-      margin-bottom: 1rem;
-    }
-
-    .result-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.8rem;
-      margin-bottom: 0.8rem;
-    }
-
-    .result-row label {
-      font-size: 0.8rem;
-      color: #5a7a68;
-      white-space: nowrap;
-      width: 90px;
-      flex-shrink: 0;
-      margin-bottom: 0;
-    }
-
-    .url-box {
-      flex: 1;
-      background: #fff;
-      border: 1px solid #8cbd9e;
-      border-radius: 6px;
-      padding: 0.5rem 0.7rem;
-      font-size: 0.85rem;
-      color: #1a5c3a;
-      word-break: break-all;
-      line-height: 1.5;
-    }
-
-    .copy-btn {
-      flex-shrink: 0;
-      padding: 0.4rem 0.8rem;
-      background: #2d6e4e;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      font-family: inherit;
-      font-weight: 600;
-      margin-top: 0;
-      width: auto;
-    }
-
-    .copy-btn:hover { background: #1a5c3a; }
-    .copy-btn.copied { background: #7aaa8a; }
-
-    .badge {
-      display: inline-block;
-      background: #d9f0e5;
-      color: #1a5c3a;
-      font-size: 0.75rem;
-      padding: 0.2rem 0.6rem;
-      border-radius: 20px;
-      font-weight: 600;
-      margin-bottom: 0.8rem;
-    }
-
-    .divider {
-      border: none;
-      border-top: 1px solid #e8e0d8;
-      margin: 1.5rem 0;
-    }
+    a:hover { background: #3a2e28; }
   </style>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>GLN 丈量筆記代填</h1>
-      <p>貼上丈量會談筆記，自動產生客戶補充連結</p>
-    </header>
-
-    <div class="card">
-      <div class="field">
-        <label>管理員金鑰</label>
-        <input type="password" id="adminKey" placeholder="gln-admin-2026" autocomplete="off">
-        <p class="hint">預設金鑰請詢問 Carol</p>
-      </div>
-
-      <hr class="divider">
-
-      <div class="field">
-        <label>案件地址 / 簡稱</label>
-        <input type="text" id="location" placeholder="例：屏東市明中新村、台北市大安區 XX 路">
-      </div>
-
-      <div class="field">
-        <label>丈量筆記 <span style="font-weight:400;color:#9a8878;">（選填）</span></label>
-        <textarea id="notes" placeholder="有筆記 → 貼上，AI 自動預填表單欄位（約 30 秒）&#10;沒有筆記 → 留空，直接產生空白連結（即時）&#10;&#10;例：&#10;1F：大玄關（二進式）+ 雙水槽廚房 + 中島...&#10;2F：主臥 + 書房...&#10;寵物：拉布拉多 30kg + 貓..."></textarea>
-        <p class="hint">有筆記會用 AI 預填；留空則產生空白表單讓客戶自填。</p>
-      </div>
-
-      <button id="submitBtn" onclick="generate()">產生客戶連結</button>
-
-      <div id="status"></div>
-
-      <div class="result-card" id="resultCard">
-        <span class="badge" id="projectBadge"></span>
-        <h2>客戶連結已產生</h2>
-
-        <div class="result-row">
-          <label>客戶填寫連結</label>
-          <div class="url-box" id="clientUrl"></div>
-          <button class="copy-btn" onclick="copyUrl('clientUrl', this)">複製</button>
-        </div>
-
-        <p id="resultDesc" style="font-size:0.82rem; color:#5a7a68; margin-top:0.5rem;"></p>
-      </div>
-    </div>
+  <div class="box">
+    <h1>丈量筆記代填已收進後台</h1>
+    <p>
+      此頁已整併進後台「新建案件」分頁，請改從後台單一入口操作。<br />
+      正在自動為你導向…
+    </p>
+    <a href="admin.html?t=admin">前往後台 →</a>
   </div>
-
-  <script>
-    const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzCpoKgXvana8_6cxxB1jrn0qCW8ulw7iX-vVrDJbqCQZ36KjAhHJRNAd489N_z564zsw/exec';
-
-    async function callGas(payload) {
-      const res = await fetch(GAS_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return await res.json();
-    }
-
-    async function generate() {
-      const adminKey = document.getElementById('adminKey').value.trim() || 'gln-admin-2026';
-      const location = document.getElementById('location').value.trim();
-      const notes = document.getElementById('notes').value.trim();
-      const btn = document.getElementById('submitBtn');
-      const statusEl = document.getElementById('status');
-      const resultCard = document.getElementById('resultCard');
-
-      btn.disabled = true;
-      resultCard.classList.remove('show');
-
-      const hasNotes = notes.length > 0;
-      showStatus('loading', hasNotes
-        ? '⏳ 正在用 AI 解析筆記並建立草稿，約需 15–30 秒...'
-        : '⏳ 正在建立空白表單連結...');
-
-      try {
-        const data = await callGas(hasNotes
-          ? { action: 'prefill_from_notes', adminKey, location, notes }
-          : { action: 'create_token', adminKey, location }
-        );
-
-        if (!data.ok) {
-          showStatus('error', '錯誤：' + (data.error || '未知錯誤') + (data.detail ? '\n' + data.detail : ''));
-          return;
-        }
-
-        statusEl.style.display = 'none';
-        document.getElementById('projectBadge').textContent = '案件編號 ' + data.projectNumber + (data.location ? ' — ' + data.location : '');
-        document.getElementById('clientUrl').textContent = data.clientUrl;
-        document.getElementById('resultDesc').textContent = hasNotes
-          ? '客戶打開連結後，會看到 AI 根據丈量筆記預填的內容，確認補充後送出即可。'
-          : '空白表單連結，傳給客戶後由客戶自行填寫所有欄位。';
-        resultCard.classList.add('show');
-
-      } catch (err) {
-        showStatus('error', '呼叫失敗：' + err.message + '\n\n請確認網路連線或稍後再試。');
-      } finally {
-        btn.disabled = false;
-      }
-    }
-
-    function showStatus(type, msg) {
-      const el = document.getElementById('status');
-      el.className = type;
-      el.style.whiteSpace = 'pre-wrap';
-      el.textContent = msg;
-    }
-
-    function copyUrl(elementId, btn) {
-      const text = document.getElementById(elementId).textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = '已複製！';
-        btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = '複製'; btn.classList.remove('copied'); }, 2000);
-      });
-    }
-  </script>
+  <script>location.replace('admin.html?t=admin');</script>
 </body>
 </html>
