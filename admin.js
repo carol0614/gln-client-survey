@@ -27,7 +27,6 @@ if (token !== ADMIN_TOKEN) {
   initTabs();
   init();
   loadCasesList();
-  initNewCaseSpeech();
 }
 
 // === Tab 切換 ===
@@ -101,9 +100,8 @@ function renderCasesList() {
                 <p class="muted" style="font-size:0.8rem;">載入筆記中…</p>
               </div>
               <div class="note-add-row">
-                <textarea class="note-add-ta" id="${taId}" rows="3" placeholder="輸入新筆記，或按錄音鍵說話…"></textarea>
+                <textarea class="note-add-ta" id="${taId}" rows="3" placeholder="貼上會談逐字稿或錄音連結（用手機 / Otter / 超級轉錄等錄完，再貼回這裡），或手動輸入筆記…"></textarea>
                 <div style="display:flex;flex-direction:column;gap:0.4rem;">
-                  <button class="btn-record" id="rec-${c.caseId}" onclick="toggleRecording('${c.caseId}')">🎤 錄音</button>
                   <button class="btn btn-primary" style="font-size:0.82rem;padding:0.4rem 0.75rem;" onclick="submitNote('${c.caseId}')">💾 儲存</button>
                 </div>
               </div>
@@ -489,84 +487,6 @@ async function rerunAnalysis(caseId) {
     alert('重跑失敗：' + err.message);
     setTimeout(() => { if (btn) btn.textContent = orig; }, 2500);
   }
-}
-
-// === 錄音（Web Speech API）===
-const _recMap = {}; // caseId → { recognition, isRecording, final }
-
-function toggleRecording(caseId) {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = $('#rec-' + caseId);
-  const ta = $('#note-ta-' + caseId);
-  if (!SpeechRecognition) {
-    alert('此瀏覽器不支援語音辨識，請使用 Chrome。');
-    return;
-  }
-  let state = _recMap[caseId];
-  if (!state) {
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'zh-TW';
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    state = { recognition, isRecording: false, final: '' };
-    recognition.onresult = (e) => {
-      let interim = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) state.final += e.results[i][0].transcript;
-        else interim += e.results[i][0].transcript;
-      }
-      if (ta) ta.value = state.final + interim;
-    };
-    recognition.onend = () => { if (state.isRecording) recognition.start(); };
-    recognition.onerror = () => { state.isRecording = false; if (btn) { btn.textContent = '🎤 錄音'; btn.classList.remove('recording'); } };
-    _recMap[caseId] = state;
-  }
-  if (!state.isRecording) {
-    state.final = ta?.value || '';
-    state.recognition.start();
-    state.isRecording = true;
-    if (btn) { btn.textContent = '⏹ 停止'; btn.classList.add('recording'); }
-  } else {
-    state.recognition.stop();
-    state.isRecording = false;
-    if (btn) { btn.textContent = '🎤 錄音'; btn.classList.remove('recording'); }
-  }
-}
-
-// 新建案件的筆記 textarea 也支援錄音（id="notes-input"）
-function initNewCaseSpeech() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'btn-record';
-  btn.textContent = '🎤 錄音';
-  const ta = $('#notes-input');
-  if (!ta) return;
-  ta.parentElement.appendChild(btn);
-  if (!SpeechRecognition) { btn.disabled = true; btn.title = '請用 Chrome'; return; }
-  let isRec = false, final = '';
-  const rec = new SpeechRecognition();
-  rec.lang = 'zh-TW'; rec.continuous = true; rec.interimResults = true;
-  rec.onresult = (e) => {
-    let interim = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) final += e.results[i][0].transcript;
-      else interim += e.results[i][0].transcript;
-    }
-    ta.value = final + interim;
-  };
-  rec.onend = () => { if (isRec) rec.start(); };
-  rec.onerror = () => { isRec = false; btn.textContent = '🎤 錄音'; btn.classList.remove('recording'); };
-  btn.addEventListener('click', () => {
-    if (!isRec) {
-      final = ta.value;
-      rec.start(); isRec = true;
-      btn.textContent = '⏹ 停止'; btn.classList.add('recording');
-    } else {
-      rec.stop(); isRec = false;
-      btn.textContent = '🎤 錄音'; btn.classList.remove('recording');
-    }
-  });
 }
 
 // === Token 產生器 ===
