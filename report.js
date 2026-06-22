@@ -650,20 +650,33 @@ function renderReport(caseData, analysis, feelingsData, version) {
     </section>
   `;
 
-  // 樓層空間規劃
+  // 樓層 × 空間規劃
   let floorPlanRows = '';
   try {
     const floors = typeof d._floor_plan === 'string'
       ? JSON.parse(d._floor_plan || '[]')
       : (Array.isArray(d._floor_plan) ? d._floor_plan : []);
     floorPlanRows = (floors || [])
-      .filter(f => f && (f.name || f.desc))
-      .map(f => `<tr><th>${val(f.name)}</th><td>${val(f.desc)}</td></tr>`)
+      .map(f => {
+        // 相容舊格式 {name, desc}
+        const rooms = Array.isArray(f.rooms)
+          ? f.rooms.filter(r => r && (r.room || r.desc))
+          : (f.desc ? [{ room: '', desc: f.desc }] : []);
+        const floorName = f.floor || f.name || '';
+        if (!floorName && !rooms.length) return '';
+        const roomRows = rooms.length
+          ? rooms.map(r => `<tr><th>${val(r.room)}</th><td>${val(r.desc)}</td></tr>`).join('')
+          : `<tr><td colspan="2" class="muted">—</td></tr>`;
+        return `
+          <tr class="floor-row"><td colspan="2"><strong>${val(floorName, '（未標樓層）')}</strong></td></tr>
+          ${roomRows}
+        `;
+      })
       .join('');
   } catch (e) { floorPlanRows = ''; }
   const floorPlanHtml = floorPlanRows ? `
     <div class="report-floor-plan">
-      <strong>樓層空間規劃</strong>
+      <strong>樓層 × 空間規劃</strong>
       <table class="report-table"><tbody>${floorPlanRows}</tbody></table>
       ${d.floor_priority ? `<p class="muted" style="margin-top:0.5rem;"><strong>整體優先順序：</strong>${val(d.floor_priority)}</p>` : ''}
     </div>

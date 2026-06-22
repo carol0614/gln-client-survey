@@ -517,14 +517,15 @@
       <section class="section collapsible" data-section="E">
         <h2>Section F — 你對空間和合作的期待</h2>
 
-        <!-- 樓層空間規劃（透天 / 多樓層適用）-->
+        <!-- 樓層 × 空間規劃（單層 / 透天皆適用）-->
         <div class="field floor-plan-field">
-          <label>樓層空間規劃 <span class="optional-badge">選填</span></label>
+          <label>樓層 × 空間規劃 <span class="optional-badge">選填</span></label>
           <p class="section-meta">
-            每層樓想要的空間、機能、想做的事，逐層寫下來（透天或多樓層最適合；單層公寓填一層即可）。<br />
-            例：<em>一樓</em> 開放式廚房、中島、客餐廚＋工作區；<em>二樓</em> 大主臥、浴缸；<em>三樓</em> 兩套房給父母住。
+            想要的空間（客廳、餐廳、廚房、主臥…）一個一個寫下來，每個空間的需求分開填。<br />
+            單層公寓 → 在同一層底下逐間新增；透天 / 多樓層 → 先加樓層，再在每層底下加空間。<br />
+            例：<em>一樓</em> → 客廳（挑高、電視牆收納）、餐廳（可坐 8 人）、廚房（開放式中島）；<em>二樓</em> → 主臥（更衣室、浴缸）。
           </p>
-          <div id="floor-plan-list"><!-- 由 app.js 動態渲染樓層區塊 --></div>
+          <div id="floor-plan-list"><!-- 由 app.js 動態渲染樓層 × 空間區塊 --></div>
           <button type="button" class="floor-add-btn" id="floor-add-btn">＋ 新增樓層</button>
           <input type="hidden" name="_floor_plan" id="floor-plan-data" />
         </div>

@@ -628,15 +628,27 @@ function enrichDataWithFeelingLabels(data, feelingsMap) {
       }));
     }
   } catch (e) { /* ignore */ }
-  // 樓層空間規劃：把 _floor_plan JSON 字串轉成可讀陣列，方便 AI 逐層分析
+  // 樓層 × 空間規劃：把 _floor_plan JSON 轉成可讀巢狀結構，方便 AI 逐層逐間分析
   try {
     if (clone._floor_plan) {
       const floors = typeof clone._floor_plan === 'string'
         ? JSON.parse(clone._floor_plan) : clone._floor_plan;
       if (Array.isArray(floors) && floors.length) {
         clone._floor_plan_readable = floors
-          .filter(f => f && (f.name || f.desc))
-          .map(f => ({ 樓層: f.name || '', 想要的空間機能: f.desc || '' }));
+          .map(function (f) {
+            // 相容舊格式 {name, desc}
+            var rooms = Array.isArray(f.rooms)
+              ? f.rooms
+              : (f.desc ? [{ room: '', desc: f.desc }] : []);
+            rooms = rooms.filter(function (r) { return r && (r.room || r.desc); });
+            return {
+              樓層: f.floor || f.name || '',
+              空間: rooms.map(function (r) {
+                return { 空間名稱: r.room || '', 需求: r.desc || '' };
+              }),
+            };
+          })
+          .filter(function (f) { return f.樓層 || f.空間.length; });
       }
     }
   } catch (e) { /* ignore */ }

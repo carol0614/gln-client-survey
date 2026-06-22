@@ -450,10 +450,18 @@ function loadDraft() {
         if (input) input.value = val;
       }
     });
-    // Restore 樓層空間規劃（hidden _floor_plan 以 _ 開頭，上面迴圈會跳過，這裡單獨還原）
+    // Restore 樓層 × 空間規劃（hidden _floor_plan 以 _ 開頭，上面迴圈會跳過，這裡單獨還原）
     try {
       const floors = JSON.parse(data._floor_plan || '[]');
-      if (Array.isArray(floors)) floors.forEach(f => addFloor(f.name || '', f.desc || ''));
+      if (Array.isArray(floors)) {
+        floors.forEach(f => {
+          // 相容舊格式 {name, desc}：把 desc 當成單一空間還原
+          const rooms = Array.isArray(f.rooms)
+            ? f.rooms
+            : (f.desc ? [{ room: '', desc: f.desc }] : []);
+          addFloor(f.floor || f.name || '', rooms);
+        });
+      }
     } catch (e) { /* ignore */ }
     return true;
   } catch (e) {
@@ -462,39 +470,72 @@ function loadDraft() {
   }
 }
 
-// === 樓層空間規劃（動態新增樓層區塊）===
-function addFloor(name = '', desc = '') {
+// === 樓層 × 空間規劃（兩層：樓層底下動態新增空間）===
+function addFloor(name = '', rooms = []) {
   const list = $('#floor-plan-list');
   if (!list) return;
   const block = document.createElement('div');
   block.className = 'floor-block';
   block.innerHTML = `
     <div class="floor-block-head">
-      <input type="text" class="floor-name" placeholder="樓層（例：一樓 / B1 / 頂樓）" />
+      <input type="text" class="floor-name" placeholder="樓層（例：一樓 / B1 / 頂樓；單層可留空）" />
       <button type="button" class="floor-remove" title="刪除這層" aria-label="刪除這層">✕</button>
     </div>
-    <textarea class="floor-desc" placeholder="這層想要的空間、機能…例：開放式廚房、中島、客餐廚＋工作區"></textarea>
+    <div class="rooms-list"></div>
+    <button type="button" class="room-add-btn">＋ 新增空間</button>
   `;
   block.querySelector('.floor-name').value = name;
-  block.querySelector('.floor-desc').value = desc;
+  block.querySelector('.floor-name').addEventListener('input', syncFloorPlan);
   block.querySelector('.floor-remove').addEventListener('click', () => {
     block.remove();
     syncFloorPlan();
   });
-  block.querySelectorAll('.floor-name, .floor-desc').forEach(el => {
+  block.querySelector('.room-add-btn').addEventListener('click', () => addRoom(block));
+  list.appendChild(block);
+  // 還原既有空間；沒有就先給一個空白空間引導
+  const seed = (rooms && rooms.length) ? rooms : [{ room: '', desc: '' }];
+  seed.forEach(r => addRoom(block, r.room || '', r.desc || ''));
+  syncFloorPlan();
+}
+
+function addRoom(floorBlock, room = '', desc = '') {
+  const roomsList = floorBlock.querySelector('.rooms-list');
+  if (!roomsList) return;
+  const r = document.createElement('div');
+  r.className = 'room-block';
+  r.innerHTML = `
+    <div class="room-block-head">
+      <input type="text" class="room-name" placeholder="空間（例：客廳 / 餐廳 / 主臥）" />
+      <button type="button" class="room-remove" title="刪除這個空間" aria-label="刪除這個空間">✕</button>
+    </div>
+    <textarea class="room-desc" placeholder="這個空間的需求…例：挑高、電視牆收納、可坐 8 人、開放式中島"></textarea>
+  `;
+  r.querySelector('.room-name').value = room;
+  r.querySelector('.room-desc').value = desc;
+  r.querySelector('.room-remove').addEventListener('click', () => {
+    r.remove();
+    syncFloorPlan();
+  });
+  r.querySelectorAll('.room-name, .room-desc').forEach(el => {
     el.addEventListener('input', syncFloorPlan);
   });
-  list.appendChild(block);
+  roomsList.appendChild(r);
   syncFloorPlan();
 }
 
 function syncFloorPlan() {
   const field = $('#floor-plan-data');
   if (!field) return;
-  const floors = $$('#floor-plan-list .floor-block').map(b => ({
-    name: (b.querySelector('.floor-name')?.value || '').trim(),
-    desc: (b.querySelector('.floor-desc')?.value || '').trim(),
-  })).filter(f => f.name || f.desc);
+  const floors = $$('#floor-plan-list .floor-block').map(b => {
+    const rooms = $$('.room-block', b).map(rb => ({
+      room: (rb.querySelector('.room-name')?.value || '').trim(),
+      desc: (rb.querySelector('.room-desc')?.value || '').trim(),
+    })).filter(r => r.room || r.desc);
+    return {
+      floor: (b.querySelector('.floor-name')?.value || '').trim(),
+      rooms,
+    };
+  }).filter(f => f.floor || f.rooms.length);
   field.value = floors.length ? JSON.stringify(floors) : '';
 }
 

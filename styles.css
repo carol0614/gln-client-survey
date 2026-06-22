@@ -2458,8 +2458,62 @@ footer.site-footer {
   border-color: #c79a9a;
   color: #a85050;
 }
-.floor-block .floor-desc {
-  min-height: 3.5rem;
+/* 樓層底下的空間清單 */
+.floor-block .rooms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.room-block {
+  border: 1px solid var(--gln-mist);
+  border-radius: var(--radius);
+  background: #fff;
+  padding: 0.5rem 0.6rem;
+}
+.room-block-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.room-block-head .room-name {
+  flex: 1;
+}
+.room-remove {
+  flex-shrink: 0;
+  width: 1.7rem;
+  height: 1.7rem;
+  border: 1px solid var(--gln-mist);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--gln-taupe);
+  cursor: pointer;
+  line-height: 1;
+}
+.room-remove:hover {
+  background: #fbeaea;
+  border-color: #c79a9a;
+  color: #a85050;
+}
+.room-block .room-desc {
+  min-height: 3rem;
+}
+.room-add-btn {
+  display: inline-block;
+  padding: 0.35rem 0.8rem;
+  border: 1px dashed var(--gln-taupe);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--gln-taupe);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.room-add-btn:hover {
+  background: var(--gln-taupe);
+  color: #fff;
 }
 .floor-add-btn {
   display: inline-block;
