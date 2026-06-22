@@ -150,6 +150,50 @@
       .admin-tab-btn { padding: 0.55rem 0.875rem; font-size: 0.85rem; }
     }
 
+    /* ── 筆記解析 ── */
+    .notes-parse-box {
+      background: var(--gln-sand, #f5f0e8);
+      border: 1px solid var(--gln-mist, #e0dbd0);
+      border-radius: 8px;
+      padding: 1.25rem 1.4rem;
+      margin-bottom: 1.5rem;
+    }
+    .notes-parse-label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.6rem;
+      color: var(--gln-ink);
+    }
+    .notes-textarea {
+      width: 100%;
+      padding: 0.7rem 0.875rem;
+      border: 1px solid var(--gln-mist, #e0dbd0);
+      border-radius: var(--radius);
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      resize: vertical;
+      background: #fff;
+      color: var(--gln-ink);
+      box-sizing: border-box;
+    }
+    .notes-textarea:focus { outline: none; border-color: var(--gln-olive); }
+    .notes-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1.5rem 0 1rem;
+      color: var(--gln-taupe);
+      font-size: 0.82rem;
+    }
+    .notes-divider::before, .notes-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--gln-mist, #e0dbd0);
+    }
+
     /* ── 報告 Modal ── */
     .report-modal-backdrop {
       display: none;
@@ -264,6 +308,20 @@
       <div class="admin-tab-panel active" id="tab-token">
         <section class="admin-token-section">
           <h2>新建案件 · 產生客戶連結</h2>
+
+          <!-- 筆記解析區 -->
+          <div class="notes-parse-box">
+            <label class="notes-parse-label">📋 貼入丈量筆記或會談記錄（AI 自動解析填入）</label>
+            <textarea id="notes-input" class="notes-textarea" rows="5" placeholder="例：王小明，台北市信義區忠孝東路五段50號12樓，屋齡35年，約40坪，老屋翻新，預算約300萬，已丈量完成，下周提案…"></textarea>
+            <div style="display:flex;gap:0.75rem;align-items:center;margin-top:0.75rem;flex-wrap:wrap;">
+              <button type="button" id="btn-parse-notes" class="btn btn-primary">✨ AI 解析並產生連結</button>
+              <span id="notes-parse-status" class="muted" style="font-size:0.85rem;"></span>
+            </div>
+            <div id="notes-parse-result" class="token-result" style="display:none;"></div>
+          </div>
+
+          <div class="notes-divider"><span>或手動填入</span></div>
+
           <p class="muted">填入客戶基本資料後按「產生連結」，問卷開啟時這些欄位會自動預填，客戶不需要重複輸入。</p>
           <div class="prefill-form">
             <div class="prefill-row">

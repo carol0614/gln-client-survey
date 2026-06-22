@@ -27,6 +27,7 @@ if (token !== ADMIN_TOKEN) {
   initTabs();
   init();
   loadCasesList();
+  bindNotesParser();
 }
 
 // === Tab 切換 ===
@@ -390,6 +391,66 @@ function switchReportView(view) {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('#report-modal').classList.contains('open')) closeReportModal();
 });
+
+// === 筆記解析 ===
+function bindNotesParser() {
+  const btn = $('#btn-parse-notes');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    const notes = ($('#notes-input')?.value || '').trim();
+    if (!notes) { alert('請先貼入筆記內容'); return; }
+
+    const statusEl = $('#notes-parse-status');
+    const resultEl = $('#notes-parse-result');
+    btn.disabled = true;
+    btn.textContent = '解析中…';
+    statusEl.textContent = 'AI 分析筆記中，約需 10–20 秒…';
+    resultEl.style.display = 'none';
+
+    try {
+      const res = await fetch(GAS_ENDPOINT_ADMIN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'prefill_from_notes', adminKey: ADMIN_KEY, notes }),
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || '解析失敗');
+
+      statusEl.textContent = `✅ 解析完成 · 案件編號 ${json.projectNumber || '—'}`;
+      resultEl.innerHTML = `
+        <div class="token-result-title">連結已產生（筆記已預填）</div>
+        <div class="token-row">
+          <span class="token-row-label">客戶問卷</span>
+          <a id="notes-client-url" href="${json.clientUrl}" target="_blank" class="token-url">${json.clientUrl}</a>
+          <button class="btn-copy" data-copy-href="${json.clientUrl}">複製</button>
+        </div>
+        <p class="muted" style="margin-top:.75rem;font-size:.8rem;">
+          問卷已根據筆記預填。客戶開啟後可確認並補充資料。
+        </p>
+      `;
+      resultEl.style.display = 'block';
+      // 解析完後清空筆記框
+      $('#notes-input').value = '';
+    } catch (err) {
+      statusEl.textContent = '❌ 解析失敗：' + err.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✨ AI 解析並產生連結';
+    }
+  });
+
+  // 複製按鈕（支援 data-copy-href）
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('.btn-copy[data-copy-href]');
+    if (!b) return;
+    try {
+      await navigator.clipboard.writeText(b.dataset.copyHref);
+      const orig = b.textContent;
+      b.textContent = '✓ 已複製';
+      setTimeout(() => { b.textContent = orig; }, 2000);
+    } catch { b.textContent = '複製失敗'; }
+  });
+}
 
 // === Token 產生器 ===
 function bindTokenControls() {
