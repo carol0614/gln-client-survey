@@ -100,6 +100,11 @@ function renderCasesList(loadError) {
     : filtered.map(c => {
         const [badgeClass, badgeLabel] = badgeMap[c.analysisStatus] || badgeMap.none;
         const taId = 'note-ta-' + c.caseId;
+        const base = location.origin + location.pathname.replace('admin.html', '');
+        const d = casesAreDemo ? '&demo=1' : '';
+        const designerUrl = `${base}report.html?id=${c.caseId}&v=designer${d}`;
+        const clientUrl   = `${base}report.html?id=${c.caseId}&v=client${d}`;
+        const fillUrl     = `${base}designer.html?id=${c.caseId}${d}`;
         return `
           <div class="case-card" data-case-id="${c.caseId}">
             <div class="case-meta">
@@ -110,9 +115,9 @@ function renderCasesList(loadError) {
             <div class="case-actions">
               <span class="case-badge ${badgeClass}">${badgeLabel}</span>
               <button class="btn-report btn-client" onclick="toggleNotes('${c.caseId}')">📝 筆記</button>
-              <button class="btn-report btn-designer" onclick="openReportTab('${c.caseId}','designer')">設計師報告 ↗</button>
-              <button class="btn-report btn-client" onclick="openReportTab('${c.caseId}','client')">客戶報告 ↗</button>
-              <button class="btn-report btn-client" onclick="openReportTab('${c.caseId}','fill')">設計師補填 ↗</button>
+              <a class="btn-report btn-designer" href="${designerUrl}" target="_blank" rel="noopener">設計師報告 ↗</a>
+              <a class="btn-report btn-client" href="${clientUrl}" target="_blank" rel="noopener">客戶報告 ↗</a>
+              <a class="btn-report btn-client" href="${fillUrl}" target="_blank" rel="noopener">設計師補填 ↗</a>
               <button class="btn-report btn-rerun" id="rerun-${c.caseId}" onclick="rerunAnalysis('${c.caseId}')">🔄 重跑 AI</button>
             </div>
             <div class="case-notes-area" id="notes-area-${c.caseId}">
@@ -399,18 +404,6 @@ function setStatus(msg, isError = false) {
   el.style.color = isError ? 'var(--gln-error)' : 'var(--gln-taupe)';
 }
 
-// === 報告 / 補填（開新分頁）===
-// 報告 / 補填都開新分頁，避免在後台分頁內導覽後回不去
-function openReportTab(caseId, view) {
-  const base = location.origin + location.pathname.replace('admin.html', '');
-  const d = casesAreDemo ? '&demo=1' : '';
-  const urls = {
-    client:   `${base}report.html?id=${caseId}&v=client${d}`,
-    designer: `${base}report.html?id=${caseId}&v=designer${d}`,
-    fill:     `${base}designer.html?id=${caseId}${d}`,
-  };
-  window.open(urls[view] || 'about:blank', '_blank', 'noopener');
-}
 
 // === 案件筆記 ===
 async function toggleNotes(caseId) {
