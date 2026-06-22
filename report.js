@@ -769,16 +769,6 @@ function renderReport(caseData, analysis, feelingsData, version) {
     </section>
   `;
 
-  // 總監備註（設計師版專用）
-  const notesHtml = isDesigner ? `
-    <section class="report-section">
-      <h2>總監備註</h2>
-      <div class="director-notes">
-        ${val(d.designer_notes, '<span class="muted">尚無備註。</span>')}
-      </div>
-    </section>
-  ` : '';
-
   return `
     <article class="report ${isDesigner ? 'designer-version' : 'client-version'}">
       ${headerHtml}
@@ -793,7 +783,6 @@ function renderReport(caseData, analysis, feelingsData, version) {
       ${equipmentHtml}
       ${powerHtml}
       ${backgroundHtml}
-      ${notesHtml}
       ${!isDesigner ? '<section id="client-meeting-notes" class="report-section"><p class="muted">載入會議紀錄中…</p></section>' : ''}
       ${renderAnalysis(analysis, version)}
       <footer class="report-footer no-print">
@@ -1028,7 +1017,8 @@ const RPT_AUTHOR_LABEL = { director: '總監', designer: '設計師', client: '�
 
 const RPT_NOTES_DEMO = {
   meetings: [
-    { timestamp: '2026-06-21 11:00', summary: ['確認開放式廚房，中島含電陶爐', '主臥更衣室改獨立小房（約 1.5 坪）', '玄關增設鞋櫃 + 穿鞋椅'] },
+    { timestamp: '2026-06-21 11:00', author: 'designer', summary: ['確認開放式廚房，中島含電陶爐', '主臥更衣室改獨立小房（約 1.5 坪）', '玄關增設鞋櫃 + 穿鞋椅'] },
+    { timestamp: '2026-06-21 18:40', author: 'client', summary: ['主臥更衣室希望保留開放式，不要改成獨立小房'] },
   ],
   comments: [
     { timestamp: '2026-06-21 15:30', author: 'client', text: '中島想再大一點，可以坐 3 個人嗎？' },
@@ -1044,8 +1034,8 @@ function renderClientMeetingNotes(payload) {
 
   const meetingHtml = meetings.length
     ? meetings.map(m => `
-        <div class="cmn-meeting">
-          <div class="cmn-meeting-ts">${m.timestamp}</div>
+        <div class="cmn-meeting${m.author === 'client' ? ' cmn-meeting-client' : ''}">
+          <div class="cmn-meeting-ts">${m.timestamp}${m.author ? ' · ' + (RPT_AUTHOR_LABEL[m.author] || m.author) : ''}</div>
           <ul class="cmn-summary">${(m.summary || []).map(s => `<li>${s}</li>`).join('')}</ul>
         </div>`).join('')
     : '<p class="muted">目前還沒有會議紀錄。設計師完成會議後會整理在這裡。</p>';
@@ -1061,10 +1051,17 @@ function renderClientMeetingNotes(payload) {
 
   root.innerHTML = `
     <h2>會議紀錄</h2>
-    <p class="section-meta">以下是與設計師討論後整理的重點。有任何想補充或修正的，歡迎在下方留言。</p>
+    <p class="section-meta">以下是與設計師討論後整理的重點。設計師若有記錄錯誤或遺漏，您可以在下方自行補充會議重點。</p>
     ${meetingHtml}
+    <div class="cmn-note-add no-print">
+      <div class="cmn-note-head">✏️ 補充會議重點</div>
+      <p class="muted" style="font-size:.8rem;margin:.2rem 0 .5rem;">記錄有誤或漏掉的，補在這裡，會直接列入上方會議重點（標示為「您」）。</p>
+      <textarea id="cmn-note-input" rows="2" placeholder="例：主臥更衣室希望保留，不要改成獨立小房…"></textarea>
+      <button type="button" class="btn btn-primary" id="cmn-note-send">補充會議重點</button>
+      <p class="muted" id="cmn-note-status" style="font-size:.8rem;margin-top:.3rem;"></p>
+    </div>
     <div class="cmn-comment-thread">
-      <div class="cmn-comment-head">💬 備註</div>
+      <div class="cmn-comment-head">💬 備註（想問設計師的問題、其他補充）</div>
       ${commentHtml}
       <div class="cmn-comment-add no-print">
         <input id="cmn-comment-input" type="text" placeholder="輸入您的備註 / 補充…" />
@@ -1074,6 +1071,7 @@ function renderClientMeetingNotes(payload) {
     </div>
   `;
   $('#cmn-comment-send')?.addEventListener('click', submitClientComment);
+  $('#cmn-note-send')?.addEventListener('click', submitClientNote);
 }
 
 async function loadClientMeetingNotes() {
@@ -1108,6 +1106,29 @@ async function submitClientComment() {
     if (!json.ok) throw new Error(json.error);
     input.value = '';
     if (statusEl) statusEl.textContent = '✅ 已送出，謝謝您的補充！';
+    await loadClientMeetingNotes();
+  } catch (err) {
+    if (statusEl) statusEl.textContent = '❌ 送出失敗：' + err.message;
+  }
+}
+
+async function submitClientNote() {
+  const statusEl = $('#cmn-note-status');
+  const input = $('#cmn-note-input');
+  const text = (input?.value || '').trim();
+  if (!text) { if (statusEl) statusEl.textContent = '請先輸入要補充的會議重點'; return; }
+  if (demoMode) { if (statusEl) statusEl.textContent = '（demo 模式）實際送出會寫入會議紀錄。'; return; }
+  if (statusEl) statusEl.textContent = '送出中…';
+  try {
+    const res = await fetch(GAS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'add_note', caseId, noteText: text, noteType: 'client' }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    input.value = '';
+    if (statusEl) statusEl.textContent = '✅ 已補充到會議重點，謝謝！';
     await loadClientMeetingNotes();
   } catch (err) {
     if (statusEl) statusEl.textContent = '❌ 送出失敗：' + err.message;

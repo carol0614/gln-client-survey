@@ -126,19 +126,11 @@ function render(caseData) {
       <div id="budget-unmatched"></div>
       <div id="budget-alloc"></div>
     </section>
-
-    <section class="section">
-      <h2>總監備註</h2>
-      <p class="section-meta">案件分類、特殊處理建議、預算策略等。會出現在設計師版報告。</p>
-      <textarea id="designer-notes" placeholder="例：客戶預算彈性 +10%，可推薦中島升級方案；老屋翻新需特別處理管線..."></textarea>
-    </section>
   `;
 
   renderPowerList(d);
   renderBrandOverrides(d);
   renderBudgetAlloc(d);
-
-  $('#designer-notes').value = d.designer_notes || '';
 }
 
 // ============================================================
@@ -495,7 +487,6 @@ $('#save-btn').addEventListener('click', async () => {
     if (el.type === 'checkbox') updates[el.dataset.field] = el.checked;
     else if (el.value) updates[el.dataset.field] = el.value;
   });
-  updates.designer_notes = $('#designer-notes').value;
 
   // 實際預算分配（提案版）：有填才送；全 0 視為清空
   if (budgetState) {

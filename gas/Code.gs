@@ -1628,7 +1628,10 @@ function getOrCreateNotesSheet() {
 
 /**
  * 新增會議筆記（內部 / 客戶會議）。
- * 權限：總監(adminKey) 或 設計師(designerToken)。客戶不可新增筆記（只能加備註）。
+ * 權限：
+ *   - 內部開會筆記(internal)：總監(adminKey) 或 設計師(designerToken)。
+ *   - 客戶會議筆記(client)：總監 / 設計師 / 客戶（持報告連結即 caseId 有效）皆可補。
+ *   客戶只能補「客戶會議筆記」，不可寫內部筆記。
  * Payload: { action, adminKey?, designerToken?, caseId, noteText, noteType }
  *   noteType: 'internal'（內部開會筆記）| 'client'（客戶會議筆記，會出現在客戶報告頁）
  */
@@ -1640,6 +1643,7 @@ function handleAddNote(payload) {
   let author;
   if (isAdminKey(payload.adminKey)) author = 'director';
   else if (validateDesignerTokenForCase(caseId, payload.designerToken)) author = 'designer';
+  else if (noteType === 'client' && findSubmissionByCaseId(caseId)) author = 'client'; // 客戶僅能補客戶會議筆記
   else return jsonResponse({ ok: false, error: 'unauthorized' });
 
   if (!caseId || !noteText) return jsonResponse({ ok: false, error: 'missing_params' });
@@ -1647,12 +1651,14 @@ function handleAddNote(payload) {
   const sheet = getOrCreateNotesSheet();
   const ts = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
 
-  // AI 解析這筆筆記（產生統整重點 meeting_summary）
+  // AI 解析這筆筆記（產生統整重點 meeting_summary）。客戶補的筆記保留原文、不跑 AI（忠實呈現客戶修正）。
   let parsedJson = '{}';
-  try {
-    const parsed = extractFormDataFromNotes(noteText, caseId);
-    parsedJson = JSON.stringify(parsed);
-  } catch (e) { /* 解析失敗也繼續存筆記 */ }
+  if (author !== 'client') {
+    try {
+      const parsed = extractFormDataFromNotes(noteText, caseId);
+      parsedJson = JSON.stringify(parsed);
+    } catch (e) { /* 解析失敗也繼續存筆記 */ }
+  }
 
   sheet.appendRow([caseId, ts, noteText, parsedJson, noteType, author]);
 
@@ -1723,7 +1729,11 @@ function handleGetClientNotes(caseId) {
           : String(pf.meeting_summary).split(/\n|；|;/).map(s => s.trim()).filter(Boolean);
       }
     } catch (e) {}
-    return { timestamp: n.timestamp, summary };
+    // 客戶自己補的筆記沒有 AI 統整 → 直接顯示原文
+    if (!summary.length && n.noteText) {
+      summary = String(n.noteText).split(/\n/).map(s => s.trim()).filter(Boolean);
+    }
+    return { timestamp: n.timestamp, author: n.author || 'designer', summary };
   });
   const comments = all.filter(n => n.noteType === 'comment')
     .map(n => ({ timestamp: n.timestamp, author: n.author, text: n.noteText }));
