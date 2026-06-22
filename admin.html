@@ -144,6 +144,54 @@
       padding: 4rem 0;
       color: var(--gln-taupe);
     }
+    /* ── 案件筆記 ── */
+    .case-notes-area {
+      display: none;
+      grid-column: 1 / -1;
+      border-top: 1px solid var(--gln-mist);
+      margin-top: 0.75rem;
+      padding-top: 0.875rem;
+    }
+    .case-notes-area.open { display: block; }
+    .note-history { margin-bottom: 0.75rem; }
+    .note-item {
+      background: var(--gln-sand, #f5f0e8);
+      border-radius: 6px;
+      padding: 0.6rem 0.875rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+    .note-item-ts { font-size: 0.75rem; color: var(--gln-taupe); margin-bottom: 0.2rem; }
+    .note-add-row { display: flex; gap: 0.5rem; align-items: flex-start; flex-wrap: wrap; }
+    .note-add-ta {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.55rem 0.75rem;
+      border: 1px solid var(--gln-mist);
+      border-radius: var(--radius);
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      resize: vertical;
+      min-height: 72px;
+      background: #fff;
+    }
+    .note-add-ta:focus { outline: none; border-color: var(--gln-olive); }
+    .btn-record {
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      border: 1px solid var(--gln-mist);
+      background: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-record.recording {
+      background: #fce8e8;
+      border-color: #c09090;
+      color: #a03030;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
     @media (max-width: 600px) {
       .case-card { grid-template-columns: 1fr; }
       .case-actions { flex-direction: row; flex-wrap: wrap; align-items: center; }

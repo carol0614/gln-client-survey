@@ -27,6 +27,7 @@ if (token !== ADMIN_TOKEN) {
   initTabs();
   init();
   loadCasesList();
+  initNewCaseSpeech();
 }
 
 // === Tab 切換 ===
@@ -79,8 +80,9 @@ function renderCasesList() {
     ? '<div class="cases-empty"><p>沒有符合的案件</p></div>'
     : filtered.map(c => {
         const [badgeClass, badgeLabel] = badgeMap[c.analysisStatus] || badgeMap.none;
+        const taId = 'note-ta-' + c.caseId;
         return `
-          <div class="case-card">
+          <div class="case-card" data-case-id="${c.caseId}">
             <div class="case-meta">
               <p class="case-id">${c.caseId}</p>
               ${c.clientName ? `<p class="case-client">${c.clientName}</p>` : ''}
@@ -88,9 +90,23 @@ function renderCasesList() {
             </div>
             <div class="case-actions">
               <span class="case-badge ${badgeClass}">${badgeLabel}</span>
+              <button class="btn-report btn-client" onclick="toggleNotes('${c.caseId}')">📝 筆記</button>
               <a class="btn-report btn-designer" href="${c.designerReportUrl}" target="_blank">設計師報告</a>
               <a class="btn-report btn-client" href="${c.clientReportUrl}" target="_blank">客戶報告</a>
               <a class="btn-report btn-client" href="designer.html?id=${c.caseId}" target="_blank">設計師補填</a>
+            </div>
+            <div class="case-notes-area" id="notes-area-${c.caseId}">
+              <div class="note-history" id="note-history-${c.caseId}">
+                <p class="muted" style="font-size:0.8rem;">載入筆記中…</p>
+              </div>
+              <div class="note-add-row">
+                <textarea class="note-add-ta" id="${taId}" rows="3" placeholder="輸入新筆記，或按錄音鍵說話…"></textarea>
+                <div style="display:flex;flex-direction:column;gap:0.4rem;">
+                  <button class="btn-record" id="rec-${c.caseId}" onclick="toggleRecording('${c.caseId}')">🎤 錄音</button>
+                  <button class="btn btn-primary" style="font-size:0.82rem;padding:0.4rem 0.75rem;" onclick="submitNote('${c.caseId}')">💾 儲存</button>
+                </div>
+              </div>
+              <p class="muted" id="note-status-${c.caseId}" style="font-size:0.8rem;margin-top:0.4rem;"></p>
             </div>
           </div>
         `;
@@ -390,6 +406,144 @@ function switchReportView(view) {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('#report-modal').classList.contains('open')) closeReportModal();
 });
+
+// === 案件筆記 ===
+async function toggleNotes(caseId) {
+  const area = $('#notes-area-' + caseId);
+  if (!area) return;
+  const isOpen = area.classList.toggle('open');
+  if (isOpen) await loadNotes(caseId);
+}
+
+async function loadNotes(caseId) {
+  const histEl = $('#note-history-' + caseId);
+  if (!histEl) return;
+  histEl.innerHTML = '<p class="muted" style="font-size:0.8rem;">載入中…</p>';
+  try {
+    const url = `${GAS_ENDPOINT_ADMIN}?action=get_notes&case_id=${encodeURIComponent(caseId)}&admin_token=${encodeURIComponent(ADMIN_KEY)}`;
+    const res = await fetch(url);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    renderNoteHistory(caseId, json.notes || []);
+  } catch (err) {
+    histEl.innerHTML = `<p style="font-size:0.8rem;color:var(--gln-error)">載入失敗：${err.message}</p>`;
+  }
+}
+
+function renderNoteHistory(caseId, notes) {
+  const histEl = $('#note-history-' + caseId);
+  if (!histEl) return;
+  if (notes.length === 0) {
+    histEl.innerHTML = '<p class="muted" style="font-size:0.8rem;">尚無筆記記錄</p>';
+    return;
+  }
+  histEl.innerHTML = notes.map(n => `
+    <div class="note-item">
+      <div class="note-item-ts">${n.timestamp}</div>
+      <div>${n.noteText.replace(/\n/g, '<br>')}</div>
+    </div>
+  `).join('');
+}
+
+async function submitNote(caseId) {
+  const ta = $('#note-ta-' + caseId);
+  const statusEl = $('#note-status-' + caseId);
+  const text = (ta?.value || '').trim();
+  if (!text) { if (statusEl) statusEl.textContent = '請先輸入筆記內容'; return; }
+  if (statusEl) statusEl.textContent = 'AI 分析中（約 10–20 秒）…';
+  try {
+    const res = await fetch(GAS_ENDPOINT_ADMIN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'add_note', adminKey: ADMIN_KEY, caseId, noteText: text }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    ta.value = '';
+    if (statusEl) statusEl.textContent = `✅ 已儲存（共 ${json.totalNotes} 筆筆記）`;
+    await loadNotes(caseId); // 重新讀取歷史
+  } catch (err) {
+    if (statusEl) statusEl.textContent = '❌ 儲存失敗：' + err.message;
+  }
+}
+
+// === 錄音（Web Speech API）===
+const _recMap = {}; // caseId → { recognition, isRecording, final }
+
+function toggleRecording(caseId) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn = $('#rec-' + caseId);
+  const ta = $('#note-ta-' + caseId);
+  if (!SpeechRecognition) {
+    alert('此瀏覽器不支援語音辨識，請使用 Chrome。');
+    return;
+  }
+  let state = _recMap[caseId];
+  if (!state) {
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'zh-TW';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    state = { recognition, isRecording: false, final: '' };
+    recognition.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) state.final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      if (ta) ta.value = state.final + interim;
+    };
+    recognition.onend = () => { if (state.isRecording) recognition.start(); };
+    recognition.onerror = () => { state.isRecording = false; if (btn) { btn.textContent = '🎤 錄音'; btn.classList.remove('recording'); } };
+    _recMap[caseId] = state;
+  }
+  if (!state.isRecording) {
+    state.final = ta?.value || '';
+    state.recognition.start();
+    state.isRecording = true;
+    if (btn) { btn.textContent = '⏹ 停止'; btn.classList.add('recording'); }
+  } else {
+    state.recognition.stop();
+    state.isRecording = false;
+    if (btn) { btn.textContent = '🎤 錄音'; btn.classList.remove('recording'); }
+  }
+}
+
+// 新建案件的筆記 textarea 也支援錄音（id="notes-input"）
+function initNewCaseSpeech() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn-record';
+  btn.textContent = '🎤 錄音';
+  const ta = $('#notes-input');
+  if (!ta) return;
+  ta.parentElement.appendChild(btn);
+  if (!SpeechRecognition) { btn.disabled = true; btn.title = '請用 Chrome'; return; }
+  let isRec = false, final = '';
+  const rec = new SpeechRecognition();
+  rec.lang = 'zh-TW'; rec.continuous = true; rec.interimResults = true;
+  rec.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    ta.value = final + interim;
+  };
+  rec.onend = () => { if (isRec) rec.start(); };
+  rec.onerror = () => { isRec = false; btn.textContent = '🎤 錄音'; btn.classList.remove('recording'); };
+  btn.addEventListener('click', () => {
+    if (!isRec) {
+      final = ta.value;
+      rec.start(); isRec = true;
+      btn.textContent = '⏹ 停止'; btn.classList.add('recording');
+    } else {
+      rec.stop(); isRec = false;
+      btn.textContent = '🎤 錄音'; btn.classList.remove('recording');
+    }
+  });
+}
 
 // === Token 產生器 ===
 function bindTokenControls() {

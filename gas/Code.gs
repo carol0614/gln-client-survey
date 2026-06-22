@@ -42,6 +42,11 @@ function doPost(e) {
       return handlePrefillFromNotes(payload);
     }
 
+    // Admin：新增案件筆記
+    if (payload.action === 'add_note') {
+      return handleAddNote(payload);
+    }
+
     // Admin：產生新案件 Token（需要 adminKey 驗證）
     if (payload.action === 'create_token') {
       const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
@@ -179,6 +184,10 @@ function doGet(e) {
     // 後台案件列表
     if (e.parameter.action === 'list_cases') {
       return handleListCases(e.parameter.admin_token);
+    }
+    // 後台案件筆記列表
+    if (e.parameter.action === 'get_notes') {
+      return handleGetNotes(e.parameter.case_id, e.parameter.admin_token);
     }
 
     const caseId = e.parameter.id;
@@ -1303,4 +1312,87 @@ ${notes}`;
   } catch (e) {
     throw new Error('Claude 回傳非 JSON：' + cleaned.substring(0, 300));
   }
+}
+
+// ============================================================
+// 案件筆記系統
+// Sheet: Notes  欄位: CaseId | Timestamp | NoteText | ParsedFields(JSON)
+// ============================================================
+
+const NOTES_SHEET = 'Notes';
+
+function getOrCreateNotesSheet() {
+  const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SHEET_ID'));
+  let sheet = ss.getSheetByName(NOTES_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(NOTES_SHEET);
+    sheet.appendRow(['CaseId', 'Timestamp', 'NoteText', 'ParsedFields']);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+/**
+ * 新增筆記到指定案件，並用 AI 重新解析所有筆記回傳更新的 prefill
+ * Payload: { action, adminKey, caseId, noteText }
+ */
+function handleAddNote(payload) {
+  const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
+  if (payload.adminKey !== adminKey) return jsonResponse({ ok: false, error: 'unauthorized' });
+  const caseId = (payload.caseId || '').trim();
+  const noteText = (payload.noteText || '').trim();
+  if (!caseId || !noteText) return jsonResponse({ ok: false, error: 'missing_params' });
+
+  const sheet = getOrCreateNotesSheet();
+  const ts = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
+
+  // AI 解析這筆筆記
+  let parsedJson = '{}';
+  try {
+    const parsed = extractFormDataFromNotes(noteText, caseId);
+    parsedJson = JSON.stringify(parsed);
+  } catch (e) { /* 解析失敗也繼續存筆記 */ }
+
+  sheet.appendRow([caseId, ts, noteText, parsedJson]);
+
+  // 取得此案件全部筆記，合併 AI 解析結果
+  const allNotes = getNotesForCase(sheet, caseId);
+  const mergedPrefill = mergeNoteParsedFields(allNotes);
+
+  return jsonResponse({ ok: true, caseId, timestamp: ts, mergedPrefill, totalNotes: allNotes.length });
+}
+
+/**
+ * 取得指定案件的所有筆記
+ */
+function handleGetNotes(caseId, adminToken) {
+  const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
+  if (adminToken !== adminKey) return jsonResponse({ ok: false, error: 'unauthorized' });
+  if (!caseId) return jsonResponse({ ok: false, error: 'missing_case_id' });
+
+  const sheet = getOrCreateNotesSheet();
+  const notes = getNotesForCase(sheet, caseId);
+  return jsonResponse({ ok: true, caseId, notes });
+}
+
+function getNotesForCase(sheet, caseId) {
+  const data = sheet.getDataRange().getValues();
+  const notes = [];
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === caseId) {
+      notes.push({ timestamp: data[i][1], noteText: data[i][2], parsedFields: data[i][3] });
+    }
+  }
+  return notes;
+}
+
+function mergeNoteParsedFields(notes) {
+  const merged = {};
+  notes.forEach(n => {
+    try {
+      const p = JSON.parse(n.parsedFields || '{}');
+      Object.keys(p).forEach(k => { if (p[k] && !merged[k]) merged[k] = p[k]; });
+    } catch (e) {}
+  });
+  return merged;
 }
