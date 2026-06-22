@@ -46,11 +46,9 @@ let allCases = [];
 let casesAreDemo = false;   // true = 目前顯示的是功能展示範例（無真實案件 / 後端連不上）
 
 // 視覺 Demo：沒有真實案件時自動顯示，讓 Carol 看到案件列表所有功能。
-// 真實案件提交後會自動取代。三筆涵蓋三種 AI 分析狀態。
+// 真實案件提交後會自動取代。保留一筆範例展示完整卡片（含問卷連結）。
 const DEMO_CASES = [
   { caseId: 'GLN-202605-004', clientName: '林先生一家（4 人 + 寵物 · 老屋翻新）', timestamp: '2026-06-20 14:30', analysisStatus: 'success' },
-  { caseId: 'GLN-202606-007', clientName: '屏東明中新村（丈量代填）',           timestamp: '2026-06-21 10:05', analysisStatus: 'none' },
-  { caseId: 'GLN-202606-009', clientName: '王小姐（新成屋客變）',                timestamp: '2026-06-22 09:15', analysisStatus: 'failed' },
 ];
 
 async function loadCasesList() {
@@ -105,16 +103,18 @@ function renderCasesList(loadError) {
         const designerUrl = `${base}report.html?id=${c.caseId}&v=designer${d}`;
         const clientUrl   = `${base}report.html?id=${c.caseId}&v=client${d}`;
         const fillUrl     = `${base}designer.html?id=${c.caseId}${d}`;
+        // 範例卡片用一條示意連結，讓 Carol 看到「問卷連結 + 複製」長相
+        const surveyUrl   = c.clientUrl || (casesAreDemo ? `${base}?t=DEMO-RANGE-TOKEN` : '');
         return `
           <div class="case-card" data-case-id="${c.caseId}">
             <div class="case-meta">
-              <p class="case-id">${c.caseId}</p>
+              <p class="case-id">${c.caseId}${casesAreDemo ? ' <span class="case-demo-tag">範例</span>' : ''}</p>
               ${c.clientName ? `<p class="case-client">${c.clientName}</p>` : ''}
               <p class="case-time">${c.timestamp}</p>
-              ${c.clientUrl ? `
+              ${surveyUrl ? `
               <div class="case-survey">
                 <span class="case-survey-label">問卷連結</span>
-                <a class="token-url" id="survey-url-${c.caseId}" href="${c.clientUrl}" target="_blank" rel="noopener">${c.clientUrl}</a>
+                <a class="token-url" id="survey-url-${c.caseId}" href="${surveyUrl}" target="_blank" rel="noopener">${surveyUrl}</a>
                 <button class="btn-copy" data-copy="survey-url-${c.caseId}">複製</button>
               </div>` : ''}
             </div>
@@ -144,7 +144,7 @@ function renderCasesList(loadError) {
 
   const demoBanner = casesAreDemo
     ? `<div class="demo-banner">
-         👀 <strong>功能展示範例</strong>　以下 3 筆為示範資料，讓你預覽案件列表的所有功能（報告 / 補填 / 筆記 / AI 狀態）。
+         👀 <strong>功能展示範例</strong>　以下這筆為示範資料，讓你預覽案件卡片的所有功能（問卷連結 / 報告 / 補填 / 筆記 / AI 狀態）。
          ${loadError ? `<span style="color:#a03030;">（後端暫時連不上：${loadError}）</span>` : '等真實案件提交後會自動取代。'}
          <button class="btn btn-ghost btn-sm" onclick="loadCasesList()" style="margin-left:0.5rem;">重新載入真實資料</button>
        </div>`
