@@ -53,13 +53,18 @@ function doPost(e) {
       if (payload.adminKey !== adminKey) return jsonResponse({ ok: false, error: 'unauthorized' });
       const projectNumber = generateProjectNumber();
       const location = (payload.location || payload.note || '').trim();
+      const brand = (payload.brand || 'GLN').toUpperCase();
       const note = projectNumber + (location ? ' ' + location : '');
-      const { clientToken, designerToken } = generateTokenPair(projectNumber, payload.prefill || null);
+      const prefill = payload.prefill || null;
+      const { clientToken, designerToken } = generateTokenPair(projectNumber, prefill);
+      // 若有 prefill，將 brand 寫入草稿資料，讓送出時 sendNotifications 可讀到
+      if (prefill) { prefill._brand = brand; }
       const baseUrl = getReportBaseUrl();
       return jsonResponse({
         ok: true,
         projectNumber,
         location,
+        brand,
         note,
         clientToken,
         designerToken,
@@ -804,16 +809,56 @@ function randomHex(bytes) {
 }
 
 // === Email 通知 ===
+/**
+ * 依地址區域 + 品牌分流通知。
+ *
+ * 固定收到（全區）：
+ *   carol@goodlivingnotes.com
+ *   hankchen@goodlivingnotes.com
+ *
+ * 南區（高雄/台南/屏東/嘉義/雲林/澎湖）：
+ *   george@goodlivingnotes.com
+ *
+ * 中區 + 北區（台北/新北/基隆/桃園/新竹/苗栗/台中/彰化/南投/宜蘭/花蓮/台東/嘉義縣市（非南區）等）：
+ *   jacklin@goodlivingnotes.com
+ *
+ * GLV 品牌（全屋訂製系統櫃）：
+ *   wayne@goodlivingnotes.com
+ */
 function sendNotifications(caseId, data) {
-  const emails = (PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAILS') || '')
-    .split(',').map(s => s.trim()).filter(Boolean);
-  if (!emails.length) return;
+  const location = (data._prefillLocation || data.house_location || '').toLowerCase();
+  const brand    = (data._brand || '').toUpperCase();
 
-  const subject = `[GLN] 新客戶問卷 — ${caseId}`;
+  // 固定通知
+  const recipients = new Set(['carol@goodlivingnotes.com', 'hankchen@goodlivingnotes.com']);
+
+  // 南區關鍵字
+  const southKeywords = ['高雄', '台南', '臺南', '屏東', '嘉義', '雲林', '澎湖'];
+  if (southKeywords.some(k => location.includes(k))) {
+    recipients.add('george@goodlivingnotes.com');
+  }
+
+  // 中北區（非南區）
+  const northCentralKeywords = [
+    '台北', '臺北', '新北', '基隆', '桃園', '新竹', '苗栗',
+    '台中', '臺中', '彰化', '南投', '宜蘭', '花蓮', '台東', '臺東', '連江', '金門'
+  ];
+  if (northCentralKeywords.some(k => location.includes(k))) {
+    recipients.add('jacklin@goodlivingnotes.com');
+  }
+
+  // GLV 品牌
+  if (brand === 'GLV') {
+    recipients.add('wayne@goodlivingnotes.com');
+  }
+
+  const brandLabel = brand === 'GLV' ? 'GLV（全屋訂製）' : 'GLN（好感生活提案）';
+  const subject = `[${brand || 'GLN'}] 新客戶問卷 — ${caseId}`;
   const body = `
 新客戶問卷已提交：
 
 案件編號：${caseId}
+品牌：${brandLabel}
 提交時間：${new Date().toLocaleString('zh-TW')}
 
 主要資訊：
@@ -821,7 +866,7 @@ function sendNotifications(caseId, data) {
 - 房屋坪數：${data.house_size || '—'}
 - 預算範圍：${data.budget || '—'}
 - 案子分類：${data.case_type || '—'}
-- 為何找 GLN：${data.referral || '—'}
+- 為何找我們：${data.referral || '—'}
 
 請至 Google Sheet 查看完整資料：
 ${SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SHEET_ID')).getUrl()}
@@ -832,7 +877,7 @@ ${getReportBaseUrl()}/report.html?id=${caseId}&v=designer
 — GLN 客戶問卷系統自動通知
 `.trim();
 
-  emails.forEach(to => {
+  recipients.forEach(to => {
     try {
       MailApp.sendEmail({ to, subject, body });
     } catch (e) {
@@ -1195,6 +1240,7 @@ function handlePrefillFromNotes(payload) {
 
   const notes = (payload.notes || '').trim();
   const location = (payload.location || '').trim();
+  const brand = (payload.brand || 'GLN').toUpperCase();
   if (!notes) return jsonResponse({ ok: false, error: 'missing_notes' });
 
   // 用 Claude API 把筆記解析成表單 JSON
@@ -1221,6 +1267,7 @@ function handlePrefillFromNotes(payload) {
   prefillData._adminNote = '由 GLN 設計師根據丈量會談筆記預填。請確認標有「＊」的欄位，並補充其餘空白項目。';
   prefillData._prefillLocation = location;
   prefillData._prefillProjectNumber = projectNumber;
+  prefillData._brand = brand;
 
   // 儲存草稿
   handleSaveDraft({
