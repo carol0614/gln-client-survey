@@ -90,9 +90,9 @@ function renderCasesList() {
             <div class="case-actions">
               <span class="case-badge ${badgeClass}">${badgeLabel}</span>
               <button class="btn-report btn-client" onclick="toggleNotes('${c.caseId}')">📝 筆記</button>
-              <a class="btn-report btn-designer" href="${c.designerReportUrl}" target="_blank">設計師報告</a>
-              <a class="btn-report btn-client" href="${c.clientReportUrl}" target="_blank">客戶報告</a>
-              <a class="btn-report btn-client" href="designer.html?id=${c.caseId}" target="_blank">設計師補填</a>
+              <button class="btn-report btn-designer" onclick="openReportModal('${c.caseId}','designer')">設計師報告</button>
+              <button class="btn-report btn-client" onclick="openReportModal('${c.caseId}','client')">客戶報告</button>
+              <button class="btn-report btn-client" onclick="openReportModal('${c.caseId}','fill')">設計師補填</button>
               <button class="btn-report btn-rerun" id="rerun-${c.caseId}" onclick="rerunAnalysis('${c.caseId}')">🔄 重跑 AI</button>
             </div>
             <div class="case-notes-area" id="notes-area-${c.caseId}">
@@ -374,8 +374,10 @@ function setStatus(msg, isError = false) {
 let _currentCaseId = '';
 let _currentView = 'client';
 
-function openReportModal(caseId, clientName, view) {
+function openReportModal(caseId, view) {
   _currentCaseId = caseId;
+  const c = allCases.find(x => x.caseId === caseId);
+  const clientName = c && c.clientName ? c.clientName : '';
   const title = clientName ? `${caseId} · ${clientName}` : caseId;
   $('#report-modal-title').textContent = title;
   switchReportView(view);
