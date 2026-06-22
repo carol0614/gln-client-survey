@@ -244,15 +244,15 @@
 
       <!-- Tab 切換列 -->
       <div class="admin-tabs">
-        <button class="admin-tab-btn active" data-tab="cases">案件列表</button>
-        <button class="admin-tab-btn" data-tab="token">新建案件</button>
+        <button class="admin-tab-btn active" data-tab="token">新建案件</button>
+        <button class="admin-tab-btn" data-tab="cases">案件列表</button>
         <button class="admin-tab-btn" data-tab="photos">照片管理</button>
       </div>
 
       <!-- ══════════════════════════════════════ -->
       <!-- Tab 1：案件列表 -->
       <!-- ══════════════════════════════════════ -->
-      <div class="admin-tab-panel active" id="tab-cases">
+      <div class="admin-tab-panel" id="tab-cases">
         <div id="cases-app">
           <p class="muted" style="text-align:center;padding:3rem 0;">載入中…</p>
         </div>
@@ -261,7 +261,7 @@
       <!-- ══════════════════════════════════════ -->
       <!-- Tab 2：新建案件 -->
       <!-- ══════════════════════════════════════ -->
-      <div class="admin-tab-panel" id="tab-token">
+      <div class="admin-tab-panel active" id="tab-token">
         <section class="admin-token-section">
           <h2>新建案件 · 產生客戶連結</h2>
           <p class="muted">填入客戶基本資料後按「產生連結」，問卷開啟時這些欄位會自動預填，客戶不需要重複輸入。</p>

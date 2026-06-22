@@ -88,8 +88,9 @@ function renderCasesList() {
             </div>
             <div class="case-actions">
               <span class="case-badge ${badgeClass}">${badgeLabel}</span>
-              <button class="btn-report btn-designer" onclick="openReportModal('${c.caseId}', '${c.clientName || ''}', 'designer')">設計師報告</button>
-              <button class="btn-report btn-client" onclick="openReportModal('${c.caseId}', '${c.clientName || ''}', 'client')">客戶報告</button>
+              <a class="btn-report btn-designer" href="${c.designerReportUrl}" target="_blank">設計師報告</a>
+              <a class="btn-report btn-client" href="${c.clientReportUrl}" target="_blank">客戶報告</a>
+              <a class="btn-report btn-client" href="designer.html?id=${c.caseId}" target="_blank">設計師補填</a>
             </div>
           </div>
         `;
