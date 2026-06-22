@@ -94,6 +94,7 @@ function renderCasesList() {
               <a class="btn-report btn-designer" href="${c.designerReportUrl}" target="_blank">設計師報告</a>
               <a class="btn-report btn-client" href="${c.clientReportUrl}" target="_blank">客戶報告</a>
               <a class="btn-report btn-client" href="designer.html?id=${c.caseId}" target="_blank">設計師補填</a>
+              <button class="btn-report btn-rerun" id="rerun-${c.caseId}" onclick="rerunAnalysis('${c.caseId}')">🔄 重跑 AI</button>
             </div>
             <div class="case-notes-area" id="notes-area-${c.caseId}">
               <div class="note-history" id="note-history-${c.caseId}">
@@ -464,6 +465,29 @@ async function submitNote(caseId) {
     await loadNotes(caseId); // 重新讀取歷史
   } catch (err) {
     if (statusEl) statusEl.textContent = '❌ 儲存失敗：' + err.message;
+  }
+}
+
+// === 手動重跑 AI 分析（會再收一次 AI 費 ~NT$4.5）===
+async function rerunAnalysis(caseId) {
+  if (!confirm(`重跑「${caseId}」的 AI 分析會再收一次費用（約 NT$4.5），確定要重跑嗎？`)) return;
+  const btn = $('#rerun-' + caseId);
+  const orig = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 分析中…'; }
+  try {
+    const res = await fetch(GAS_ENDPOINT_ADMIN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'rerun_analysis', adminKey: ADMIN_KEY, caseId }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    if (btn) btn.textContent = '✅ 已重跑';
+    setTimeout(() => { if (btn) { btn.textContent = orig; btn.disabled = false; } }, 2500);
+  } catch (err) {
+    if (btn) { btn.textContent = '❌ 失敗'; btn.disabled = false; }
+    alert('重跑失敗：' + err.message);
+    setTimeout(() => { if (btn) btn.textContent = orig; }, 2500);
   }
 }
 

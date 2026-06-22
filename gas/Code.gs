@@ -47,6 +47,22 @@ function doPost(e) {
       return handleAddNote(payload);
     }
 
+    // Admin：手動重跑 AI 分析（需要 adminKey；會再收一次 AI 費）
+    if (payload.action === 'rerun_analysis') {
+      const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
+      if (payload.adminKey !== adminKey) return jsonResponse({ ok: false, error: 'unauthorized' });
+      const caseId = (payload.caseId || '').trim();
+      if (!caseId) return jsonResponse({ ok: false, error: 'missing_caseId' });
+      try {
+        const result = rerunAnalysis(caseId);
+        return jsonResponse({ ok: true, caseId, analysisStatus: 'success', analysis: result });
+      } catch (rerunErr) {
+        console.error('Manual rerun failed for ' + caseId + ':', rerunErr);
+        writeAnalysisRecord(caseId, null, 'failed', rerunErr.message);
+        return jsonResponse({ ok: false, caseId, error: rerunErr.message });
+      }
+    }
+
     // Admin：產生新案件 Token（需要 adminKey 驗證）
     if (payload.action === 'create_token') {
       const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
@@ -123,15 +139,26 @@ function doPost(e) {
     sendNotifications(caseId, data);
 
     // 自動觸發 AI 分析（同步、可能 10-30 秒）
-    // 若不希望客戶等待，改成 async：用 ScriptApp.newTrigger 排程
+    // 規則：一個案子只自動跑一次。已有成功分析（含重送 / 重複提交）→ 跳過，
+    // 之後若要再分析，請在後台「案件列表」按手動重跑（rerun_analysis）。
     let analysisResult = null;
+    let analysisStatus;
     const analysisEnabled = (PropertiesService.getScriptProperties().getProperty('ANALYSIS_ENABLED') || 'true') === 'true';
-    if (analysisEnabled) {
+    const existingAnalysis = findAnalysisByCaseId(caseId);
+    if (!analysisEnabled) {
+      analysisStatus = 'skipped';
+    } else if (existingAnalysis) {
+      // 已分析過 → 不重跑、不收費；保留既有結果
+      analysisResult = existingAnalysis;
+      analysisStatus = 'already_analyzed';
+    } else {
       try {
         analysisResult = runClaudeAnalysis(caseId, data);
+        analysisStatus = 'success';
       } catch (analysisErr) {
         console.error('Analysis failed for ' + caseId + ':', analysisErr);
         writeAnalysisRecord(caseId, null, 'failed', analysisErr.message);
+        analysisStatus = 'failed';
       }
     }
 
@@ -144,7 +171,7 @@ function doPost(e) {
       caseId,
       clientReportUrl,
       designerReportUrl,
-      analysisStatus: analysisResult ? 'success' : (analysisEnabled ? 'failed' : 'skipped'),
+      analysisStatus,
     });
 
   } catch (err) {
