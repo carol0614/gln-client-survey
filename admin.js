@@ -43,6 +43,15 @@ function initTabs() {
 
 // === 案件列表 ===
 let allCases = [];
+let casesAreDemo = false;   // true = 目前顯示的是功能展示範例（無真實案件 / 後端連不上）
+
+// 視覺 Demo：沒有真實案件時自動顯示，讓 Carol 看到案件列表所有功能。
+// 真實案件提交後會自動取代。三筆涵蓋三種 AI 分析狀態。
+const DEMO_CASES = [
+  { caseId: 'GLN-202605-004', clientName: '林先生一家（4 人 + 寵物 · 老屋翻新）', timestamp: '2026-06-20 14:30', analysisStatus: 'success' },
+  { caseId: 'GLN-202606-007', clientName: '屏東明中新村（丈量代填）',           timestamp: '2026-06-21 10:05', analysisStatus: 'none' },
+  { caseId: 'GLN-202606-009', clientName: '王小姐（新成屋客變）',                timestamp: '2026-06-22 09:15', analysisStatus: 'failed' },
+];
 
 async function loadCasesList() {
   const app = $('#cases-app');
@@ -52,14 +61,25 @@ async function loadCasesList() {
     const res = await fetch(url);
     const result = await res.json();
     if (!result.ok) throw new Error(result.error || 'unknown');
-    allCases = result.cases || [];
+    const real = result.cases || [];
+    if (real.length === 0) {
+      // 還沒有真實案件 → 顯示功能展示 Demo
+      allCases = DEMO_CASES;
+      casesAreDemo = true;
+    } else {
+      allCases = real;
+      casesAreDemo = false;
+    }
     renderCasesList();
   } catch (err) {
-    app.innerHTML = `<p style="text-align:center;padding:3rem;color:var(--gln-error)">載入失敗：${err.message}<br><button class="btn btn-ghost" onclick="loadCasesList()" style="margin-top:1rem;">重試</button></p>`;
+    // 後端連不上時也顯示 Demo，讓 Carol 看功能；保留重試入口
+    allCases = DEMO_CASES;
+    casesAreDemo = true;
+    renderCasesList(err.message);
   }
 }
 
-function renderCasesList() {
+function renderCasesList(loadError) {
   const app = $('#cases-app');
   const query = ($('#case-search')?.value || '').toLowerCase();
   const filtered = query
@@ -111,7 +131,16 @@ function renderCasesList() {
         `;
       }).join('');
 
+  const demoBanner = casesAreDemo
+    ? `<div class="demo-banner">
+         👀 <strong>功能展示範例</strong>　以下 3 筆為示範資料，讓你預覽案件列表的所有功能（報告 / 補填 / 筆記 / AI 狀態）。
+         ${loadError ? `<span style="color:#a03030;">（後端暫時連不上：${loadError}）</span>` : '等真實案件提交後會自動取代。'}
+         <button class="btn btn-ghost btn-sm" onclick="loadCasesList()" style="margin-left:0.5rem;">重新載入真實資料</button>
+       </div>`
+    : '';
+
   app.innerHTML = `
+    ${demoBanner}
     <div class="cases-toolbar">
       <input class="cases-search" id="case-search" type="search" placeholder="搜尋案件編號、客戶名稱…" value="${query}" />
       <span class="cases-count">${filtered.length} / ${allCases.length} 筆</span>
@@ -122,7 +151,7 @@ function renderCasesList() {
       : listHtml
     }
   `;
-  $('#case-search')?.addEventListener('input', renderCasesList);
+  $('#case-search')?.addEventListener('input', () => renderCasesList());
 }
 
 // === 初始化 ===
@@ -395,10 +424,11 @@ function switchReportView(view) {
   _currentView = view;
   $$('.report-view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   const base = location.origin + location.pathname.replace('admin.html', '');
+  const d = casesAreDemo ? '&demo=1' : '';
   const urls = {
-    client:   `${base}report.html?id=${_currentCaseId}&v=client`,
-    designer: `${base}report.html?id=${_currentCaseId}&v=designer`,
-    fill:     `${base}designer.html?id=${_currentCaseId}`,
+    client:   `${base}report.html?id=${_currentCaseId}&v=client${d}`,
+    designer: `${base}report.html?id=${_currentCaseId}&v=designer${d}`,
+    fill:     `${base}designer.html?id=${_currentCaseId}${d}`,
   };
   $('#report-modal-iframe').src = urls[view] || 'about:blank';
 }
@@ -419,6 +449,20 @@ async function toggleNotes(caseId) {
 async function loadNotes(caseId) {
   const histEl = $('#note-history-' + caseId);
   if (!histEl) return;
+  if (casesAreDemo) {
+    renderNoteHistory(caseId, [{
+      timestamp: '2026-06-20 15:10',
+      noteText: '丈量現場：客廳採光偏暗，屋主希望開放式廚房；主臥要增設更衣室；長輩房需無障礙動線。預算抓 250 萬。',
+      parsedFields: JSON.stringify({ meeting_summary: [
+        '客廳採光不足，考慮拆牆引光 / 玻璃隔間',
+        '廚房改開放式，需確認管線與抽油煙排煙',
+        '主臥增設更衣室',
+        '長輩房無障礙動線（地坪齊平、扶手）',
+        '預算上限約 NT$2,500,000',
+      ] }),
+    }]);
+    return;
+  }
   histEl.innerHTML = '<p class="muted" style="font-size:0.8rem;">載入中…</p>';
   try {
     const url = `${GAS_ENDPOINT_ADMIN}?action=get_notes&case_id=${encodeURIComponent(caseId)}&admin_token=${encodeURIComponent(ADMIN_KEY)}`;
@@ -466,6 +510,10 @@ async function submitNote(caseId) {
   const statusEl = $('#note-status-' + caseId);
   const text = (ta?.value || '').trim();
   if (!text) { if (statusEl) statusEl.textContent = '請先輸入筆記內容'; return; }
+  if (casesAreDemo) {
+    if (statusEl) statusEl.textContent = '🅓 範例展示模式：實際送出會跑 AI 分析並寫入資料庫。有真實案件後即可使用。';
+    return;
+  }
   if (statusEl) statusEl.textContent = 'AI 分析中（約 10–20 秒）…';
   try {
     const res = await fetch(GAS_ENDPOINT_ADMIN, {
@@ -485,6 +533,10 @@ async function submitNote(caseId) {
 
 // === 手動重跑 AI 分析（會再收一次 AI 費 ~NT$4.5）===
 async function rerunAnalysis(caseId) {
+  if (casesAreDemo) {
+    alert('🅓 範例展示模式：實際重跑會呼叫 AI 分析（約 NT$4.5）。有真實案件後即可使用。');
+    return;
+  }
   if (!confirm(`重跑「${caseId}」的 AI 分析會再收一次費用（約 NT$4.5），確定要重跑嗎？`)) return;
   const btn = $('#rerun-' + caseId);
   const orig = btn ? btn.textContent : '';
