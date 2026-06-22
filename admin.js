@@ -27,7 +27,6 @@ if (token !== ADMIN_TOKEN) {
   initTabs();
   init();
   loadCasesList();
-  bindNotesParser();
 }
 
 // === Tab 切換 ===
@@ -392,66 +391,6 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('#report-modal').classList.contains('open')) closeReportModal();
 });
 
-// === 筆記解析 ===
-function bindNotesParser() {
-  const btn = $('#btn-parse-notes');
-  if (!btn) return;
-  btn.addEventListener('click', async () => {
-    const notes = ($('#notes-input')?.value || '').trim();
-    if (!notes) { alert('請先貼入筆記內容'); return; }
-
-    const statusEl = $('#notes-parse-status');
-    const resultEl = $('#notes-parse-result');
-    btn.disabled = true;
-    btn.textContent = '解析中…';
-    statusEl.textContent = 'AI 分析筆記中，約需 10–20 秒…';
-    resultEl.style.display = 'none';
-
-    try {
-      const res = await fetch(GAS_ENDPOINT_ADMIN, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'prefill_from_notes', adminKey: ADMIN_KEY, notes }),
-      });
-      const json = await res.json();
-      if (!json.ok) throw new Error(json.error || '解析失敗');
-
-      statusEl.textContent = `✅ 解析完成 · 案件編號 ${json.projectNumber || '—'}`;
-      resultEl.innerHTML = `
-        <div class="token-result-title">連結已產生（筆記已預填）</div>
-        <div class="token-row">
-          <span class="token-row-label">客戶問卷</span>
-          <a id="notes-client-url" href="${json.clientUrl}" target="_blank" class="token-url">${json.clientUrl}</a>
-          <button class="btn-copy" data-copy-href="${json.clientUrl}">複製</button>
-        </div>
-        <p class="muted" style="margin-top:.75rem;font-size:.8rem;">
-          問卷已根據筆記預填。客戶開啟後可確認並補充資料。
-        </p>
-      `;
-      resultEl.style.display = 'block';
-      // 解析完後清空筆記框
-      $('#notes-input').value = '';
-    } catch (err) {
-      statusEl.textContent = '❌ 解析失敗：' + err.message;
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '✨ AI 解析並產生連結';
-    }
-  });
-
-  // 複製按鈕（支援 data-copy-href）
-  document.addEventListener('click', async (e) => {
-    const b = e.target.closest('.btn-copy[data-copy-href]');
-    if (!b) return;
-    try {
-      await navigator.clipboard.writeText(b.dataset.copyHref);
-      const orig = b.textContent;
-      b.textContent = '✓ 已複製';
-      setTimeout(() => { b.textContent = orig; }, 2000);
-    } catch { b.textContent = '複製失敗'; }
-  });
-}
-
 // === Token 產生器 ===
 function bindTokenControls() {
   const btn = $('#btn-create-token');
@@ -463,6 +402,7 @@ function bindTokenControls() {
     const name = ($('#pf-client-name')?.value || '').trim();
     if (!name) { errorEl.textContent = '請填入業主姓名'; errorEl.style.display = 'block'; return; }
     const note = noteInput.value.trim();
+    const notes = ($('#notes-input')?.value || '').trim();
     const prefill = {
       client_name:   name,
       client_phone:  ($('#pf-client-phone')?.value  || '').trim(),
@@ -476,42 +416,58 @@ function bindTokenControls() {
     resultEl.style.display = 'none';
     errorEl.style.display = 'none';
     btn.disabled = true;
-    btn.textContent = '產生中…';
+    const statusEl = $('#notes-parse-status');
 
     try {
-      const res = await fetch(GAS_ENDPOINT_ADMIN, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'create_token', adminKey: ADMIN_KEY, note, prefill }),
-      });
-      const json = await res.json();
-      if (!json.ok) throw new Error(json.error || '產生失敗');
+      let json;
+      if (notes) {
+        // 有筆記 → AI 解析 + 手填欄位優先覆蓋
+        btn.textContent = 'AI 解析中…';
+        if (statusEl) statusEl.textContent = '約需 10–20 秒…';
+        const res = await fetch(GAS_ENDPOINT_ADMIN, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'prefill_from_notes', adminKey: ADMIN_KEY, notes, prefillOverride: prefill }),
+        });
+        json = await res.json();
+        if (!json.ok) throw new Error(json.error || 'AI 解析失敗');
+        if (statusEl) statusEl.textContent = '✅ AI 解析完成';
+      } else {
+        // 沒有筆記 → 直接產生 token
+        btn.textContent = '產生中…';
+        const res = await fetch(GAS_ENDPOINT_ADMIN, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'create_token', adminKey: ADMIN_KEY, note, prefill }),
+        });
+        json = await res.json();
+        if (!json.ok) throw new Error(json.error || '產生失敗');
+      }
 
       const clientLink = $('#token-client-url');
       const designerLink = $('#token-designer-url');
-
       clientLink.href = json.clientUrl;
       clientLink.textContent = json.clientUrl;
-      // designer report URL 在客戶送出後才有 caseId，這裡先顯示 GAS 回傳的 base URL
       designerLink.href = json.designerReportUrl || '#';
       designerLink.textContent = json.designerReportUrl || '（客戶送出後自動寄出）';
 
       resultEl.style.display = 'block';
+      // 清空所有欄位
       noteInput.value = '';
-      // Clear prefill fields
-      ['pf-client-name','pf-client-phone','pf-house-address','pf-house-size','pf-house-age'].forEach(id => {
+      if ($('#notes-input')) $('#notes-input').value = '';
+      ['pf-client-name','pf-client-phone','pf-house-address','pf-house-size','pf-house-age','pf-budget'].forEach(id => {
         const el = $('#' + id); if (el) el.value = '';
       });
       ['pf-house-type','pf-case-type'].forEach(id => {
         const el = $('#' + id); if (el) el.selectedIndex = 0;
       });
-      $('#pf-budget').value = '';
     } catch (err) {
       errorEl.textContent = '產生失敗：' + err.message;
       errorEl.style.display = 'block';
+      if (statusEl) statusEl.textContent = '';
     } finally {
       btn.disabled = false;
-      btn.textContent = '產生連結';
+      btn.textContent = '✨ 產生客戶連結';
     }
   });
 

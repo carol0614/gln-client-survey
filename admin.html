@@ -309,20 +309,7 @@
         <section class="admin-token-section">
           <h2>新建案件 · 產生客戶連結</h2>
 
-          <!-- 筆記解析區 -->
-          <div class="notes-parse-box">
-            <label class="notes-parse-label">📋 貼入丈量筆記或會談記錄（AI 自動解析填入）</label>
-            <textarea id="notes-input" class="notes-textarea" rows="5" placeholder="例：王小明，台北市信義區忠孝東路五段50號12樓，屋齡35年，約40坪，老屋翻新，預算約300萬，已丈量完成，下周提案…"></textarea>
-            <div style="display:flex;gap:0.75rem;align-items:center;margin-top:0.75rem;flex-wrap:wrap;">
-              <button type="button" id="btn-parse-notes" class="btn btn-primary">✨ AI 解析並產生連結</button>
-              <span id="notes-parse-status" class="muted" style="font-size:0.85rem;"></span>
-            </div>
-            <div id="notes-parse-result" class="token-result" style="display:none;"></div>
-          </div>
-
-          <div class="notes-divider"><span>或手動填入</span></div>
-
-          <p class="muted">填入客戶基本資料後按「產生連結」，問卷開啟時這些欄位會自動預填，客戶不需要重複輸入。</p>
+          <p class="muted">填入已知的客戶資料，再貼入丈量筆記。AI 會自動補充筆記中的資訊，並產生預填好的客戶問卷連結。</p>
           <div class="prefill-form">
             <div class="prefill-row">
               <div class="prefill-field">
@@ -374,8 +361,15 @@
                 <input type="text" id="token-note" placeholder="例：介紹人、特殊需求" maxlength="100" />
               </div>
             </div>
-            <div style="margin-top:1rem;">
-              <button type="button" id="btn-create-token" class="btn btn-primary">產生客戶連結</button>
+            <div class="prefill-row">
+              <div class="prefill-field prefill-field--wide">
+                <label for="notes-input">丈量筆記 / 會談記錄（選填）</label>
+                <textarea id="notes-input" class="notes-textarea" rows="4" placeholder="貼入任何格式的筆記，AI 會自動補充上方未填的欄位…"></textarea>
+              </div>
+            </div>
+            <div style="margin-top:1rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+              <button type="button" id="btn-create-token" class="btn btn-primary">✨ 產生客戶連結</button>
+              <span id="notes-parse-status" class="muted" style="font-size:0.85rem;"></span>
             </div>
           </div>
           <div id="token-result" class="token-result" style="display:none;">

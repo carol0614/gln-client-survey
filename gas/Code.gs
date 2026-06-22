@@ -1203,6 +1203,10 @@ function handlePrefillFromNotes(payload) {
   // 產生 draftToken
   const draftToken = 'prefill-' + randomHex(12);
 
+  // 手填欄位蓋過 AI 解析結果（有填的優先）
+  const override = payload.prefillOverride || {};
+  Object.keys(override).forEach(k => { if (override[k]) prefillData[k] = override[k]; });
+
   // 補充 admin 標記
   prefillData._adminPrefill = true;
   prefillData._adminNote = '由 GLN 設計師根據丈量會談筆記預填。請確認標有「＊」的欄位，並補充其餘空白項目。';
