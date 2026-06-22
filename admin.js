@@ -24,7 +24,89 @@ if (token !== ADMIN_TOKEN) {
   $('#auth-gate').style.display = 'block';
 } else {
   $('#admin-app').style.display = 'block';
+  initTabs();
   init();
+  loadCasesList();
+}
+
+// === Tab 切換 ===
+function initTabs() {
+  $$('.admin-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+      $$('.admin-tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      $('#tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+}
+
+// === 案件列表 ===
+let allCases = [];
+
+async function loadCasesList() {
+  const app = $('#cases-app');
+  app.innerHTML = '<p class="muted" style="text-align:center;padding:3rem 0;">載入案件中…</p>';
+  try {
+    const url = `${GAS_ENDPOINT_ADMIN}?action=list_cases&admin_token=${encodeURIComponent(ADMIN_KEY)}`;
+    const res = await fetch(url);
+    const result = await res.json();
+    if (!result.ok) throw new Error(result.error || 'unknown');
+    allCases = result.cases || [];
+    renderCasesList();
+  } catch (err) {
+    app.innerHTML = `<p style="text-align:center;padding:3rem;color:var(--gln-error)">載入失敗：${err.message}<br><button class="btn btn-ghost" onclick="loadCasesList()" style="margin-top:1rem;">重試</button></p>`;
+  }
+}
+
+function renderCasesList() {
+  const app = $('#cases-app');
+  const query = ($('#case-search')?.value || '').toLowerCase();
+  const filtered = query
+    ? allCases.filter(c =>
+        c.caseId.toLowerCase().includes(query) ||
+        (c.clientName || '').toLowerCase().includes(query)
+      )
+    : allCases;
+
+  const badgeMap = {
+    success: ['badge-success', 'AI 分析完成'],
+    failed:  ['badge-failed',  'AI 分析失敗'],
+    none:    ['badge-none',    '未分析'],
+  };
+
+  const listHtml = filtered.length === 0
+    ? '<div class="cases-empty"><p>沒有符合的案件</p></div>'
+    : filtered.map(c => {
+        const [badgeClass, badgeLabel] = badgeMap[c.analysisStatus] || badgeMap.none;
+        return `
+          <div class="case-card">
+            <div class="case-meta">
+              <p class="case-id">${c.caseId}</p>
+              ${c.clientName ? `<p class="case-client">${c.clientName}</p>` : ''}
+              <p class="case-time">${c.timestamp}</p>
+            </div>
+            <div class="case-actions">
+              <span class="case-badge ${badgeClass}">${badgeLabel}</span>
+              <a class="btn-report btn-designer" href="${c.designerReportUrl}" target="_blank">設計師報告</a>
+              <a class="btn-report btn-client" href="${c.clientReportUrl}" target="_blank">客戶版</a>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+  app.innerHTML = `
+    <div class="cases-toolbar">
+      <input class="cases-search" id="case-search" type="search" placeholder="搜尋案件編號、客戶名稱…" value="${query}" />
+      <span class="cases-count">${filtered.length} / ${allCases.length} 筆</span>
+      <button class="btn btn-ghost btn-sm" onclick="loadCasesList()">重新整理</button>
+    </div>
+    ${allCases.length === 0
+      ? '<div class="cases-empty"><p>目前還沒有已提交的案件。</p></div>'
+      : listHtml
+    }
+  `;
+  $('#case-search')?.addEventListener('input', renderCasesList);
 }
 
 // === 初始化 ===

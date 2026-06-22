@@ -4,12 +4,152 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>GLN 照片管理 · Admin</title>
+  <title>GLN Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="admin.css" />
+  <style>
+    /* ── Tab 系統 ── */
+    .admin-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--gln-mist);
+      margin-bottom: 2rem;
+    }
+    .admin-tab-btn {
+      padding: 0.65rem 1.5rem;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--gln-taupe);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .admin-tab-btn:hover { color: var(--gln-ink); }
+    .admin-tab-btn.active {
+      color: var(--gln-olive);
+      border-bottom-color: var(--gln-olive);
+    }
+    .admin-tab-panel { display: none; }
+    .admin-tab-panel.active { display: block; }
+
+    /* ── 案件列表 ── */
+    .cases-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .cases-search {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.55rem 0.875rem;
+      border: 1px solid var(--gln-mist);
+      border-radius: var(--radius);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      background: #fff;
+      color: var(--gln-ink);
+      outline: none;
+    }
+    .cases-search:focus { border-color: var(--gln-olive); }
+    .cases-count {
+      font-size: 0.85rem;
+      color: var(--gln-taupe);
+      white-space: nowrap;
+    }
+    .case-card {
+      background: #fff;
+      border: 1px solid var(--gln-mist);
+      border-radius: 6px;
+      padding: 1.1rem 1.4rem;
+      margin-bottom: 0.875rem;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.5rem 1.5rem;
+      align-items: start;
+      transition: border-color 0.15s;
+    }
+    .case-card:hover { border-color: var(--gln-olive); }
+    .case-meta { min-width: 0; }
+    .case-id {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--gln-ink);
+      letter-spacing: 0.04em;
+      margin: 0 0 0.15rem;
+    }
+    .case-client {
+      font-size: 0.95rem;
+      color: var(--gln-ink);
+      margin: 0 0 0.15rem;
+    }
+    .case-time {
+      font-size: 0.8rem;
+      color: var(--gln-taupe);
+      margin: 0;
+    }
+    .case-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+    .case-badge {
+      font-size: 0.72rem;
+      padding: 0.18rem 0.5rem;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .badge-success { background: #e8f0e6; color: #4a7040; }
+    .badge-none    { background: var(--gln-mist); color: var(--gln-taupe); }
+    .badge-failed  { background: #fce8e8; color: #a03030; }
+    .btn-report {
+      display: inline-block;
+      padding: 0.4rem 0.875rem;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      font-family: var(--font-sans);
+      text-decoration: none;
+      border: 1px solid;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-designer {
+      background: var(--gln-olive);
+      color: #fff;
+      border-color: var(--gln-olive);
+    }
+    .btn-designer:hover { background: #636b62; }
+    .btn-client {
+      background: transparent;
+      color: var(--gln-olive);
+      border-color: var(--gln-mist);
+    }
+    .btn-client:hover { border-color: var(--gln-olive); }
+    .cases-empty {
+      text-align: center;
+      padding: 4rem 0;
+      color: var(--gln-taupe);
+    }
+    @media (max-width: 600px) {
+      .case-card { grid-template-columns: 1fr; }
+      .case-actions { flex-direction: row; flex-wrap: wrap; align-items: center; }
+      .admin-tab-btn { padding: 0.55rem 0.875rem; font-size: 0.85rem; }
+    }
+  </style>
 </head>
 <body>
 
@@ -17,9 +157,9 @@
     <div class="header-inner">
       <a href="/" class="site-logo-link">
         <img src="assets/gln-circle.png" alt="GLN" class="site-logo-img" />
-        <span class="site-logo-text">照片管理 · Admin</span>
+        <span class="site-logo-text">GLN Admin</span>
       </a>
-      <div id="admin-status" class="muted">尚未掃描</div>
+      <div id="admin-status" class="muted"></div>
     </div>
   </header>
 
@@ -33,127 +173,149 @@
 
     <div id="admin-app" style="display:none;">
 
-      <!-- ===== 新建案件 Token 產生器 ===== -->
-      <section class="admin-token-section">
-        <h2>新建案件 · 產生客戶連結</h2>
-        <p class="muted">填入客戶基本資料後按「產生連結」，問卷開啟時這些欄位會自動預填，客戶不需要重複輸入。</p>
-        <div class="prefill-form">
-          <div class="prefill-row">
-            <div class="prefill-field">
-              <label for="pf-client-name">業主姓名 <span class="req">*</span></label>
-              <input type="text" id="pf-client-name" placeholder="王小明" maxlength="40" />
-            </div>
-            <div class="prefill-field">
-              <label for="pf-client-phone">聯絡電話</label>
-              <input type="tel" id="pf-client-phone" placeholder="0912-345-678" maxlength="20" />
-            </div>
-            <div class="prefill-field prefill-field--wide">
-              <label for="pf-house-address">房屋地址</label>
-              <input type="text" id="pf-house-address" placeholder="台北市大安區○○路○號○樓" maxlength="80" />
-            </div>
-          </div>
-          <div class="prefill-row">
-            <div class="prefill-field">
-              <label for="pf-house-size">坪數</label>
-              <input type="number" id="pf-house-size" placeholder="42" min="5" max="500" />
-            </div>
-            <div class="prefill-field">
-              <label for="pf-house-age">屋齡（年）</label>
-              <input type="number" id="pf-house-age" placeholder="25" min="0" max="100" />
-            </div>
-            <div class="prefill-field">
-              <label for="pf-house-type">房屋形態</label>
-              <select id="pf-house-type">
-                <option value="">請選擇</option>
-                <option>新成屋</option><option>中古屋</option><option>老屋</option>
-                <option>預售屋</option><option>透天</option><option>公寓</option><option>大樓</option>
-              </select>
-            </div>
-            <div class="prefill-field">
-              <label for="pf-case-type">案件類型</label>
-              <select id="pf-case-type">
-                <option value="">請選擇</option>
-                <option>老屋翻新</option><option>新成屋客變</option><option>全屋翻新</option>
-                <option>局部翻新</option><option>商業空間</option>
-              </select>
-            </div>
-            <div class="prefill-field">
-              <label for="pf-budget">預算範圍</label>
-              <input type="text" id="pf-budget" placeholder="例：500 萬" maxlength="30" />
-            </div>
-          </div>
-          <div class="prefill-row">
-            <div class="prefill-field prefill-field--wide">
-              <label for="token-note">案件備註（內部用，不顯示給客戶）</label>
-              <input type="text" id="token-note" placeholder="例：介紹人、特殊需求" maxlength="100" />
-            </div>
-          </div>
-          <div style="margin-top:1rem;">
-            <button type="button" id="btn-create-token" class="btn btn-primary">產生客戶連結</button>
-          </div>
+      <!-- Tab 切換列 -->
+      <div class="admin-tabs">
+        <button class="admin-tab-btn active" data-tab="cases">案件列表</button>
+        <button class="admin-tab-btn" data-tab="token">新建案件</button>
+        <button class="admin-tab-btn" data-tab="photos">照片管理</button>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- Tab 1：案件列表 -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="admin-tab-panel active" id="tab-cases">
+        <div id="cases-app">
+          <p class="muted" style="text-align:center;padding:3rem 0;">載入中…</p>
         </div>
-        <div id="token-result" class="token-result" style="display:none;">
-          <div class="token-result-title">連結已產生</div>
-          <div class="token-row">
-            <span class="token-row-label">客戶問卷</span>
-            <a id="token-client-url" href="#" target="_blank" class="token-url"></a>
-            <button class="btn-copy" data-copy="token-client-url">複製</button>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- Tab 2：新建案件 -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="admin-tab-panel" id="tab-token">
+        <section class="admin-token-section">
+          <h2>新建案件 · 產生客戶連結</h2>
+          <p class="muted">填入客戶基本資料後按「產生連結」，問卷開啟時這些欄位會自動預填，客戶不需要重複輸入。</p>
+          <div class="prefill-form">
+            <div class="prefill-row">
+              <div class="prefill-field">
+                <label for="pf-client-name">業主姓名 <span class="req">*</span></label>
+                <input type="text" id="pf-client-name" placeholder="王小明" maxlength="40" />
+              </div>
+              <div class="prefill-field">
+                <label for="pf-client-phone">聯絡電話</label>
+                <input type="tel" id="pf-client-phone" placeholder="0912-345-678" maxlength="20" />
+              </div>
+              <div class="prefill-field prefill-field--wide">
+                <label for="pf-house-address">房屋地址</label>
+                <input type="text" id="pf-house-address" placeholder="台北市大安區○○路○號○樓" maxlength="80" />
+              </div>
+            </div>
+            <div class="prefill-row">
+              <div class="prefill-field">
+                <label for="pf-house-size">坪數</label>
+                <input type="number" id="pf-house-size" placeholder="42" min="5" max="500" />
+              </div>
+              <div class="prefill-field">
+                <label for="pf-house-age">屋齡（年）</label>
+                <input type="number" id="pf-house-age" placeholder="25" min="0" max="100" />
+              </div>
+              <div class="prefill-field">
+                <label for="pf-house-type">房屋形態</label>
+                <select id="pf-house-type">
+                  <option value="">請選擇</option>
+                  <option>新成屋</option><option>中古屋</option><option>老屋</option>
+                  <option>預售屋</option><option>透天</option><option>公寓</option><option>大樓</option>
+                </select>
+              </div>
+              <div class="prefill-field">
+                <label for="pf-case-type">案件類型</label>
+                <select id="pf-case-type">
+                  <option value="">請選擇</option>
+                  <option>老屋翻新</option><option>新成屋客變</option><option>全屋翻新</option>
+                  <option>局部翻新</option><option>商業空間</option>
+                </select>
+              </div>
+              <div class="prefill-field">
+                <label for="pf-budget">預算範圍</label>
+                <input type="text" id="pf-budget" placeholder="例：500 萬" maxlength="30" />
+              </div>
+            </div>
+            <div class="prefill-row">
+              <div class="prefill-field prefill-field--wide">
+                <label for="token-note">案件備註（內部用，不顯示給客戶）</label>
+                <input type="text" id="token-note" placeholder="例：介紹人、特殊需求" maxlength="100" />
+              </div>
+            </div>
+            <div style="margin-top:1rem;">
+              <button type="button" id="btn-create-token" class="btn btn-primary">產生客戶連結</button>
+            </div>
           </div>
-          <div class="token-row">
-            <span class="token-row-label">設計師報告</span>
-            <a id="token-designer-url" href="#" target="_blank" class="token-url"></a>
-            <button class="btn-copy" data-copy="token-designer-url">複製</button>
+          <div id="token-result" class="token-result" style="display:none;">
+            <div class="token-result-title">連結已產生</div>
+            <div class="token-row">
+              <span class="token-row-label">客戶問卷</span>
+              <a id="token-client-url" href="#" target="_blank" class="token-url"></a>
+              <button class="btn-copy" data-copy="token-client-url">複製</button>
+            </div>
+            <div class="token-row">
+              <span class="token-row-label">設計師報告</span>
+              <a id="token-designer-url" href="#" target="_blank" class="token-url"></a>
+              <button class="btn-copy" data-copy="token-designer-url">複製</button>
+            </div>
+            <p class="muted" style="margin-top:.75rem;font-size:.8rem;">⚠️ 此連結只能使用一次。客戶送出後 token 自動失效。</p>
           </div>
-          <p class="muted" style="margin-top:.75rem;font-size:.8rem;">⚠️ 此連結只能使用一次。客戶送出後 token 自動失效。</p>
-        </div>
-        <div id="token-error" class="status-banner error" style="display:none;"></div>
-      </section>
+          <div id="token-error" class="status-banner error" style="display:none;"></div>
+        </section>
+      </div>
 
-      <hr class="admin-divider" />
+      <!-- ══════════════════════════════════════ -->
+      <!-- Tab 3：照片管理 -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="admin-tab-panel" id="tab-photos">
+        <section class="admin-intro">
+          <h2>感覺光譜照片管理</h2>
+          <p class="muted">
+            管理「Section C+ 感覺光譜」的照片池。把照片丟進 <code>assets/photos/</code> 後按 <strong>重新掃描</strong>，為每張勾選感覺 tag，最後按 <strong>匯出 photos.json</strong> 取代 <code>data/photos.json</code>。
+          </p>
+          <details class="admin-help">
+            <summary>📘 使用說明</summary>
+            <ol>
+              <li>把照片（.jpg / .png / .webp）放進 <code>assets/photos/</code> 資料夾</li>
+              <li>建議直幅 4:5、短邊 800-1200px、單檔 &lt; 300KB</li>
+              <li>按「重新掃描」抓出全部照片</li>
+              <li>每張照片勾 3-5 個感覺 tag（建議）</li>
+              <li>邊勾邊自動存到瀏覽器（refresh 不會掉）</li>
+              <li>勾完按「匯出 photos.json」下載新版本</li>
+              <li>把下載的檔案拖進 <code>data/</code> 覆蓋舊的 <code>photos.json</code></li>
+              <li>到 <a href="/?t=test" target="_blank">客戶問卷頁</a> 重新整理就能看到</li>
+            </ol>
+          </details>
+        </section>
 
-      <section class="admin-intro">
-        <h1>GLN 照片管理工具</h1>
-        <p class="muted">
-          管理「Section C+ 感覺光譜」的照片池。把照片丟進 <code>assets/photos/</code> 後按 <strong>重新掃描</strong>，為每張勾選感覺 tag，最後按 <strong>匯出 photos.json</strong> 取代 <code>data/photos.json</code>。
-        </p>
+        <section class="admin-toolbar">
+          <button type="button" id="btn-rescan" class="btn btn-primary">🔄 重新掃描</button>
+          <button type="button" id="btn-export" class="btn btn-primary">⬇️ 匯出 photos.json</button>
+          <button type="button" id="btn-clear" class="btn btn-ghost">🗑️ 清空所有 tag</button>
+          <div class="admin-stats" id="admin-stats"></div>
+        </section>
 
-        <details class="admin-help">
-          <summary>📘 使用說明</summary>
-          <ol>
-            <li>把照片（.jpg / .png / .webp）放進 <code>assets/photos/</code> 資料夾</li>
-            <li>建議直幅 4:5、短邊 800-1200px、單檔 &lt; 300KB</li>
-            <li>按「重新掃描」抓出全部照片</li>
-            <li>每張照片勾 3-5 個感覺 tag（建議）</li>
-            <li>邊勾邊自動存到瀏覽器（refresh 不會掉）</li>
-            <li>勾完按「匯出 photos.json」下載新版本</li>
-            <li>把下載的檔案拖進 <code>data/</code> 覆蓋舊的 <code>photos.json</code></li>
-            <li>到 <a href="/?t=test" target="_blank">客戶問卷頁</a> 重新整理就能看到</li>
-          </ol>
-        </details>
-      </section>
+        <section class="admin-legend">
+          <strong>15 個感覺 tag</strong>（建議每張 3-5 個）：
+          <div id="feeling-legend" class="feeling-legend"></div>
+        </section>
 
-      <section class="admin-toolbar">
-        <button type="button" id="btn-rescan" class="btn btn-primary">🔄 重新掃描</button>
-        <button type="button" id="btn-export" class="btn btn-primary">⬇️ 匯出 photos.json</button>
-        <button type="button" id="btn-clear" class="btn btn-ghost">🗑️ 清空所有 tag</button>
-        <div class="admin-stats" id="admin-stats"></div>
-      </section>
+        <section id="photo-grid" class="photo-grid">
+          <p class="muted" style="padding: 3rem 0; text-align: center;">按「重新掃描」開始</p>
+        </section>
+      </div>
 
-      <section class="admin-legend">
-        <strong>15 個感覺 tag</strong>（建議每張 3-5 個）：
-        <div id="feeling-legend" class="feeling-legend"></div>
-      </section>
-
-      <section id="photo-grid" class="photo-grid">
-        <p class="muted" style="padding: 3rem 0; text-align: center;">按「重新掃描」開始</p>
-      </section>
-
-    </div>
+    </div><!-- /admin-app -->
 
   </main>
 
   <footer class="site-footer">
-    GLN Admin · 此頁僅供總監使用 · 資料只存在你的瀏覽器
+    GLN Admin · 此頁僅供總監使用
   </footer>
 
   <script src="admin.js"></script>

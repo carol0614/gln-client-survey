@@ -185,7 +185,7 @@ function doGet(e) {
 }
 
 function handleListCases(adminToken) {
-  const expected = PropertiesService.getScriptProperties().getProperty('ADMIN_TOKEN') || 'gln-admin';
+  const expected = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
   if (adminToken !== expected) return jsonResponse({ ok: false, error: 'unauthorized' });
 
   const subSh = getOrCreateSheet(SUBMISSIONS_SHEET, ['CaseID', 'Timestamp', 'Token', 'DataJSON']);
