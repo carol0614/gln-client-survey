@@ -149,6 +149,75 @@
       .case-actions { flex-direction: row; flex-wrap: wrap; align-items: center; }
       .admin-tab-btn { padding: 0.55rem 0.875rem; font-size: 0.85rem; }
     }
+
+    /* ── 報告 Modal ── */
+    .report-modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 1000;
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .report-modal-backdrop.open { display: flex; }
+    .report-modal {
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .report-modal-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1rem;
+      background: var(--gln-sand, #f5f0e8);
+      border-bottom: 1px solid var(--gln-mist, #e0dbd0);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .report-modal-title {
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--gln-ink);
+      margin-right: auto;
+    }
+    .report-view-btn {
+      padding: 0.35rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-family: var(--font-sans);
+      border: 1px solid var(--gln-mist, #e0dbd0);
+      background: #fff;
+      color: var(--gln-taupe);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    .report-view-btn.active {
+      background: var(--gln-olive, #7a8c6e);
+      color: #fff;
+      border-color: var(--gln-olive, #7a8c6e);
+    }
+    .report-view-btn:hover:not(.active) { background: var(--gln-mist, #e0dbd0); }
+    .report-modal-close {
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      font-family: var(--font-sans);
+      border: 1px solid var(--gln-mist, #e0dbd0);
+      background: #fff;
+      cursor: pointer;
+    }
+    .report-modal-close:hover { background: #fce8e8; border-color: #c09090; }
+    .report-modal-iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -317,6 +386,20 @@
   <footer class="site-footer">
     GLN Admin · 此頁僅供總監使用
   </footer>
+
+  <!-- 報告 Modal -->
+  <div class="report-modal-backdrop" id="report-modal">
+    <div class="report-modal">
+      <div class="report-modal-bar">
+        <span class="report-modal-title" id="report-modal-title">案件報告</span>
+        <button class="report-view-btn active" data-view="client" onclick="switchReportView('client')">客戶報告</button>
+        <button class="report-view-btn" data-view="designer" onclick="switchReportView('designer')">設計師報告</button>
+        <button class="report-view-btn" data-view="fill" onclick="switchReportView('fill')">設計師補填</button>
+        <button class="report-modal-close" onclick="closeReportModal()">✕ 關閉</button>
+      </div>
+      <iframe class="report-modal-iframe" id="report-modal-iframe" src="about:blank"></iframe>
+    </div>
+  </div>
 
   <script src="admin.js"></script>
 </body>
