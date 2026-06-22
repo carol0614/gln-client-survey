@@ -324,6 +324,14 @@
       </div>
 
       <div class="field">
+        <label>品牌</label>
+        <select id="brand" style="width:100%;border:1.5px solid #d9cfc4;border-radius:8px;padding:0.65rem 0.85rem;font-size:0.93rem;font-family:inherit;color:#3a2e28;background:#faf8f5;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;">
+          <option value="GLN">GLN（好感生活提案）</option>
+          <option value="GLV">GLV（全屋訂製系統櫃）</option>
+        </select>
+      </div>
+
+      <div class="field">
         <label>丈量筆記 <span style="font-weight:400;color:#9a8878;">（選填）</span></label>
         <textarea id="notes" placeholder="有筆記 → 貼上，AI 自動預填表單欄位（約 30 秒）&#10;沒有筆記 → 留空，直接產生空白連結（即時）&#10;&#10;例：&#10;1F：大玄關（二進式）+ 雙水槽廚房 + 中島...&#10;2F：主臥 + 書房...&#10;寵物：拉布拉多 30kg + 貓..."></textarea>
         <p class="hint">格式不限，越詳細越好。</p>
@@ -390,11 +398,11 @@
       <h2>感覺光譜照片管理</h2>
       <p class="card-desc">管理感覺光譜照片庫、標記 tag、匯出 photos.json。</p>
 
-      <a href="admin.html?t=admin" target="_blank" class="link-card" style="display:block;text-decoration:none;margin-bottom:1rem;">
+      <a href="admin.html?t=admin" target="_blank" rel="noopener" class="link-card" style="display:block;text-decoration:none;margin-bottom:1rem;">
         <div style="display:flex;align-items:center;gap:0.6rem;">
           <span style="font-size:1.5rem;">🖼</span>
           <div>
-            <div style="font-size:0.9rem;font-weight:600;color:#5a3e2b;">開啟照片管理後台</div>
+            <div style="font-size:0.9rem;font-weight:600;color:#5a3e2b;">開啟照片管理後台（新分頁）</div>
             <div style="font-size:0.78rem;color:#7a6a5a;">掃描照片、勾 tag、匯出 photos.json</div>
           </div>
         </div>
@@ -442,6 +450,7 @@
   async function generateLink() {
     const adminKey = document.getElementById('adminKey').value.trim() || 'gln-admin-2026';
     const location = document.getElementById('location').value.trim();
+    const brand    = document.getElementById('brand').value;
     const notes    = document.getElementById('notes').value.trim();
     const btn      = document.getElementById('genBtn');
     const statusEl = document.getElementById('genStatus');
@@ -456,8 +465,8 @@
 
     try {
       const data = await callGas(hasNotes
-        ? { action: 'prefill_from_notes', adminKey, location, notes }
-        : { action: 'create_token', adminKey, location }
+        ? { action: 'prefill_from_notes', adminKey, location, brand, notes }
+        : { action: 'create_token', adminKey, location, brand }
       );
 
       if (!data.ok) {
