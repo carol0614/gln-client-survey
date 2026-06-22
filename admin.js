@@ -557,6 +557,7 @@ function bindTokenControls() {
     if (!name) { errorEl.textContent = '請填入業主姓名'; errorEl.style.display = 'block'; return; }
     const note = noteInput.value.trim();
     const notes = ($('#notes-input')?.value || '').trim();
+    const brand = ($('#pf-brand')?.value || 'GLN');
     const prefill = {
       client_name:   name,
       client_phone:  ($('#pf-client-phone')?.value  || '').trim(),
@@ -581,7 +582,7 @@ function bindTokenControls() {
         const res = await fetch(GAS_ENDPOINT_ADMIN, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'prefill_from_notes', adminKey: ADMIN_KEY, notes, prefillOverride: prefill }),
+          body: JSON.stringify({ action: 'prefill_from_notes', adminKey: ADMIN_KEY, notes, brand, location: prefill.house_address, prefillOverride: prefill }),
         });
         json = await res.json();
         if (!json.ok) throw new Error(json.error || 'AI 解析失敗');
@@ -592,7 +593,7 @@ function bindTokenControls() {
         const res = await fetch(GAS_ENDPOINT_ADMIN, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'create_token', adminKey: ADMIN_KEY, note, prefill }),
+          body: JSON.stringify({ action: 'create_token', adminKey: ADMIN_KEY, note, brand, location: prefill.house_address, prefill }),
         });
         json = await res.json();
         if (!json.ok) throw new Error(json.error || '產生失敗');

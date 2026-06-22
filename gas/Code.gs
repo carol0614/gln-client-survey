@@ -56,9 +56,9 @@ function doPost(e) {
       const brand = (payload.brand || 'GLN').toUpperCase();
       const note = projectNumber + (location ? ' ' + location : '');
       const prefill = payload.prefill || null;
-      const { clientToken, designerToken } = generateTokenPair(projectNumber, prefill);
-      // 若有 prefill，將 brand 寫入草稿資料，讓送出時 sendNotifications 可讀到
+      // 若有 prefill，將 brand 寫入草稿資料；空白流程則靠 Tokens 表的 Brand/Location 欄
       if (prefill) { prefill._brand = brand; }
+      const { clientToken, designerToken } = generateTokenPair(projectNumber, prefill, brand, location);
       const baseUrl = getReportBaseUrl();
       return jsonResponse({
         ok: true,
@@ -111,6 +111,13 @@ function doPost(e) {
     // 若有對應草稿，標記為已提交（不刪，留作 audit）
     if (payload.draftToken) {
       markDraftSubmitted(payload.draftToken);
+    }
+
+    // 注入 hub 當初存的品牌/地址（空白流程沒帶 _brand/_prefillLocation，靠 Tokens 表補上）
+    const tokenInfo = getTokenInfo(token);
+    if (tokenInfo) {
+      if (!data._brand && tokenInfo.brand) data._brand = tokenInfo.brand;
+      if (tokenInfo.location) data._tokenLocation = tokenInfo.location;
     }
 
     sendNotifications(caseId, data);
@@ -717,14 +724,28 @@ function findSubmissionByCaseId(caseId) {
 }
 
 // === Token 機制（每案一組）===
-function generateTokenPair(projectNumber, prefill) {
-  const sh = getOrCreateSheet(TOKENS_SHEET, ['Token', 'CaseSeed', 'CreatedAt', 'UsedAt', 'DesignerToken', 'ProjectNumber', 'Prefill', 'ClientName']);
+function generateTokenPair(projectNumber, prefill, brand, location) {
+  const sh = getOrCreateSheet(TOKENS_SHEET, ['Token', 'CaseSeed', 'CreatedAt', 'UsedAt', 'DesignerToken', 'ProjectNumber', 'Prefill', 'ClientName', 'Brand', 'Location']);
   const clientToken = randomHex(16);
   const designerToken = randomHex(16);
   const prefillJson = prefill ? JSON.stringify(prefill) : '';
   const clientName = prefill ? (prefill.client_name || '') : '';
-  sh.appendRow([clientToken, projectNumber || randomHex(8), new Date().toISOString(), '', designerToken, projectNumber || '', prefillJson, clientName]);
+  // 第 9、10 欄存 hub 輸入的品牌與地址，讓空白表單流程送出時也能正確分流通知
+  sh.appendRow([clientToken, projectNumber || randomHex(8), new Date().toISOString(), '', designerToken, projectNumber || '', prefillJson, clientName, (brand || 'GLN'), (location || '')]);
   return { clientToken, designerToken };
+}
+
+// 以 clientToken 讀回 hub 當初存的品牌與地址（給 sendNotifications 分流用）
+function getTokenInfo(token) {
+  if (!token || token === 'test') return null;
+  const sh = getOrCreateSheet(TOKENS_SHEET);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] === token) {
+      return { brand: (rows[i][8] || '').toString(), location: (rows[i][9] || '').toString() };
+    }
+  }
+  return null;
 }
 
 // 自動遞增案件編號：YYYY-NNN（每年從 001 重算）
@@ -826,7 +847,7 @@ function randomHex(bytes) {
  *   wayne@goodlivingnotes.com
  */
 function sendNotifications(caseId, data) {
-  const location = (data._prefillLocation || data.house_location || '').toLowerCase();
+  const location = (data._prefillLocation || data._tokenLocation || data.house_location || '').toLowerCase();
   const brand    = (data._brand || '').toUpperCase();
 
   // 固定通知
@@ -1253,7 +1274,7 @@ function handlePrefillFromNotes(payload) {
 
   // 產生案件 token
   const projectNumber = generateProjectNumber();
-  const { clientToken, designerToken } = generateTokenPair(projectNumber);
+  const { clientToken, designerToken } = generateTokenPair(projectNumber, null, brand, location);
 
   // 產生 draftToken
   const draftToken = 'prefill-' + randomHex(12);
