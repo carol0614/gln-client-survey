@@ -2734,11 +2734,16 @@ footer.site-footer {
 .ba-toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: stretch;
   gap: 0.6rem;
   margin: 0 0 1rem;
 }
-.ba-toolbar .muted { font-size: 0.82rem; }
+.ba-toolbar .btn {
+  box-sizing: border-box;
+  line-height: 1.2;
+  margin: 0;
+}
+.ba-toolbar .muted { font-size: 0.82rem; align-self: center; }
 .ba-unmatched {
   border: 1px solid #E0C9A6;
   background: rgba(200,169,106,0.08);
