@@ -110,9 +110,9 @@ function renderCasesList(loadError) {
             <div class="case-actions">
               <span class="case-badge ${badgeClass}">${badgeLabel}</span>
               <button class="btn-report btn-client" onclick="toggleNotes('${c.caseId}')">📝 筆記</button>
-              <button class="btn-report btn-designer" onclick="openReportModal('${c.caseId}','designer')">設計師報告</button>
-              <button class="btn-report btn-client" onclick="openReportModal('${c.caseId}','client')">客戶報告</button>
-              <button class="btn-report btn-client" onclick="openReportModal('${c.caseId}','fill')">設計師補填</button>
+              <button class="btn-report btn-designer" onclick="openReportTab('${c.caseId}','designer')">設計師報告 ↗</button>
+              <button class="btn-report btn-client" onclick="openReportTab('${c.caseId}','client')">客戶報告 ↗</button>
+              <button class="btn-report btn-client" onclick="openReportTab('${c.caseId}','fill')">設計師補填 ↗</button>
               <button class="btn-report btn-rerun" id="rerun-${c.caseId}" onclick="rerunAnalysis('${c.caseId}')">🔄 重跑 AI</button>
             </div>
             <div class="case-notes-area" id="notes-area-${c.caseId}">
@@ -399,44 +399,18 @@ function setStatus(msg, isError = false) {
   el.style.color = isError ? 'var(--gln-error)' : 'var(--gln-taupe)';
 }
 
-// === 報告 Modal ===
-let _currentCaseId = '';
-let _currentView = 'client';
-
-function openReportModal(caseId, view) {
-  _currentCaseId = caseId;
-  const c = allCases.find(x => x.caseId === caseId);
-  const clientName = c && c.clientName ? c.clientName : '';
-  const title = clientName ? `${caseId} · ${clientName}` : caseId;
-  $('#report-modal-title').textContent = title;
-  switchReportView(view);
-  $('#report-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeReportModal() {
-  $('#report-modal').classList.remove('open');
-  $('#report-modal-iframe').src = 'about:blank';
-  document.body.style.overflow = '';
-}
-
-function switchReportView(view) {
-  _currentView = view;
-  $$('.report-view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+// === 報告 / 補填（開新分頁）===
+// 報告 / 補填都開新分頁，避免在後台分頁內導覽後回不去
+function openReportTab(caseId, view) {
   const base = location.origin + location.pathname.replace('admin.html', '');
   const d = casesAreDemo ? '&demo=1' : '';
   const urls = {
-    client:   `${base}report.html?id=${_currentCaseId}&v=client${d}`,
-    designer: `${base}report.html?id=${_currentCaseId}&v=designer${d}`,
-    fill:     `${base}designer.html?id=${_currentCaseId}${d}`,
+    client:   `${base}report.html?id=${caseId}&v=client${d}`,
+    designer: `${base}report.html?id=${caseId}&v=designer${d}`,
+    fill:     `${base}designer.html?id=${caseId}${d}`,
   };
-  $('#report-modal-iframe').src = urls[view] || 'about:blank';
+  window.open(urls[view] || 'about:blank', '_blank', 'noopener');
 }
-
-// 按 Escape 關閉
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && $('#report-modal').classList.contains('open')) closeReportModal();
-});
 
 // === 案件筆記 ===
 async function toggleNotes(caseId) {
