@@ -74,8 +74,29 @@ function doPost(e) {
       const prefill = payload.prefill || null;
       // 若有 prefill，將 brand 寫入草稿資料；空白流程則靠 Tokens 表的 Brand/Location 欄
       if (prefill) { prefill._brand = brand; }
-      const { clientToken, designerToken } = generateTokenPair(projectNumber, prefill, brand, location);
       const baseUrl = getReportBaseUrl();
+
+      // 一個客戶一個連結：同客戶（電話/Email/姓名）已有連結 → 沿用既有，不重複建立案件
+      const identity = prefill
+        ? { name: prefill.client_name, phone: prefill.client_phone, email: prefill.client_email }
+        : null;
+      const existingLink = findClientLink(identity);
+      if (existingLink) {
+        return jsonResponse({
+          ok: true,
+          reused: true,
+          projectNumber: existingLink.projectNumber,
+          location,
+          brand,
+          note,
+          clientToken: existingLink.clientToken,
+          designerToken: existingLink.designerToken,
+          clientUrl: baseUrl + '/?t=' + existingLink.clientToken,
+          designerReportUrl: baseUrl + '/report.html?v=designer',
+        });
+      }
+
+      const { clientToken, designerToken } = generateTokenPair(projectNumber, prefill, brand, location);
       return jsonResponse({
         ok: true,
         projectNumber,
@@ -279,6 +300,7 @@ function handleListCases(adminToken) {
       clientName = data.client_name || data['member-1_role'] || '';
       if (data['member-1_occupation']) clientName += (clientName ? '・' : '') + data['member-1_occupation'];
     } catch (e) {}
+    const tokenVal = row[2] || '';
     cases.push({
       caseId,
       timestamp: row[1] ? new Date(row[1]).toLocaleString('zh-TW') : '',
@@ -286,6 +308,7 @@ function handleListCases(adminToken) {
       analysisStatus: anaMap[caseId] || 'none',
       designerReportUrl: baseUrl + '/report.html?id=' + caseId + '&v=designer',
       clientReportUrl: baseUrl + '/report.html?id=' + caseId + '&v=client',
+      clientUrl: tokenVal ? baseUrl + '/?t=' + tokenVal : '',
     });
   }
   cases.reverse();
@@ -760,6 +783,48 @@ function generateTokenPair(projectNumber, prefill, brand, location) {
   // 第 9、10 欄存 hub 輸入的品牌與地址，讓空白表單流程送出時也能正確分流通知
   sh.appendRow([clientToken, projectNumber || randomHex(8), new Date().toISOString(), '', designerToken, projectNumber || '', prefillJson, clientName, (brand || 'GLN'), (location || '')]);
   return { clientToken, designerToken };
+}
+
+// === 一個客戶一個連結：客戶識別比對 ===
+function normPhone(v) {
+  return (v || '').toString().replace(/\D/g, '');
+}
+
+// 同一客戶判定：兩邊都有電話 → 比電話；否則兩邊都有 Email → 比 Email；否則比姓名
+function isSameClient(a, b) {
+  const pa = normPhone(a.phone), pb = normPhone(b.phone);
+  if (pa && pb) return pa === pb;
+  const ea = (a.email || '').toString().toLowerCase().trim();
+  const eb = (b.email || '').toString().toLowerCase().trim();
+  if (ea && eb) return ea === eb;
+  const na = (a.name || '').toString().trim();
+  const nb = (b.name || '').toString().trim();
+  if (na && nb) return na === nb;
+  return false;
+}
+
+// 掃 Tokens 分頁找既有同客戶連結；找到回 { clientToken, designerToken, projectNumber }，否則 null
+function findClientLink(identity) {
+  if (!identity) return null;
+  if (!normPhone(identity.phone) && !(identity.email || '').trim() && !(identity.name || '').trim()) return null;
+  const sh = getOrCreateSheet(TOKENS_SHEET);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const stored = { name: (row[7] || '').toString(), phone: '', email: '' };
+    try {
+      const pf = row[6] ? JSON.parse(row[6]) : null;
+      if (pf) {
+        stored.name  = pf.client_name  || stored.name;
+        stored.phone = pf.client_phone || '';
+        stored.email = pf.client_email || '';
+      }
+    } catch (e) {}
+    if (isSameClient(identity, stored)) {
+      return { clientToken: row[0], designerToken: row[4], projectNumber: row[5] };
+    }
+  }
+  return null;
 }
 
 // 以 clientToken 讀回 hub 當初存的品牌與地址（給 sendNotifications 分流用）
@@ -1299,16 +1364,37 @@ function handlePrefillFromNotes(payload) {
     return jsonResponse({ ok: false, error: 'claude_parse_failed', detail: err.message });
   }
 
-  // 產生案件 token
-  const projectNumber = generateProjectNumber();
-  const { clientToken, designerToken } = generateTokenPair(projectNumber, null, brand, location);
-
-  // 產生 draftToken
-  const draftToken = 'prefill-' + randomHex(12);
-
   // 手填欄位蓋過 AI 解析結果（有填的優先）
   const override = payload.prefillOverride || {};
   Object.keys(override).forEach(k => { if (override[k]) prefillData[k] = override[k]; });
+
+  // 一個客戶一個連結：同客戶已有連結 → 沿用既有，不重複建立案件
+  const identity = { name: prefillData.client_name, phone: prefillData.client_phone, email: prefillData.client_email };
+  const existingLink = findClientLink(identity);
+  if (existingLink) {
+    const baseUrlReuse = getReportBaseUrl();
+    return jsonResponse({
+      ok: true,
+      reused: true,
+      projectNumber: existingLink.projectNumber,
+      location,
+      clientToken: existingLink.clientToken,
+      designerToken: existingLink.designerToken,
+      clientUrl: baseUrlReuse + '/?t=' + existingLink.clientToken,
+      designerReportUrl: baseUrlReuse + '/report.html?v=designer',
+    });
+  }
+
+  // 產生案件 token（存客戶識別欄位，供日後同客戶判斷）
+  const projectNumber = generateProjectNumber();
+  const { clientToken, designerToken } = generateTokenPair(projectNumber, {
+    client_name:  prefillData.client_name  || '',
+    client_phone: prefillData.client_phone || '',
+    client_email: prefillData.client_email || '',
+  }, brand, location);
+
+  // 產生 draftToken
+  const draftToken = 'prefill-' + randomHex(12);
 
   // 補充 admin 標記
   prefillData._adminPrefill = true;

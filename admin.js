@@ -111,6 +111,12 @@ function renderCasesList(loadError) {
               <p class="case-id">${c.caseId}</p>
               ${c.clientName ? `<p class="case-client">${c.clientName}</p>` : ''}
               <p class="case-time">${c.timestamp}</p>
+              ${c.clientUrl ? `
+              <div class="case-survey">
+                <span class="case-survey-label">問卷連結</span>
+                <a class="token-url" id="survey-url-${c.caseId}" href="${c.clientUrl}" target="_blank" rel="noopener">${c.clientUrl}</a>
+                <button class="btn-copy" data-copy="survey-url-${c.caseId}">複製</button>
+              </div>` : ''}
             </div>
             <div class="case-actions">
               <span class="case-badge ${badgeClass}">${badgeLabel}</span>
@@ -594,6 +600,13 @@ function bindTokenControls() {
       clientLink.textContent = json.clientUrl;
       designerLink.href = json.designerReportUrl || '#';
       designerLink.textContent = json.designerReportUrl || '（客戶送出後自動寄出）';
+
+      const titleEl = $('#token-result-title');
+      if (titleEl) {
+        titleEl.textContent = json.reused
+          ? '此客戶已有連結，已沿用既有連結（未重複建立案件）'
+          : '連結已產生';
+      }
 
       resultEl.style.display = 'block';
       // 清空所有欄位

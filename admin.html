@@ -112,6 +112,18 @@
       color: var(--gln-taupe);
       margin: 0;
     }
+    .case-survey {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.45rem;
+    }
+    .case-survey-label {
+      font-size: 0.72rem;
+      color: var(--gln-taupe);
+      flex-shrink: 0;
+    }
     .case-actions {
       display: flex;
       flex-direction: column;
@@ -378,7 +390,7 @@
             </div>
           </div>
           <div id="token-result" class="token-result" style="display:none;">
-            <div class="token-result-title">連結已產生</div>
+            <div class="token-result-title" id="token-result-title">連結已產生</div>
             <div class="token-row">
               <span class="token-row-label">客戶問卷</span>
               <a id="token-client-url" href="#" target="_blank" class="token-url"></a>
@@ -389,7 +401,7 @@
               <a id="token-designer-url" href="#" target="_blank" class="token-url"></a>
               <button class="btn-copy" data-copy="token-designer-url">複製</button>
             </div>
-            <p class="muted" style="margin-top:.75rem;font-size:.8rem;">⚠️ 此連結只能使用一次。客戶送出後 token 自動失效。</p>
+            <p class="muted" style="margin-top:.75rem;font-size:.8rem;">此連結為該客戶的固定連結，可重複開啟、填寫、修改、重送，不會失效。一個客戶只會有一條連結（再次產生會沿用既有）。</p>
           </div>
           <div id="token-error" class="status-banner error" style="display:none;"></div>
         </section>
