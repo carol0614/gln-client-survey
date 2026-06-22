@@ -536,7 +536,10 @@ $('#save-btn').addEventListener('click', async () => {
 });
 
 // === 報告連結 ===
-$('#view-report').href = `report.html?id=${caseId}&v=designer${demoMode ? '&demo=1' : ''}`;
+// 帶上設計師 token / admin key，報告頁才看得到 AI 分析並能簽核發布設計洞察
+const _reportCred = demoMode ? '&demo=1'
+  : (adminKey ? `&k=${encodeURIComponent(adminKey)}` : (designerToken ? `&t=${encodeURIComponent(designerToken)}` : ''));
+$('#view-report').href = `report.html?id=${caseId}&v=designer${_reportCred}`;
 
 // ============================================================
 // === 會議紀錄（內部開會筆記 / 客戶會議筆記 + 備註）===

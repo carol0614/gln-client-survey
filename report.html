@@ -31,6 +31,20 @@
     .cmn-note-head { font-weight: 600; color: #a8743a; }
     .cmn-note-add textarea { width: 100%; box-sizing: border-box; padding: .5rem .7rem; border: 1px solid #e6e1d6; border-radius: 6px; font-size: .9rem; font-family: inherit; resize: vertical; margin-bottom: .5rem; }
     .cmn-note-add textarea:focus { border-color: #6f6a3c; outline: none; }
+    .so-panel { border: 1px solid #e6e1d6; border-radius: 10px; background: #fbf9f4; }
+    .so-panel.published { border-color: #b8cdb0; background: #f4f8f2; }
+    .so-step { display: flex; align-items: center; gap: .8rem; padding: .7rem .2rem; border-bottom: 1px dashed #e6e1d6; }
+    .so-step:last-of-type { border-bottom: none; }
+    .so-step-num { flex-shrink: 0; width: 1.7rem; height: 1.7rem; border-radius: 999px; background: #e6e1d6; color: #6f6a3c; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: .9rem; }
+    .so-step.done .so-step-num { background: #7B9070; color: #fff; }
+    .so-step-body { flex: 1; min-width: 40%; }
+    .so-step-title { font-weight: 600; color: #3a362e; }
+    .so-step-meta { font-size: .78rem; color: #6f6a3c; }
+    .so-step-meta.muted { color: #8a8472; }
+    .so-step-action { margin-left: auto; }
+    .so-status { margin-top: .9rem; padding: .55rem .8rem; border-radius: 6px; font-size: .85rem; }
+    .so-status.pending { background: #faf3e6; color: #a8743a; }
+    .so-status.ok { background: #e9f2e5; color: #4a7040; }
   </style>
 </head>
 <body class="report-body">

@@ -57,6 +57,11 @@ function doPost(e) {
       return handleDesignerUpdate(payload);
     }
 
+    // 設計洞察兩關簽核（①設計師確認 → ②總監核准 → 客戶才看得到）
+    if (payload.action === 'insight_signoff') {
+      return handleInsightSignoff(payload);
+    }
+
     // Admin：手動重跑 AI 分析（需要 adminKey；會再收一次 AI 費）
     if (payload.action === 'rerun_analysis') {
       const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
@@ -273,10 +278,28 @@ function doGet(e) {
 
     const response = { ok: true, version, data: submission };
 
-    // 設計師版額外回傳分析結果
+    // 設計洞察兩關簽核狀態（①設計師確認 → ②總監核准）
+    const review = (submission.data && submission.data.insight_review) || {};
+    const published = !!(review.designer_at && review.director_at);
+
     if (version === 'designer') {
-      const analysis = findAnalysisByCaseId(caseId);
-      if (analysis) response.analysis = analysis;
+      // 設計師版需憑證（設計師 token 或 admin key），避免客戶把 v=client 改成 v=designer 偷看完整分析
+      const authed = isAdminKey(e.parameter.k) || validateDesignerTokenForCase(caseId, e.parameter.t);
+      if (authed) {
+        const analysis = findAnalysisByCaseId(caseId);
+        if (analysis) response.analysis = analysis;
+        response.insight_review = review;   // 給簽核面板顯示目前進度
+        response.authed = true;
+      } else {
+        response.authed = false;            // 沒憑證 → 不附分析，前端顯示需登入後台
+      }
+    } else {
+      // 客戶版：兩關都簽完才把設計洞察附給客戶
+      if (published) {
+        const analysis = findAnalysisByCaseId(caseId);
+        if (analysis) response.analysis = analysis;
+      }
+      response.insight_published = published;
     }
 
     return jsonResponse(response);
@@ -1610,6 +1633,57 @@ function handleDesignerUpdate(payload) {
       });
       sh.getRange(i + 1, 4).setValue(JSON.stringify(data));
       return jsonResponse({ ok: true, caseId });
+    }
+  }
+  return jsonResponse({ ok: false, error: 'not_found' });
+}
+
+// === 設計洞察兩關簽核 ===
+// 流程：①設計師確認 → ②總監核准 → 客戶報告才顯示「✨ 設計洞察」。
+// 授權：設計師關 = 設計師 token 或 admin key；總監關 = 限 admin key。
+// 撤回（revoke=true）：設計師撤回會連動清掉總監核准（整個重來）；總監撤回只清自己那關。
+// Payload: { action, caseId, role:'designer'|'director', token?, adminKey?, revoke? }
+function handleInsightSignoff(payload) {
+  const caseId = (payload.caseId || '').trim();
+  const role = payload.role;
+  if (!caseId) return jsonResponse({ ok: false, error: 'missing_caseId' });
+  if (role !== 'designer' && role !== 'director') return jsonResponse({ ok: false, error: 'invalid_role' });
+
+  const isAdmin = isAdminKey(payload.adminKey);
+  const isDesigner = validateDesignerTokenForCase(caseId, payload.token);
+  if (role === 'designer' && !isAdmin && !isDesigner) return jsonResponse({ ok: false, error: 'unauthorized' });
+  if (role === 'director' && !isAdmin) return jsonResponse({ ok: false, error: 'unauthorized' });
+
+  const sh = getOrCreateSheet(SUBMISSIONS_SHEET);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] === caseId) {
+      const data = JSON.parse(rows[i][3] || '{}');
+      const review = data.insight_review || {};
+      const ts = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
+      const revoke = payload.revoke === true;
+
+      if (role === 'designer') {
+        if (revoke) {
+          delete review.designer_at; delete review.designer_by;
+          delete review.director_at; delete review.director_by; // 連動撤回總監關
+        } else {
+          review.designer_at = ts;
+          review.designer_by = isAdmin ? 'director' : 'designer';
+        }
+      } else { // director
+        if (revoke) {
+          delete review.director_at; delete review.director_by;
+        } else {
+          if (!review.designer_at) return jsonResponse({ ok: false, error: 'designer_first' });
+          review.director_at = ts;
+          review.director_by = 'director';
+        }
+      }
+
+      data.insight_review = review;
+      sh.getRange(i + 1, 4).setValue(JSON.stringify(data));
+      return jsonResponse({ ok: true, caseId, insight_review: review });
     }
   }
   return jsonResponse({ ok: false, error: 'not_found' });

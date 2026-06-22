@@ -11,19 +11,30 @@ const params = new URLSearchParams(window.location.search);
 const caseId = params.get('id') || 'GLN-DEMO';
 const version = (params.get('v') || 'client').toLowerCase();
 const demoMode = params.get('demo') === '1' || !GAS_ENDPOINT;
+const designerToken = params.get('t') || '';   // 設計師憑證（設計師版報告才有）
+const adminKey = params.get('k') || '';         // 後台 admin 憑證
 
 // === 載入資料 ===
-let _cachedAnalysis = null; // GAS 一次回傳 case + analysis，loadAnalysis 直接讀此快取
+let _cachedAnalysis = null;      // GAS 一次回傳 case + analysis，loadAnalysis 直接讀此快取
+let _insightReview = {};         // 設計洞察簽核狀態 { designer_at, designer_by, director_at, director_by }
+let _insightPublished = false;   // 客戶版：兩關都簽完才為 true
+let _authed = false;             // 設計師版：是否帶有效憑證
 
 async function loadCase() {
   if (demoMode) {
+    _insightPublished = true; _authed = true;
     return fetch('data/demo-case.json').then(r => r.json());
   }
-  const url = `${GAS_ENDPOINT}?id=${encodeURIComponent(caseId)}&v=${version}`;
+  let url = `${GAS_ENDPOINT}?id=${encodeURIComponent(caseId)}&v=${version}`;
+  if (designerToken) url += `&t=${encodeURIComponent(designerToken)}`;
+  if (adminKey) url += `&k=${encodeURIComponent(adminKey)}`;
   const res = await fetch(url);
   const json = await res.json();
   if (!json.ok) throw new Error(json.error || 'load failed');
   _cachedAnalysis = json.analysis || null;
+  _insightReview = json.insight_review || {};
+  _insightPublished = !!json.insight_published;
+  _authed = !!json.authed;
   return { caseId: json.data.caseId, timestamp: json.data.timestamp, data: json.data.data };
 }
 
@@ -797,7 +808,25 @@ function renderAnalysis(analysis, version) {
   const isDesigner = version === 'designer';
 
   if (!analysis) {
-    if (!isDesigner) return ''; // 客戶版不顯示 AI 區塊
+    if (!isDesigner) {
+      // 客戶版：洞察尚未經設計師＋總監兩關簽核發布 → 顯示「準備中」佔位，而非空白
+      if (demoMode) return '';
+      return `
+        <section class="report-section ai-analysis">
+          <h2>✨ 為你的家量身打造的設計洞察</h2>
+          <p class="muted">設計師正在為你整理專屬的設計洞察，完成內部審閱後就會在這裡呈現，敬請期待。</p>
+        </section>
+      `;
+    }
+    // 設計師版未帶有效憑證 → 不洩漏分析，提示從後台開啟
+    if (!demoMode && !_authed) {
+      return `
+        <section class="report-section ai-analysis">
+          <h2>🧠 AI 隱性需求分析</h2>
+          <p class="muted">此頁需從「設計師管理後臺」開啟（連結需帶設計師 token 或 admin 金鑰）才能檢視 AI 分析與簽核設計洞察。</p>
+        </section>
+      `;
+    }
     return `
       <section class="report-section ai-analysis">
         <h2>🧠 AI 隱性需求分析</h2>
@@ -1008,7 +1037,89 @@ function renderAnalysis(analysis, version) {
         `}).join('')}
       ` : ''}
     </section>
+    ${isDesigner ? renderSignoffPanel() : ''}
   `;
+}
+
+// === 設計洞察兩關簽核面板（只在設計師版報告顯示）===
+function renderSignoffPanel() {
+  const r = _insightReview || {};
+  const canDesigner = demoMode || _authed;                       // 設計師 token 或 admin 皆可簽設計師關
+  const canDirector = demoMode || !!adminKey;                    // 總監關限 admin 金鑰
+  const dDone = !!r.designer_at;
+  const xDone = !!r.director_at;
+  const published = dDone && xDone;
+
+  const step = (n, title, done, who, at, btnHtml) => `
+    <div class="so-step ${done ? 'done' : ''}">
+      <div class="so-step-num">${done ? '✓' : n}</div>
+      <div class="so-step-body">
+        <div class="so-step-title">${title}</div>
+        ${done
+          ? `<div class="so-step-meta">已於 ${at} 由${who === 'director' ? '總監' : '設計師'}確認</div>`
+          : `<div class="so-step-meta muted">尚未確認</div>`}
+      </div>
+      <div class="so-step-action">${btnHtml}</div>
+    </div>`;
+
+  const designerBtn = dDone
+    ? (canDesigner ? `<button type="button" class="btn btn-ghost btn-sm" data-so="designer" data-revoke="1">撤回</button>` : '')
+    : (canDesigner ? `<button type="button" class="btn btn-primary btn-sm" data-so="designer">設計師確認</button>` : `<span class="muted" style="font-size:.8rem;">需設計師</span>`);
+
+  const directorBtn = xDone
+    ? (canDirector ? `<button type="button" class="btn btn-ghost btn-sm" data-so="director" data-revoke="1">撤回</button>` : '')
+    : (canDirector
+        ? (dDone ? `<button type="button" class="btn btn-primary btn-sm" data-so="director">總監核准</button>` : `<span class="muted" style="font-size:.8rem;">待設計師先確認</span>`)
+        : `<span class="muted" style="font-size:.8rem;">需總監（admin）</span>`);
+
+  return `
+    <section class="report-section so-panel ${published ? 'published' : ''}">
+      <h2>🔐 設計洞察發布簽核</h2>
+      <p class="muted">兩關簽核後，「✨ 設計洞察」才會出現在客戶報告頁。客戶看不到此區塊與 B／C 級建議。</p>
+      ${step(1, '設計師確認', dDone, r.designer_by, r.designer_at, designerBtn)}
+      ${step(2, '總監核准', xDone, r.director_by, r.director_at, directorBtn)}
+      <div class="so-status ${published ? 'ok' : 'pending'}" id="so-status">
+        ${published ? '✅ 已發布：客戶現在可在報告頁看到設計洞察。' : '⏳ 尚未發布：完成兩關簽核後客戶才看得到。'}
+      </div>
+    </section>
+  `;
+}
+
+async function submitSignoff(role, revoke) {
+  const statusEl = $('#so-status');
+  if (demoMode) { if (statusEl) statusEl.textContent = '（demo 模式）實際送出會更新簽核狀態並重新整理。'; return; }
+  if (statusEl) statusEl.textContent = '送出中…';
+  try {
+    const res = await fetch(GAS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'insight_signoff', caseId, role, revoke: !!revoke, token: designerToken || undefined, adminKey: adminKey || undefined }),
+    });
+    const json = await res.json();
+    if (!json.ok) {
+      const msg = json.error === 'designer_first' ? '請設計師先確認，才能由總監核准。'
+        : json.error === 'unauthorized' ? '權限不足：此關需對應憑證。'
+        : json.error;
+      throw new Error(msg);
+    }
+    _insightReview = json.insight_review || {};
+    // 重繪簽核面板
+    const panelHost = $('.so-panel');
+    if (panelHost) {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = renderSignoffPanel();
+      panelHost.replaceWith(wrap.firstElementChild);
+      wireSignoffPanel();
+    }
+  } catch (err) {
+    if (statusEl) statusEl.textContent = '❌ ' + err.message;
+  }
+}
+
+function wireSignoffPanel() {
+  $$('.so-panel [data-so]').forEach(btn => {
+    btn.addEventListener('click', () => submitSignoff(btn.dataset.so, btn.dataset.revoke === '1'));
+  });
 }
 
 
@@ -1146,6 +1257,7 @@ async function init() {
     const html = renderReport(caseData, analysis, feelingsData, version);
     $('#report-root').innerHTML = html;
     updateToggle();
+    if (version === 'designer') wireSignoffPanel();
     if (version !== 'designer') loadClientMeetingNotes();
   } catch (err) {
     $('#report-root').innerHTML = `<div class="status-banner error">載入失敗：${err.message}</div>`;

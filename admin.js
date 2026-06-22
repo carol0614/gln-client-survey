@@ -100,7 +100,8 @@ function renderCasesList(loadError) {
         const taId = 'note-ta-' + c.caseId;
         const base = location.origin + location.pathname.replace('admin.html', '');
         const d = casesAreDemo ? '&demo=1' : '';
-        const designerUrl = `${base}report.html?id=${c.caseId}&v=designer${d}`;
+        // 後台開設計師版報告帶 admin key：總監才看得到 AI 分析並能做總監核准簽核
+        const designerUrl = `${base}report.html?id=${c.caseId}&v=designer${casesAreDemo ? d : `&k=${ADMIN_KEY}`}`;
         const clientUrl   = `${base}report.html?id=${c.caseId}&v=client${d}`;
         const fillUrl     = `${base}designer.html?id=${c.caseId}&k=${ADMIN_KEY}${d}`;
         // 範例卡片用一條示意連結，讓 Carol 看到「問卷連結 + 複製」長相
