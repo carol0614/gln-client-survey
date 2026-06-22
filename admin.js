@@ -436,12 +436,27 @@ function renderNoteHistory(caseId, notes) {
     histEl.innerHTML = '<p class="muted" style="font-size:0.8rem;">尚無筆記記錄</p>';
     return;
   }
-  histEl.innerHTML = notes.map(n => `
+  histEl.innerHTML = notes.map(n => {
+    let summary = '';
+    try {
+      const pf = typeof n.parsedFields === 'string' ? JSON.parse(n.parsedFields || '{}') : (n.parsedFields || {});
+      if (pf.meeting_summary) {
+        const items = Array.isArray(pf.meeting_summary)
+          ? pf.meeting_summary
+          : String(pf.meeting_summary).split(/\n|；|;/).map(s => s.trim()).filter(Boolean);
+        summary = `<div class="note-summary"><strong>📌 統整重點</strong><ul>${
+          items.map(s => `<li>${s.replace(/^[-・•\s]+/, '')}</li>`).join('')
+        }</ul></div>`;
+      }
+    } catch (e) { /* parsedFields 解析失敗就只顯示原文 */ }
+    return `
     <div class="note-item">
       <div class="note-item-ts">${n.timestamp}</div>
+      ${summary}
       <div>${n.noteText.replace(/\n/g, '<br>')}</div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 async function submitNote(caseId) {
@@ -505,6 +520,7 @@ function bindTokenControls() {
     const prefill = {
       client_name:   name,
       client_phone:  ($('#pf-client-phone')?.value  || '').trim(),
+      client_email:  ($('#pf-client-email')?.value  || '').trim(),
       house_address: ($('#pf-house-address')?.value || '').trim(),
       house_size:    ($('#pf-house-size')?.value    || '').trim(),
       house_age:     ($('#pf-house-age')?.value     || '').trim(),
@@ -554,7 +570,7 @@ function bindTokenControls() {
       // 清空所有欄位
       noteInput.value = '';
       if ($('#notes-input')) $('#notes-input').value = '';
-      ['pf-client-name','pf-client-phone','pf-house-address','pf-house-size','pf-house-age','pf-budget'].forEach(id => {
+      ['pf-client-name','pf-client-phone','pf-client-email','pf-house-address','pf-house-size','pf-house-age','pf-budget'].forEach(id => {
         const el = $('#' + id); if (el) el.value = '';
       });
       ['pf-house-type','pf-case-type'].forEach(id => {

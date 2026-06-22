@@ -169,6 +169,17 @@
       font-size: 0.875rem;
     }
     .note-item-ts { font-size: 0.75rem; color: var(--gln-taupe); margin-bottom: 0.2rem; }
+    .note-summary {
+      background: #fffaf0;
+      border-left: 3px solid var(--gln-ochre, #c8964b);
+      border-radius: 4px;
+      padding: 0.4rem 0.65rem;
+      margin: 0.3rem 0 0.45rem;
+      font-size: 0.82rem;
+    }
+    .note-summary strong { font-size: 0.78rem; color: var(--gln-ochre, #b07c2e); }
+    .note-summary ul { margin: 0.25rem 0 0; padding-left: 1.1rem; }
+    .note-summary li { margin-bottom: 0.15rem; }
     .note-add-row { display: flex; gap: 0.5rem; align-items: flex-start; flex-wrap: wrap; }
     .note-add-ta {
       flex: 1;
@@ -358,6 +369,10 @@
               <div class="prefill-field">
                 <label for="pf-client-phone">聯絡電話</label>
                 <input type="tel" id="pf-client-phone" placeholder="0912-345-678" maxlength="20" />
+              </div>
+              <div class="prefill-field">
+                <label for="pf-client-email">Email</label>
+                <input type="email" id="pf-client-email" placeholder="client@email.com" maxlength="80" autocomplete="email" />
               </div>
               <div class="prefill-field prefill-field--wide">
                 <label for="pf-house-address">房屋地址</label>

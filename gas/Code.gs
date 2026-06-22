@@ -1353,7 +1353,6 @@ function extractFormDataFromNotes(notes, location) {
 可填欄位清單（只填能從筆記中確認的）：
 - house_type: "老屋" | "中古屋" | "新成屋" | "透天" | "透天老屋"
 - case_type: "老屋翻新" | "全室翻新" | "局部翻新" | "新成屋裝修"
-- house_location: 地址或地區
 - house_use: "自住" | "出租" | "自住兼出租"
 - floor_plan: 樓層配置描述
 - _memberCount: 人數（數字）
@@ -1364,9 +1363,10 @@ function extractFormDataFromNotes(notes, location) {
 - pet-N_weight: 體重（如 "15kg"）
 - pet-N_note: 寵物特殊需求說明
 - wishlist: 心願清單（從筆記中整理出客戶明確說想要的東西）
-- pain_points: 陣列，從 ["採光不足","動線不順","收納不夠","潮濕","噪音","老舊設備","格局不佳","空間太小"] 中選
+- pain_points: 陣列，只能從以下選項「逐字」挑選，禁止自創字串：["採光不足","通風差","西曬過熱","濕氣重","噪音擾人（馬路/鄰居）","收納不夠","空間不足","房間數不夠","動線不順","不符合需求","隔音差（樓上/隔壁）","漏水壁癌","安全結構問題","電路水管老舊","老舊","寵物友善不足","無障礙不足","風格過時","預售屋客變不理想"]
 - renovation_reason: 改造原因（一句話）
 - designer_notes: 設計師備註（把整理好的丈量重點放這裡，逐樓層條列）
+- meeting_summary: 本次會談的統整重點（3-5 條精簡條列，給設計師快速回顧本次會議用，與 designer_notes 不同：這裡只放本次新增/決議的重點）
 
 回應只輸出 JSON，不要其他文字。`;
 

@@ -392,6 +392,11 @@ function collectFormData() {
       data[el.name] = el.value;
     }
   });
+  // Chip 群組（痛點、成員負責人、寵物環境）— checkbox 無 name，靠群組 data-name 收集
+  $$('.checkbox-group[data-name]').forEach(group => {
+    const name = group.dataset.name;
+    data[name] = $$('input[type="checkbox"]:checked', group).map(cb => cb.value);
+  });
   // Member / Pet count for restoration
   data._memberCount = memberCounter;
   data._petCount = petCounter;
@@ -427,7 +432,14 @@ function loadDraft() {
       if (name.startsWith('_')) return;
       if (Array.isArray(val)) {
         val.forEach(v => {
-          const cb = document.querySelector(`[name="${name}"][value="${v}"]`);
+          let cb = document.querySelector(`[name="${name}"][value="${v}"]`);
+          if (!cb) {
+            // Chip 群組：checkbox 無 name，靠群組 data-name + value 比對
+            const group = document.querySelector(`.checkbox-group[data-name="${name}"]`);
+            if (group) {
+              cb = $$('input[type="checkbox"]', group).find(x => x.value === v);
+            }
+          }
           if (cb) {
             cb.checked = true;
             cb.dispatchEvent(new Event('change'));
@@ -1267,6 +1279,7 @@ async function fetchAndApplyPrefill() {
       const pf = result.prefill;
       const fieldMap = {
         client_name: pf.client_name, client_phone: pf.client_phone,
+        client_email: pf.client_email,
         house_address: pf.house_address, house_size: pf.house_size,
         house_age: pf.house_age, house_type: pf.house_type,
         case_type: pf.case_type, budget: pf.budget,
