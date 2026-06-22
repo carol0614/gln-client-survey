@@ -117,6 +117,13 @@ function render(caseData) {
         丈量提案後，依實際報價單填入各項金額（單位：元）。供設計師 / 客戶 / 總監三方對齊。
         <strong>未填則報告不顯示此區塊。</strong>監工費與稅金填百分比，系統自動計算。
       </p>
+      <div class="ba-toolbar">
+        <button type="button" id="budget-tpl-btn" class="btn btn-ghost btn-sm">⬇ 下載預算範本</button>
+        <label for="budget-file" class="btn btn-ghost btn-sm" style="cursor:pointer;">⬆ 上傳 Excel 自動填入</label>
+        <input type="file" id="budget-file" accept=".xlsx,.xls" style="display:none;" />
+        <span class="muted" id="budget-upload-status"></span>
+      </div>
+      <div id="budget-unmatched"></div>
       <div id="budget-alloc"></div>
     </section>
 
@@ -188,6 +195,140 @@ const fmtNT = n => 'NT$ ' + (Number(n) || 0).toLocaleString('en-US');
 function renderBudgetAlloc(d) {
   budgetState = buildBudgetState(d.budget_allocation);
   drawBudgetAlloc();
+  wireBudgetTools();
+}
+
+// === Excel 一鍵上傳 / 範本下載 ===
+function wireBudgetTools() {
+  const tplBtn = $('#budget-tpl-btn');
+  const fileInput = $('#budget-file');
+  if (tplBtn) tplBtn.onclick = downloadBudgetTemplate;
+  if (fileInput) fileInput.onchange = () => {
+    const f = fileInput.files && fileInput.files[0];
+    if (f) parseUploadedBudget(f);
+    fileInput.value = '';
+  };
+}
+
+function setBudgetUploadStatus(msg, isErr) {
+  const el = $('#budget-upload-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = isErr ? '#a05068' : '#4a7040';
+}
+
+// 依目前 budgetState（含設計師已增列的子項）產出標準範本
+function downloadBudgetTemplate() {
+  if (typeof XLSX === 'undefined') { setBudgetUploadStatus('Excel 元件載入失敗，請重新整理頁面', true); return; }
+  const rows = [['大分類', '項目', '金額（元）']];
+  budgetState.groups.forEach(g => {
+    g.items.forEach(it => rows.push([g.name, it.name, it.amount || '']));
+  });
+  rows.push([]);
+  rows.push(['費率設定', '監工費管理費(%)', budgetState.supervision_pct]);
+  rows.push(['費率設定', '稅金(%)', budgetState.tax_pct]);
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 26 }, { wch: 20 }, { wch: 14 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '預算分配');
+  XLSX.writeFile(wb, `GLN-預算分配範本-${caseId || 'GLN'}.xlsx`);
+  setBudgetUploadStatus('範本已下載，填好金額後再上傳', false);
+}
+
+function parseUploadedBudget(file) {
+  if (typeof XLSX === 'undefined') { setBudgetUploadStatus('Excel 元件載入失敗，請重新整理頁面', true); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    let wb;
+    try {
+      wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+    } catch (err) {
+      setBudgetUploadStatus('檔案無法解析，請確認是 .xlsx 範本格式', true);
+      return;
+    }
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    if (!ws) { setBudgetUploadStatus('找不到工作表內容', true); return; }
+    const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false });
+    applyParsedBudget(aoa);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function applyParsedBudget(aoa) {
+  if (!budgetState) return;
+  // 建索引：優先用（大分類 + 項目）精準對應，退而求其次只比項目名
+  const pairIndex = {};
+  const nameIndex = {};
+  budgetState.groups.forEach((g, gi) => g.items.forEach((it, ii) => {
+    pairIndex[g.name.trim() + '\u0000' + it.name.trim()] = { gi, ii };
+    (nameIndex[it.name.trim()] = nameIndex[it.name.trim()] || []).push({ gi, ii });
+  }));
+  const unmatched = [];
+  let matched = 0;
+  aoa.forEach((row, ri) => {
+    if (ri === 0) return; // 標題列
+    const cat = String(row[0] == null ? '' : row[0]).trim();
+    const item = String(row[1] == null ? '' : row[1]).trim();
+    if (!item || item === '項目') return;
+    if (cat === '費率設定') {
+      if (item.indexOf('監工') >= 0) budgetState.supervision_pct = parseFloat(row[2]) || 0;
+      else if (item.indexOf('稅') >= 0) budgetState.tax_pct = parseFloat(row[2]) || 0;
+      return;
+    }
+    const amount = parseAmount(row[2]);
+    const target = pairIndex[cat + '\u0000' + item] || (nameIndex[item] && nameIndex[item][0]);
+    if (target) {
+      budgetState.groups[target.gi].items[target.ii].amount = amount;
+      matched++;
+    } else {
+      unmatched.push({ cat, item, amount });
+    }
+  });
+  drawBudgetAlloc();
+  renderBudgetUnmatched(unmatched);
+  setBudgetUploadStatus(
+    `已匯入：${matched} 項自動對應` + (unmatched.length ? `，${unmatched.length} 項待指派` : '，全部對應完成'),
+    false
+  );
+}
+
+// 未匹配項目：列清單，讓設計師指派到分類或略過
+function renderBudgetUnmatched(list) {
+  const root = $('#budget-unmatched');
+  if (!root) return;
+  if (!list || !list.length) { root.innerHTML = ''; return; }
+  root.innerHTML = `
+    <div class="ba-unmatched">
+      <div class="ba-unmatched-head">未匹配項目（${list.length}）— 請指派到分類，或略過</div>
+      ${list.map((u, idx) => `
+        <div class="ba-unmatched-row">
+          <span class="ba-unmatched-name">${escapeAttr(u.item)}${u.cat ? `<small>（原分類：${escapeAttr(u.cat)}）</small>` : ''}</span>
+          <span class="ba-unmatched-amt">${fmtNT(u.amount)}</span>
+          <select class="ba-unmatched-sel" data-idx="${idx}">
+            <option value="">— 指派到分類 —</option>
+            ${budgetState.groups.map((g, gi) => `<option value="${gi}">${escapeAttr(g.name)}</option>`).join('')}
+            <option value="skip">略過此項</option>
+          </select>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  const remaining = list.slice();
+  $$('.ba-unmatched-sel', root).forEach(sel => {
+    sel.addEventListener('change', () => {
+      const idx = +sel.dataset.idx;
+      const u = remaining[idx];
+      if (!u || sel.value === '') return;
+      if (sel.value !== 'skip') {
+        budgetState.groups[+sel.value].items.push({ name: u.item, amount: u.amount });
+        drawBudgetAlloc();
+      }
+      remaining[idx] = null;
+      const left = remaining.filter(Boolean);
+      renderBudgetUnmatched(left);
+      if (!left.length) setBudgetUploadStatus('全部項目已指派完成', false);
+    });
+  });
 }
 
 function drawBudgetAlloc() {

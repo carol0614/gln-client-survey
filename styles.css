@@ -1459,9 +1459,8 @@ footer.site-footer {
    Feeling Swipe — 風格感覺左右滑
    ============================================ */
 
-.swipe-section {
+.swipe-section > .section-body {
   text-align: center;
-  padding: 1.5rem 0;
 }
 
 .swipe-intro {
@@ -2729,4 +2728,53 @@ footer.site-footer {
   font-family: 'Noto Serif TC', serif;
   font-size: 1.15rem;
   color: var(--gln-olive);
+}
+
+/* === 預算 Excel 一鍵上傳 === */
+.ba-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+}
+.ba-toolbar .muted { font-size: 0.82rem; }
+.ba-unmatched {
+  border: 1px solid #E0C9A6;
+  background: rgba(200,169,106,0.08);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+}
+.ba-unmatched-head {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #a8743a;
+  margin-bottom: 0.6rem;
+}
+.ba-unmatched-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px dashed rgba(200,169,106,0.4);
+}
+.ba-unmatched-row:last-child { border-bottom: none; }
+.ba-unmatched-name { flex: 1; min-width: 40%; font-size: 0.9rem; color: var(--gln-ink); }
+.ba-unmatched-name small { color: #8a8472; font-size: 0.72rem; margin-left: 0.3rem; }
+.ba-unmatched-amt {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88rem;
+  color: var(--gln-olive);
+  min-width: 6rem;
+  text-align: right;
+}
+.ba-unmatched-sel {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #DAD5CE;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  background: #fff;
 }
