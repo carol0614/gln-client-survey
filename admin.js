@@ -102,7 +102,7 @@ function renderCasesList(loadError) {
         const d = casesAreDemo ? '&demo=1' : '';
         const designerUrl = `${base}report.html?id=${c.caseId}&v=designer${d}`;
         const clientUrl   = `${base}report.html?id=${c.caseId}&v=client${d}`;
-        const fillUrl     = `${base}designer.html?id=${c.caseId}${d}`;
+        const fillUrl     = `${base}designer.html?id=${c.caseId}&k=${ADMIN_KEY}${d}`;
         // 範例卡片用一條示意連結，讓 Carol 看到「問卷連結 + 複製」長相
         const surveyUrl   = c.clientUrl || (casesAreDemo ? `${base}?t=DEMO-RANGE-TOKEN` : '');
         const designerLinkUrl = c.designerUrl || (casesAreDemo ? `${base}designer.html?id=${c.caseId}&t=DEMO-DESIGNER-TOKEN` : '');

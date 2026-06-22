@@ -96,6 +96,45 @@
     "eq_whole_house_____brand": "DAIKIN 大金",
 
     "designer_notes": "",
+    "budget_allocation": {
+      "groups": [
+        { "name": "基礎工程", "taxable": true, "items": [
+          { "name": "假設工程", "amount": 86200 },
+          { "name": "拆除工程", "amount": 265700 },
+          { "name": "泥作工程", "amount": 581000 },
+          { "name": "門扇工程", "amount": 105000 },
+          { "name": "水電工程", "amount": 530300 }
+        ] },
+        { "name": "裝修工程", "taxable": true, "items": [
+          { "name": "木作工程", "amount": 726700 },
+          { "name": "油漆工程", "amount": 301000 },
+          { "name": "超耐磨地板工程", "amount": 226100 },
+          { "name": "玻璃工程", "amount": 108900 },
+          { "name": "空調工程", "amount": 385600 },
+          { "name": "清潔工程", "amount": 58000 }
+        ] },
+        { "name": "設備（代辦項目·已含稅）", "taxable": false, "items": [
+          { "name": "智慧家居", "amount": 0 },
+          { "name": "衛浴設備", "amount": 215250 },
+          { "name": "系統櫃工程", "amount": 495600 },
+          { "name": "廚具設備", "amount": 513650 },
+          { "name": "磁磚材料", "amount": 131704 }
+        ] },
+        { "name": "軟裝家具", "taxable": false, "items": [
+          { "name": "沙發", "amount": 0 },
+          { "name": "燈具", "amount": 0 },
+          { "name": "窗簾", "amount": 0 },
+          { "name": "桌椅", "amount": 0 }
+        ] },
+        { "name": "設計費", "taxable": false, "items": [
+          { "name": "設計費", "amount": 0 },
+          { "name": "工管費", "amount": 0 }
+        ] }
+      ],
+      "supervision_pct": 10,
+      "tax_pct": 5,
+      "updated_at": "2026-06-23T10:00:00+08:00"
+    },
     "director_override": {},
 
     "_feeling_likes": "[1,4,10,11,15,18,21,22,26,29,31,35,38,41,42,47,48,51,56,58]",

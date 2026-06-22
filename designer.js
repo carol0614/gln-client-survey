@@ -9,12 +9,13 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const params = new URLSearchParams(window.location.search);
 
 const designerToken = params.get('t');
+const adminKey = params.get('k'); // 後台補填用 admin key 授權
 const caseId = params.get('id') || 'GLN-DEMO';
 const isAdmin = params.get('admin') === '1';
 const demoMode = params.get('demo') === '1' || !GAS_ENDPOINT;
 
 const banner = $('#token-banner');
-if (!designerToken && !demoMode) {
+if (!designerToken && !adminKey && !demoMode) {
   banner.style.display = 'block';
   banner.classList.add('error');
   banner.innerHTML = '⚠️ 缺少設計師 token，無法存取此案件。<br><small>開發：URL 加 <code>?demo=1</code> 預覽</small>';
@@ -111,6 +112,15 @@ function render(caseData) {
     </section>
 
     <section class="section">
+      <h2>💰 實際預算分配（提案版）</h2>
+      <p class="section-meta">
+        丈量提案後，依實際報價單填入各項金額（單位：元）。供設計師 / 客戶 / 總監三方對齊。
+        <strong>未填則報告不顯示此區塊。</strong>監工費與稅金填百分比，系統自動計算。
+      </p>
+      <div id="budget-alloc"></div>
+    </section>
+
+    <section class="section">
       <h2>總監備註</h2>
       <p class="section-meta">案件分類、特殊處理建議、預算策略等。會出現在設計師版報告。</p>
       <textarea id="designer-notes" placeholder="例：客戶預算彈性 +10%，可推薦中島升級方案；老屋翻新需特別處理管線..."></textarea>
@@ -119,8 +129,173 @@ function render(caseData) {
 
   renderPowerList(d);
   renderBrandOverrides(d);
+  renderBudgetAlloc(d);
 
   $('#designer-notes').value = d.designer_notes || '';
+}
+
+// ============================================================
+// === 實際預算分配（提案版）===
+// 大欄位 → 子欄位（可增列）；監工費/稅金填 % 自動算。
+// 課稅（計入工程費 → 監工費 + 稅金基礎）：基礎工程、裝修工程
+// 另計 / 已含稅（不再課稅）：設備、軟裝家具、設計費
+// ============================================================
+const BUDGET_GROUP_TEMPLATE = [
+  { name: '基礎工程', taxable: true,  items: ['假設工程', '拆除工程', '泥作工程', '門扇工程', '水電工程'] },
+  { name: '裝修工程', taxable: true,  items: ['木作工程', '油漆工程', '超耐磨地板工程', '玻璃工程', '空調工程', '清潔工程'] },
+  { name: '設備（代辦項目·已含稅）', taxable: false, items: ['智慧家居', '衛浴設備', '廚具設備', '磁磚材料'] },
+  { name: '軟裝家具', taxable: false, items: ['沙發', '燈具', '窗簾', '桌椅'] },
+  { name: '設計費',   taxable: false, items: ['設計費', '工管費'] },
+];
+
+let budgetState = null;
+
+function buildBudgetState(saved) {
+  if (saved && Array.isArray(saved.groups)) return JSON.parse(JSON.stringify(saved));
+  return {
+    groups: BUDGET_GROUP_TEMPLATE.map(g => ({
+      name: g.name,
+      taxable: g.taxable,
+      items: g.items.map(n => ({ name: n, amount: 0 })),
+    })),
+    supervision_pct: 10,
+    tax_pct: 5,
+  };
+}
+
+function computeBudget(state) {
+  let engineering = 0;
+  const groupTotals = state.groups.map(g => {
+    const sub = g.items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
+    if (g.taxable) engineering += sub;
+    return sub;
+  });
+  const supervision = Math.round(engineering * (Number(state.supervision_pct) || 0) / 100);
+  const tax = Math.round((engineering + supervision) * (Number(state.tax_pct) || 0) / 100);
+  const otherTotal = state.groups.reduce((s, g, i) => s + (g.taxable ? 0 : groupTotals[i]), 0);
+  const preTax = engineering + supervision + otherTotal;
+  const withTax = preTax + tax;
+  return { groupTotals, engineering, supervision, tax, otherTotal, preTax, withTax };
+}
+
+function budgetHasData(state) {
+  if (!state) return false;
+  return state.groups.some(g => g.items.some(it => (Number(it.amount) || 0) > 0));
+}
+
+const fmtNT = n => 'NT$ ' + (Number(n) || 0).toLocaleString('en-US');
+
+function renderBudgetAlloc(d) {
+  budgetState = buildBudgetState(d.budget_allocation);
+  drawBudgetAlloc();
+}
+
+function drawBudgetAlloc() {
+  const root = $('#budget-alloc');
+  const c = computeBudget(budgetState);
+  root.innerHTML = `
+    ${budgetState.groups.map((g, gi) => `
+      <div class="ba-group">
+        <div class="ba-group-head">
+          <span class="ba-group-name">${g.name}</span>
+          <span class="ba-group-tag">${g.taxable ? '計入工程費（課監工＋稅）' : '另計／已含稅'}</span>
+        </div>
+        <table class="ba-table">
+          <tbody>
+            ${g.items.map((it, ii) => `
+              <tr>
+                <td><input type="text" class="ba-item-name" value="${escapeAttr(it.name)}" data-g="${gi}" data-i="${ii}" data-k="name" placeholder="項目名稱" /></td>
+                <td class="ba-amount-cell">
+                  <input type="text" inputmode="numeric" class="ba-item-amount" value="${it.amount ? Number(it.amount).toLocaleString('en-US') : ''}" data-g="${gi}" data-i="${ii}" data-k="amount" placeholder="0" />
+                </td>
+                <td class="ba-del-cell"><button type="button" class="ba-del" data-g="${gi}" data-i="${ii}" title="刪除此列">✕</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <div class="ba-group-foot">
+          <button type="button" class="ba-add" data-g="${gi}">＋ 新增子項</button>
+          <span class="ba-group-sub">小計 ${fmtNT(c.groupTotals[gi])}</span>
+        </div>
+      </div>
+    `).join('')}
+
+    <div class="ba-rates">
+      <label>監工費管理費 <input type="number" class="ba-rate" data-rate="supervision_pct" value="${budgetState.supervision_pct}" min="0" max="100" step="0.5" /> %</label>
+      <label>稅金 <input type="number" class="ba-rate" data-rate="tax_pct" value="${budgetState.tax_pct}" min="0" max="100" step="0.5" /> %</label>
+    </div>
+
+    <div class="ba-summary">
+      <div class="ba-sum-row"><span>工程費合計（基礎＋裝修）</span><span>${fmtNT(c.engineering)}</span></div>
+      <div class="ba-sum-row"><span>監工費管理費（${budgetState.supervision_pct}%）</span><span>${fmtNT(c.supervision)}</span></div>
+      <div class="ba-sum-row"><span>稅金（${budgetState.tax_pct}%）</span><span>${fmtNT(c.tax)}</span></div>
+      <div class="ba-sum-row"><span>其他（設備／軟裝／設計費）</span><span>${fmtNT(c.otherTotal)}</span></div>
+      <div class="ba-sum-row ba-sum-total"><span>總合計（未稅）</span><span>${fmtNT(c.preTax)}</span></div>
+      <div class="ba-sum-row ba-sum-total ba-sum-final"><span>含稅後總合計</span><span>${fmtNT(c.withTax)}</span></div>
+    </div>
+  `;
+
+  // item 欄位輸入
+  $$('.ba-item-name, .ba-item-amount', root).forEach(el => {
+    el.addEventListener('input', () => {
+      const g = +el.dataset.g, i = +el.dataset.i, k = el.dataset.k;
+      if (k === 'amount') {
+        budgetState.groups[g].items[i].amount = parseAmount(el.value);
+      } else {
+        budgetState.groups[g].items[i].name = el.value;
+      }
+      refreshBudgetTotals();
+    });
+  });
+  // 金額欄失焦補千分位
+  $$('.ba-item-amount', root).forEach(el => {
+    el.addEventListener('blur', () => {
+      const v = parseAmount(el.value);
+      el.value = v ? v.toLocaleString('en-US') : '';
+    });
+  });
+  // 增列
+  $$('.ba-add', root).forEach(btn => btn.addEventListener('click', () => {
+    budgetState.groups[+btn.dataset.g].items.push({ name: '', amount: 0 });
+    drawBudgetAlloc();
+  }));
+  // 刪列
+  $$('.ba-del', root).forEach(btn => btn.addEventListener('click', () => {
+    budgetState.groups[+btn.dataset.g].items.splice(+btn.dataset.i, 1);
+    drawBudgetAlloc();
+  }));
+  // 費率
+  $$('.ba-rate', root).forEach(el => el.addEventListener('input', () => {
+    budgetState[el.dataset.rate] = parseFloat(el.value) || 0;
+    refreshBudgetTotals();
+  }));
+}
+
+function refreshBudgetTotals() {
+  const c = computeBudget(budgetState);
+  const root = $('#budget-alloc');
+  $$('.ba-group', root).forEach((el, gi) => {
+    const sub = el.querySelector('.ba-group-sub');
+    if (sub) sub.textContent = '小計 ' + fmtNT(c.groupTotals[gi]);
+  });
+  const rows = $$('.ba-summary .ba-sum-row span:last-child', root);
+  if (rows.length === 6) {
+    rows[0].textContent = fmtNT(c.engineering);
+    rows[1].textContent = fmtNT(c.supervision);
+    rows[2].textContent = fmtNT(c.tax);
+    rows[3].textContent = fmtNT(c.otherTotal);
+    rows[4].textContent = fmtNT(c.preTax);
+    rows[5].textContent = fmtNT(c.withTax);
+  }
+}
+
+function parseAmount(raw) {
+  const n = parseFloat(String(raw).replace(/[^\d.]/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+
+function escapeAttr(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function renderPowerList(d) {
@@ -181,6 +356,13 @@ $('#save-btn').addEventListener('click', async () => {
   });
   updates.designer_notes = $('#designer-notes').value;
 
+  // 實際預算分配（提案版）：有填才送；全 0 視為清空
+  if (budgetState) {
+    updates.budget_allocation = budgetHasData(budgetState)
+      ? { ...budgetState, updated_at: new Date().toISOString() }
+      : null;
+  }
+
   const status = $('#save-status');
   status.style.display = 'block';
 
@@ -203,6 +385,7 @@ $('#save-btn').addEventListener('click', async () => {
       body: JSON.stringify({
         action: 'designer_update',
         token: designerToken,
+        adminKey,
         caseId,
         updates,
       }),

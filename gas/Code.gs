@@ -52,6 +52,11 @@ function doPost(e) {
       return handleAddComment(payload);
     }
 
+    // 設計師 / 總監：補填覆寫（型號、備註、實際預算分配等）
+    if (payload.action === 'designer_update') {
+      return handleDesignerUpdate(payload);
+    }
+
     // Admin：手動重跑 AI 分析（需要 adminKey；會再收一次 AI 費）
     if (payload.action === 'rerun_analysis') {
       const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
@@ -1578,6 +1583,36 @@ function validateDesignerTokenForCase(caseId, dt) {
   if (!caseId || !dt) return false;
   const real = getDesignerTokenForCase(caseId);
   return !!real && real === dt;
+}
+
+// === 設計師 / 總監補填覆寫：把 updates merge 進該案件 DataJSON ===
+// 授權：admin key（後台）或該案件的設計師 token（case-scoped）。
+// Payload: { action, caseId, updates, token?, adminKey? }
+function handleDesignerUpdate(payload) {
+  const { caseId, updates, token } = payload;
+  if (!caseId) return jsonResponse({ ok: false, error: 'missing_caseId' });
+  if (!updates || typeof updates !== 'object') return jsonResponse({ ok: false, error: 'missing_updates' });
+
+  const authedByAdmin = isAdminKey(payload.adminKey);
+  const authedByToken = validateDesignerTokenForCase(caseId, token);
+  if (!authedByAdmin && !authedByToken) {
+    return jsonResponse({ ok: false, error: 'unauthorized' });
+  }
+
+  const sh = getOrCreateSheet(SUBMISSIONS_SHEET);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] === caseId) {
+      const data = JSON.parse(rows[i][3] || '{}');
+      Object.keys(updates).forEach(k => {
+        if (updates[k] === null) delete data[k];
+        else data[k] = updates[k];
+      });
+      sh.getRange(i + 1, 4).setValue(JSON.stringify(data));
+      return jsonResponse({ ok: true, caseId });
+    }
+  }
+  return jsonResponse({ ok: false, error: 'not_found' });
 }
 
 function getOrCreateNotesSheet() {

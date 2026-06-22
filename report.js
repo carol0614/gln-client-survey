@@ -380,80 +380,94 @@ function donutSlicePath(cx, cy, outerR, innerR, startAngle, endAngle, isFullCirc
   return `M ${x1} ${y1} A ${outerR} ${outerR} 0 ${largeArc} 1 ${x2} ${y2} L ${x3} ${y3} A ${innerR} ${innerR} 0 ${largeArc} 0 ${x4} ${y4} Z`;
 }
 
-// === 預算分配視覺化（依 GLN 預設比例自動拆分）===
-// GLN 預設比例（Carol 2026-05-28 確認）：基礎 25 / 裝修 40 / 設備 15 / 軟裝 10 / 設計 10
-const BUDGET_BREAKDOWN_RATIOS = [
-  { key: 'foundation', name: '基礎工程', pct: 25, color: '#7C837B', desc: '拆除、泥作、水電、防水' },
-  { key: 'renovation', name: '裝修工程', pct: 40, color: '#A67C52', desc: '木作、油漆、地板、天花' },
-  { key: 'equipment',  name: '設備家電', pct: 15, color: '#8E877D', desc: '廚房、衛浴、空調、智能家居' },
-  { key: 'soft_decor', name: '軟裝家具', pct: 10, color: '#B8A98F', desc: '沙發、燈具、窗簾、桌椅' },
-  { key: 'design_fee', name: '設計監造', pct: 10, color: '#9DA89A', desc: '設計費 + 工管費' },
-];
+// === 實際預算分配（提案版）===
+// 資料來源：設計師於丈量提案後依實際報價單填入（designer.html）。
+// 沒填 → 不顯示（不再回退預設比例）。
+// 課稅（計入工程費 → 監工費 + 稅金基礎）：taxable=true 的群組（基礎/裝修）
+// 另計 / 已含稅：taxable=false 的群組（設備/軟裝/設計費）
+const BUDGET_GROUP_COLORS = ['#7C837B', '#A67C52', '#8E877D', '#B8A98F', '#9DA89A', '#6E7B73', '#C2A878'];
+const fmtBudgetNT = n => 'NT$ ' + (Number(n) || 0).toLocaleString('en-US');
 
-// 從「500 萬 / NT$ 5,000,000 / 500」等格式 parse 出萬元數字
-function parseBudgetToTenK(raw) {
-  if (raw == null || raw === '') return null;
-  const s = String(raw).replace(/[,，\s]/g, '');
-  // 萬：把「500萬」轉成 500
-  const wanMatch = s.match(/(\d+(?:\.\d+)?)\s*萬/);
-  if (wanMatch) return parseFloat(wanMatch[1]);
-  // 純數字
-  const numMatch = s.match(/(\d+(?:\.\d+)?)/);
-  if (!numMatch) return null;
-  const num = parseFloat(numMatch[1]);
-  // > 10000 視為元數（如 5000000 = 500 萬）；否則視為萬數
-  return num >= 10000 ? num / 10000 : num;
+function computeBudgetAllocation(state) {
+  let engineering = 0;
+  const groupTotals = state.groups.map(g => {
+    const sub = (g.items || []).reduce((s, it) => s + (Number(it.amount) || 0), 0);
+    if (g.taxable) engineering += sub;
+    return sub;
+  });
+  const supervision = Math.round(engineering * (Number(state.supervision_pct) || 0) / 100);
+  const tax = Math.round((engineering + supervision) * (Number(state.tax_pct) || 0) / 100);
+  const otherTotal = state.groups.reduce((s, g, i) => s + (g.taxable ? 0 : groupTotals[i]), 0);
+  const preTax = engineering + supervision + otherTotal;
+  const withTax = preTax + tax;
+  return { groupTotals, engineering, supervision, tax, otherTotal, preTax, withTax };
 }
 
 function renderBudgetBreakdown(d) {
-  const totalTenK = parseBudgetToTenK(d.budget);
-  if (!totalTenK || totalTenK <= 0) return ''; // 沒填預算就不顯示
+  const state = d.budget_allocation;
+  if (!state || !Array.isArray(state.groups)) return '';
+  const hasData = state.groups.some(g => (g.items || []).some(it => (Number(it.amount) || 0) > 0));
+  if (!hasData) return ''; // 設計師沒填 → 不顯示
 
-  const flexLabel = d.budget_flex && d.budget_flex !== '請選擇' ? d.budget_flex : '';
-  const rows = BUDGET_BREAKDOWN_RATIOS.map(r => ({
-    ...r,
-    amount: Math.round(totalTenK * r.pct / 100),
-  }));
+  const c = computeBudgetAllocation(state);
 
-  const barSegs = rows.map(r => `
-    <div class="bb-seg" style="width:${r.pct}%;background:${r.color};" title="${r.name} ${r.amount} 萬（${r.pct}%）">
-      ${r.pct >= 10 ? r.name : ''}
-    </div>
-  `).join('');
+  // 大欄位 stacked bar（用各群組小計 + 監工費 + 稅金占比）
+  const barParts = [];
+  state.groups.forEach((g, i) => {
+    if (c.groupTotals[i] > 0) barParts.push({ name: g.name, amount: c.groupTotals[i], color: BUDGET_GROUP_COLORS[i % BUDGET_GROUP_COLORS.length] });
+  });
+  if (c.supervision > 0) barParts.push({ name: '監工費', amount: c.supervision, color: '#9A8C7A' });
+  if (c.tax > 0) barParts.push({ name: '稅金', amount: c.tax, color: '#B0A693' });
+  const barTotal = barParts.reduce((s, p) => s + p.amount, 0) || 1;
+  const barSegs = barParts.map(p => {
+    const pct = (p.amount / barTotal * 100);
+    return `<div class="bb-seg" style="width:${pct}%;background:${p.color};" title="${p.name} ${fmtBudgetNT(p.amount)}（${pct.toFixed(1)}%）">${pct >= 8 ? p.name : ''}</div>`;
+  }).join('');
 
-  const tableRows = rows.map(r => `
-    <div class="budget-breakdown-row">
-      <span class="bb-swatch" style="background:${r.color};"></span>
-      <div>
-        <span class="bb-name">${r.name}</span>
-        <span class="bb-desc">${r.desc}</span>
+  // 各群組明細表
+  const groupTables = state.groups.map((g, gi) => {
+    const items = (g.items || []).filter(it => (Number(it.amount) || 0) > 0);
+    if (!items.length) return '';
+    return `
+      <div class="ba-rpt-group">
+        <div class="ba-rpt-group-head">
+          <span class="bb-swatch" style="background:${BUDGET_GROUP_COLORS[gi % BUDGET_GROUP_COLORS.length]};"></span>
+          <span class="ba-rpt-group-name">${g.name}</span>
+          <span class="ba-rpt-group-sub">${fmtBudgetNT(c.groupTotals[gi])}</span>
+        </div>
+        ${items.map(it => `
+          <div class="ba-rpt-row">
+            <span class="ba-rpt-item">${it.name || '—'}</span>
+            <span class="ba-rpt-amt">${fmtBudgetNT(it.amount)}</span>
+          </div>
+        `).join('')}
       </div>
-      <span class="bb-amount">${r.amount} 萬</span>
-      <span class="bb-pct">${r.pct}%</span>
-    </div>
-  `).join('');
-
-  const flexNote = flexLabel ? `<span class="bb-flex-note">彈性：${flexLabel}</span>` : '';
+    `;
+  }).join('');
 
   return `
     <section class="report-section">
-      <h2>💰 預算分配參考</h2>
+      <h2>💰 實際預算分配（提案版）</h2>
       <div class="budget-breakdown">
         <div class="budget-breakdown-header">
-          <div>
-            <span class="bb-figure-label">總預算</span>
-            <span class="bb-figure">${totalTenK} 萬</span>
-          </div>
-          ${flexLabel ? `<div><span class="bb-figure-label">預算彈性</span><span class="bb-figure" style="font-size:1.1rem;">${flexLabel}</span></div>` : ''}
+          <div><span class="bb-figure-label">含稅後總合計</span><span class="bb-figure">${fmtBudgetNT(c.withTax)}</span></div>
         </div>
-        <div class="budget-breakdown-bar" role="img" aria-label="預算拆分長條圖">
+        <div class="budget-breakdown-bar" role="img" aria-label="預算分配長條圖">
           ${barSegs}
         </div>
-        <div class="budget-breakdown-table">
-          ${tableRows}
+        <div class="ba-rpt-tables">
+          ${groupTables}
+        </div>
+        <div class="ba-rpt-summary">
+          <div class="ba-rpt-sum-row"><span>工程費合計（基礎＋裝修）</span><span>${fmtBudgetNT(c.engineering)}</span></div>
+          <div class="ba-rpt-sum-row"><span>監工費管理費（${state.supervision_pct}%）</span><span>${fmtBudgetNT(c.supervision)}</span></div>
+          <div class="ba-rpt-sum-row"><span>稅金（${state.tax_pct}%）</span><span>${fmtBudgetNT(c.tax)}</span></div>
+          <div class="ba-rpt-sum-row"><span>其他（設備／軟裝／設計費，已含稅）</span><span>${fmtBudgetNT(c.otherTotal)}</span></div>
+          <div class="ba-rpt-sum-row total"><span>總合計（未稅）</span><span>${fmtBudgetNT(c.preTax)}</span></div>
+          <div class="ba-rpt-sum-row total final"><span>含稅後總合計</span><span>${fmtBudgetNT(c.withTax)}</span></div>
         </div>
         <div class="budget-breakdown-note">
-          ${flexNote}此為依 GLN 經驗的預設比例粗估，<strong>實際配比依個案需求調整</strong>。設計師會在丈量提案後給出更精準的分配建議。
+          此為丈量提案後設計師依實際報價單填列之金額，供設計師／客戶／總監三方對齊。實際以正式合約報價單為準。
         </div>
       </div>
     </section>
