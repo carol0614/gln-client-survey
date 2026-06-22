@@ -158,6 +158,10 @@ function doGet(e) {
     if (e.parameter.action === 'get_prefill') {
       return handleGetPrefill(e.parameter.t);
     }
+    // 後台案件列表
+    if (e.parameter.action === 'list_cases') {
+      return handleListCases(e.parameter.admin_token);
+    }
 
     const caseId = e.parameter.id;
     const version = e.parameter.v || 'client'; // client | designer
@@ -178,6 +182,48 @@ function doGet(e) {
   } catch (err) {
     return jsonResponse({ ok: false, error: err.message });
   }
+}
+
+function handleListCases(adminToken) {
+  const expected = PropertiesService.getScriptProperties().getProperty('ADMIN_TOKEN') || 'gln-admin';
+  if (adminToken !== expected) return jsonResponse({ ok: false, error: 'unauthorized' });
+
+  const subSh = getOrCreateSheet(SUBMISSIONS_SHEET, ['CaseID', 'Timestamp', 'Token', 'DataJSON']);
+  const subRows = subSh.getDataRange().getValues();
+
+  const anaSh = getOrCreateSheet(ANALYSES_SHEET, ['CaseID', 'GeneratedAt', 'Status', 'Model', 'InputTokens', 'OutputTokens', 'AnalysisJSON', 'Error']);
+  const anaRows = anaSh.getDataRange().getValues();
+
+  const anaMap = {};
+  for (let i = 1; i < anaRows.length; i++) {
+    const id = anaRows[i][0];
+    if (!anaMap[id]) anaMap[id] = anaRows[i][2];
+  }
+
+  const baseUrl = getReportBaseUrl();
+  const cases = [];
+  for (let i = 1; i < subRows.length; i++) {
+    const row = subRows[i];
+    const caseId = row[0];
+    if (!caseId) continue;
+    let clientName = '';
+    try {
+      const data = JSON.parse(row[3]);
+      // 抓預填的客戶姓名，或第一位成員身份
+      clientName = data.client_name || data['member-1_role'] || '';
+      if (data['member-1_occupation']) clientName += (clientName ? '・' : '') + data['member-1_occupation'];
+    } catch (e) {}
+    cases.push({
+      caseId,
+      timestamp: row[1] ? new Date(row[1]).toLocaleString('zh-TW') : '',
+      clientName,
+      analysisStatus: anaMap[caseId] || 'none',
+      designerReportUrl: baseUrl + '/report.html?id=' + caseId + '&v=designer',
+      clientReportUrl: baseUrl + '/report.html?id=' + caseId + '&v=client',
+    });
+  }
+  cases.reverse();
+  return jsonResponse({ ok: true, cases });
 }
 
 // ============================================================
