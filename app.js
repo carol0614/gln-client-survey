@@ -451,8 +451,12 @@ function loadDraft() {
       }
     });
     // Restore 樓層 × 空間規劃（hidden _floor_plan 以 _ 開頭，上面迴圈會跳過，這裡單獨還原）
+    // 來源可能是字串（一般自動存草稿）或陣列（丈量筆記預填草稿），兩者都吃
     try {
-      const floors = JSON.parse(data._floor_plan || '[]');
+      const raw = data._floor_plan;
+      const floors = typeof raw === 'string'
+        ? JSON.parse(raw || '[]')
+        : (Array.isArray(raw) ? raw : []);
       if (Array.isArray(floors)) {
         floors.forEach(f => {
           // 相容舊格式 {name, desc}：把 desc 當成單一空間還原

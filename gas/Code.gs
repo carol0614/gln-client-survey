@@ -1464,7 +1464,8 @@ function extractFormDataFromNotes(notes, location) {
 - house_type: "老屋" | "中古屋" | "新成屋" | "透天" | "透天老屋"
 - case_type: "老屋翻新" | "全室翻新" | "局部翻新" | "新成屋裝修"
 - house_use: "自住" | "出租" | "自住兼出租"
-- floor_plan: 樓層配置描述
+- _floor_plan: 樓層 × 空間規劃陣列。格式：[{"floor":"樓層名稱（如「一樓」；單層住宅可留空字串）","rooms":[{"room":"空間名稱（如「客廳」「主臥」「廚房」）","desc":"這個空間的需求／機能／屋主想做的事"}]}]。請把筆記裡每一層、每個空間的需求逐一拆開填；單層公寓就放一個 floor、底下列各空間；筆記沒提到的空間不要硬補。
+- floor_priority: 整體優先順序（一句話，如「以 1-3 樓為主，4 樓衛浴翻新，5 樓油漆」）
 - _memberCount: 人數（數字）
 - member-N_role: 第 N 位成員稱謂（如 "王先生", "梁小姐"）
 - member-N_main_need: 第 N 位成員主要需求
