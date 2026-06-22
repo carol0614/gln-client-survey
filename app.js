@@ -1342,6 +1342,38 @@ function initAccordion() {
   });
 }
 
+
+// === 預填：從 GAS 拉 admin 填的客戶基本資料，填入空白欄位 ===
+async function fetchAndApplyPrefill() {
+  const t = getURLParam('t');
+  if (!t || t === 'test') return; // test token 跳過
+  try {
+    const url = GAS_ENDPOINT + '?action=get_prefill&t=' + encodeURIComponent(t);
+    const res = await fetch(url);
+    const result = await res.json();
+    if (!result.ok || !result.prefill) return;
+    const pf = result.prefill;
+    // 只填入目前空白的欄位（不覆蓋客戶已填的內容）
+    const fieldMap = {
+      client_name:   pf.client_name,
+      client_phone:  pf.client_phone,
+      house_address: pf.house_address,
+      house_size:    pf.house_size,
+      house_age:     pf.house_age,
+      house_type:    pf.house_type,
+      case_type:     pf.case_type,
+      budget:        pf.budget,
+    };
+    Object.entries(fieldMap).forEach(([name, val]) => {
+      if (!val) return;
+      const el = document.querySelector('[name="' + name + '"]');
+      if (el && !el.value) el.value = val;
+    });
+  } catch (e) {
+    console.warn('prefill fetch failed', e);
+  }
+}
+
 // === 初始化 ===
 async function init() {
   detectInAppBrowserAndWarn();
@@ -1364,6 +1396,10 @@ async function init() {
   if (!restored) {
     addMember(); // 至少給一張成員卡
   }
+
+  // 3. 從 GAS 拉 admin 預填的客戶基本資料（只填空白欄位，不覆蓋已填內容）
+  await fetchAndApplyPrefill();
+
   updateProgress();
 
   // 3. 綁「保存進度寄連結」按鈕

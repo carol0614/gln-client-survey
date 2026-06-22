@@ -280,7 +280,19 @@ function bindTokenControls() {
   const errorEl = $('#token-error');
 
   btn.addEventListener('click', async () => {
+    const name = ($('#pf-client-name')?.value || '').trim();
+    if (!name) { errorEl.textContent = '請填入業主姓名'; errorEl.style.display = 'block'; return; }
     const note = noteInput.value.trim();
+    const prefill = {
+      client_name:   name,
+      client_phone:  ($('#pf-client-phone')?.value  || '').trim(),
+      house_address: ($('#pf-house-address')?.value || '').trim(),
+      house_size:    ($('#pf-house-size')?.value    || '').trim(),
+      house_age:     ($('#pf-house-age')?.value     || '').trim(),
+      house_type:    ($('#pf-house-type')?.value    || '').trim(),
+      case_type:     ($('#pf-case-type')?.value     || '').trim(),
+      budget:        ($('#pf-budget')?.value         || '').trim(),
+    };
     resultEl.style.display = 'none';
     errorEl.style.display = 'none';
     btn.disabled = true;
@@ -290,7 +302,7 @@ function bindTokenControls() {
       const res = await fetch(GAS_ENDPOINT_ADMIN, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'create_token', adminKey: ADMIN_KEY, note }),
+        body: JSON.stringify({ action: 'create_token', adminKey: ADMIN_KEY, note, prefill }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || '產生失敗');
@@ -306,6 +318,14 @@ function bindTokenControls() {
 
       resultEl.style.display = 'block';
       noteInput.value = '';
+      // Clear prefill fields
+      ['pf-client-name','pf-client-phone','pf-house-address','pf-house-size','pf-house-age'].forEach(id => {
+        const el = $('#' + id); if (el) el.value = '';
+      });
+      ['pf-house-type','pf-case-type'].forEach(id => {
+        const el = $('#' + id); if (el) el.selectedIndex = 0;
+      });
+      $('#pf-budget').value = '';
     } catch (err) {
       errorEl.textContent = '產生失敗：' + err.message;
       errorEl.style.display = 'block';

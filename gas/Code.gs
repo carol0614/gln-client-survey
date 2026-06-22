@@ -44,7 +44,7 @@ function doPost(e) {
       const projectNumber = generateProjectNumber();
       const location = (payload.location || payload.note || '').trim();
       const note = projectNumber + (location ? ' ' + location : '');
-      const { clientToken, designerToken } = generateTokenPair(projectNumber);
+      const { clientToken, designerToken } = generateTokenPair(projectNumber, payload.prefill || null);
       const baseUrl = getReportBaseUrl();
       return jsonResponse({
         ok: true,
@@ -126,11 +126,37 @@ function doPost(e) {
 }
 
 // === 入口：GET 查報告資料（含 AI 分析）===
+
+// ============================================================
+// === 預填資料：從 Tokens sheet 讀取 admin 預填的客戶基本資料 ===
+// ============================================================
+function handleGetPrefill(token) {
+  if (!token || token === 'test') return jsonResponse({ ok: true, prefill: null });
+  try {
+    const sh = getOrCreateSheet(TOKENS_SHEET);
+    const rows = sh.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][0] === token) {
+        const prefillJson = rows[i][6] || '';
+        const prefill = prefillJson ? JSON.parse(prefillJson) : null;
+        return jsonResponse({ ok: true, prefill });
+      }
+    }
+    return jsonResponse({ ok: true, prefill: null });
+  } catch (e) {
+    return jsonResponse({ ok: false, error: e.message });
+  }
+}
+
 function doGet(e) {
   try {
     // 草稿載入路徑
     if (e.parameter.action === 'load_draft') {
       return handleLoadDraft(e.parameter.t);
+    }
+    // 預填資料載入
+    if (e.parameter.action === 'get_prefill') {
+      return handleGetPrefill(e.parameter.t);
     }
 
     const caseId = e.parameter.id;
@@ -613,11 +639,13 @@ function findSubmissionByCaseId(caseId) {
 }
 
 // === Token 機制（每案一組）===
-function generateTokenPair(projectNumber) {
-  const sh = getOrCreateSheet(TOKENS_SHEET, ['Token', 'CaseSeed', 'CreatedAt', 'UsedAt', 'DesignerToken', 'ProjectNumber']);
+function generateTokenPair(projectNumber, prefill) {
+  const sh = getOrCreateSheet(TOKENS_SHEET, ['Token', 'CaseSeed', 'CreatedAt', 'UsedAt', 'DesignerToken', 'ProjectNumber', 'Prefill', 'ClientName']);
   const clientToken = randomHex(16);
   const designerToken = randomHex(16);
-  sh.appendRow([clientToken, projectNumber || randomHex(8), new Date().toISOString(), '', designerToken, projectNumber || '']);
+  const prefillJson = prefill ? JSON.stringify(prefill) : '';
+  const clientName = prefill ? (prefill.client_name || '') : '';
+  sh.appendRow([clientToken, projectNumber || randomHex(8), new Date().toISOString(), '', designerToken, projectNumber || '', prefillJson, clientName]);
   return { clientToken, designerToken };
 }
 

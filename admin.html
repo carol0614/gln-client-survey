@@ -36,10 +36,61 @@
       <!-- ===== 新建案件 Token 產生器 ===== -->
       <section class="admin-token-section">
         <h2>新建案件 · 產生客戶連結</h2>
-        <p class="muted">每個新客戶需要獨立的問卷連結。填入案件備註後按「產生連結」，系統會在 Google Sheet 登記並產出專屬 URL。</p>
-        <div class="token-form">
-          <input type="text" id="token-note" placeholder="案件備註（如：王小明 42坪 大安區）" class="token-input" maxlength="100" />
-          <button type="button" id="btn-create-token" class="btn btn-primary">產生連結</button>
+        <p class="muted">填入客戶基本資料後按「產生連結」，問卷開啟時這些欄位會自動預填，客戶不需要重複輸入。</p>
+        <div class="prefill-form">
+          <div class="prefill-row">
+            <div class="prefill-field">
+              <label for="pf-client-name">業主姓名 <span class="req">*</span></label>
+              <input type="text" id="pf-client-name" placeholder="王小明" maxlength="40" />
+            </div>
+            <div class="prefill-field">
+              <label for="pf-client-phone">聯絡電話</label>
+              <input type="tel" id="pf-client-phone" placeholder="0912-345-678" maxlength="20" />
+            </div>
+            <div class="prefill-field prefill-field--wide">
+              <label for="pf-house-address">房屋地址</label>
+              <input type="text" id="pf-house-address" placeholder="台北市大安區○○路○號○樓" maxlength="80" />
+            </div>
+          </div>
+          <div class="prefill-row">
+            <div class="prefill-field">
+              <label for="pf-house-size">坪數</label>
+              <input type="number" id="pf-house-size" placeholder="42" min="5" max="500" />
+            </div>
+            <div class="prefill-field">
+              <label for="pf-house-age">屋齡（年）</label>
+              <input type="number" id="pf-house-age" placeholder="25" min="0" max="100" />
+            </div>
+            <div class="prefill-field">
+              <label for="pf-house-type">房屋形態</label>
+              <select id="pf-house-type">
+                <option value="">請選擇</option>
+                <option>新成屋</option><option>中古屋</option><option>老屋</option>
+                <option>預售屋</option><option>透天</option><option>公寓</option><option>大樓</option>
+              </select>
+            </div>
+            <div class="prefill-field">
+              <label for="pf-case-type">案件類型</label>
+              <select id="pf-case-type">
+                <option value="">請選擇</option>
+                <option>老屋翻新</option><option>新成屋客變</option><option>全屋翻新</option>
+                <option>局部翻新</option><option>商業空間</option>
+              </select>
+            </div>
+            <div class="prefill-field">
+              <label for="pf-budget">預算範圍</label>
+              <input type="text" id="pf-budget" placeholder="例：500 萬" maxlength="30" />
+            </div>
+          </div>
+          <div class="prefill-row">
+            <div class="prefill-field prefill-field--wide">
+              <label for="token-note">案件備註（內部用，不顯示給客戶）</label>
+              <input type="text" id="token-note" placeholder="例：介紹人、特殊需求" maxlength="100" />
+            </div>
+          </div>
+          <div style="margin-top:1rem;">
+            <button type="button" id="btn-create-token" class="btn btn-primary">產生客戶連結</button>
+          </div>
         </div>
         <div id="token-result" class="token-result" style="display:none;">
           <div class="token-result-title">連結已產生</div>

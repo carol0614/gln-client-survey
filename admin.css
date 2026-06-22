@@ -377,3 +377,60 @@
   border-top: 1px solid var(--gln-mist);
   margin: 1.5rem 0;
 }
+
+/* ===== 預填表單樣式 ===== */
+.prefill-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.prefill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.prefill-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 140px;
+  flex: 1;
+}
+
+.prefill-field--wide {
+  flex: 2;
+  min-width: 220px;
+}
+
+.prefill-field label {
+  font-size: 0.8rem;
+  color: var(--gln-taupe);
+  font-weight: 500;
+}
+
+.prefill-field .req {
+  color: #c00;
+  margin-left: 2px;
+}
+
+.prefill-field input,
+.prefill-field select {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--gln-mist);
+  border-radius: 7px;
+  font-size: 0.9rem;
+  background: #fff;
+  font-family: inherit;
+  color: var(--gln-ink);
+  transition: border-color 0.15s;
+}
+
+.prefill-field input:focus,
+.prefill-field select:focus {
+  outline: none;
+  border-color: var(--gln-olive);
+}
