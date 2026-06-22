@@ -122,6 +122,74 @@ html, body {
 /* 一般 nowrap 工具類（中文排版規範）*/
 .nowrap { white-space: nowrap; display: inline-block; }
 
+/* ===== Email 先填區 ===== */
+.email-gate-section {
+  background: #fff;
+  border: 1.5px solid var(--gln-olive);
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  padding: 1.25rem 1.5rem;
+}
+.email-gate-inner { max-width: 480px; }
+.email-gate-label {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--gln-ink);
+  margin-bottom: 0.3rem;
+}
+.email-gate-hint {
+  font-size: 0.85rem;
+  color: var(--gln-taupe);
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+.email-gate-input {
+  width: 100%;
+  padding: 0.6rem 0.875rem;
+  border: 1px solid var(--gln-mist);
+  border-radius: var(--radius);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  outline: none;
+  background: var(--gln-sand);
+}
+.email-gate-input:focus { border-color: var(--gln-olive); background: #fff; }
+
+/* ===== 各段保存按鈕 ===== */
+.section-save-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1.25rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--gln-mist);
+}
+.btn-section-save {
+  padding: 0.5rem 1.25rem;
+  background: transparent;
+  border: 1px solid var(--gln-olive);
+  border-radius: var(--radius);
+  color: var(--gln-olive);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-section-save:hover { background: var(--gln-olive); color: #fff; }
+
+/* ===== 修改重送提示 banner ===== */
+.resubmit-banner {
+  background: #f0f4ef;
+  border: 1px solid #b2c9ad;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: #3a5a35;
+  line-height: 1.5;
+}
+
 /* Section 內提示文字框 */
 .info-note {
   background: rgba(124, 131, 123, 0.06);

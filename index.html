@@ -66,16 +66,20 @@
 
     <form id="survey-form" autocomplete="off">
 
+      <!-- ============ Email 先填（保存進度用）============ -->
+      <div class="email-gate-section">
+        <div class="email-gate-inner">
+          <label class="email-gate-label" for="field-client-email">📬 先填入您的 Email</label>
+          <p class="email-gate-hint">填寫途中隨時可以按「保存進度」，我們會把連結寄到這裡，下次從任何裝置繼續。</p>
+          <input class="email-gate-input" type="email" id="field-client-email" name="client_email" placeholder="your@email.com" autocomplete="email" />
+        </div>
+      </div>
+
       <!-- ============ Section A：房屋背景 + 痛點動機（前置，建立顧問定位）============ -->
       <section class="section collapsible" data-section="A">
         <h2>Section A — 房屋與裝修動機</h2>
         <p class="section-meta">先了解你的房子與想動的原因，讓設計師能精準回應你的需求。</p>
 
-        <div class="field-row">
-          <div class="field"><label>業主姓名</label><input type="text" name="client_name" placeholder="王小明" /></div>
-          <div class="field"><label>聯絡電話</label><input type="tel" name="client_phone" placeholder="0912-345-678" /></div>
-          <div class="field prefill-wide"><label>房屋地址</label><input type="text" name="house_address" placeholder="台北市○○區○○路○號○樓" /></div>
-        </div>
         <div class="field-row">
           <div class="field"><label>房屋屋齡（年）</label><input type="number" name="house_age" /></div>
           <div class="field"><label>房屋坪數</label><input type="number" name="house_size" /></div>

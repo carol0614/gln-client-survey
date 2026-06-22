@@ -4,12 +4,7 @@
 
 // === 設定 ===
 const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzCpoKgXvana8_6cxxB1jrn0qCW8ulw7iX-vVrDJbqCQZ36KjAhHJRNAd489N_z564zsw/exec';
-// getDraftKey() is now token-specific; use getDraftKey()
-function getDraftKey() {
-  const t = (new URLSearchParams(window.location.search)).get('t') ||
-             (new URLSearchParams(window.location.search)).get('d') || 'anon';
-  return 'gln_survey_draft_v1_' + t;
-}
+const AUTOSAVE_KEY = 'gln_survey_draft_v1';
 const DRAFT_TOKEN_KEY = 'gln_draft_token_v1';
 const ACCORDION_KEY = 'gln_survey_accordion_v1';
 const AUTOSAVE_INTERVAL = 3000; // ms
@@ -400,19 +395,13 @@ function collectFormData() {
   // Member / Pet count for restoration
   data._memberCount = memberCounter;
   data._petCount = petCounter;
-  // P0: 感覺光譜洗牌順序（用於恢復時對照 photo id）
-  if (swipeState.photos.length > 0) {
-    data._swipeOrder = JSON.stringify(swipeState.photos.map(p => p.id));
-  }
-  // P2: 儲存時間戳，供雲端 vs 本機衝突比較
-  data._savedAt = Date.now();
   return data;
 }
 
 function saveDraft() {
   try {
     const data = collectFormData();
-    localStorage.setItem(getDraftKey(), JSON.stringify(data));
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
     $('#autosave-status').textContent = '已自動儲存 ' + new Date().toLocaleTimeString('zh-TW');
   } catch (e) {
     console.warn('autosave failed', e);
@@ -421,7 +410,7 @@ function saveDraft() {
 
 function loadDraft() {
   try {
-    const raw = localStorage.getItem(getDraftKey());
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
     // Restore members + pets first（卡片要先存在才能設值）
@@ -449,30 +438,6 @@ function loadDraft() {
         if (input) input.value = val;
       }
     });
-    // P0: 恢復感覺光譜（swipe）進度
-    try {
-      const rawLikes = data._feeling_likes;
-      const rawNopes = data._feeling_nopes;
-      const rawSkips  = data._feeling_skips;
-      const rawOrder  = data._swipeOrder;
-      if (rawLikes !== undefined && swipeState.photos.length > 0) {
-        swipeState.likes  = JSON.parse(rawLikes  || '[]');
-        swipeState.nopes  = JSON.parse(rawNopes  || '[]');
-        swipeState.skips  = JSON.parse(rawSkips  || '[]');
-        // 依原始洗牌順序重排照片，確保 index 對應正確
-        if (rawOrder) {
-          const orderIds = JSON.parse(rawOrder);
-          const photoMap = Object.fromEntries(swipeState.photos.map(p => [p.id, p]));
-          const reordered = orderIds.map(id => photoMap[id]).filter(Boolean);
-          if (reordered.length === swipeState.photos.length) swipeState.photos = reordered;
-        }
-        swipeState.index = swipeState.likes.length + swipeState.nopes.length + swipeState.skips.length;
-        syncSwipeHiddenFields();
-        renderSwipeStage();
-      }
-    } catch (eSwipe) {
-      console.warn('swipe restore failed', eSwipe);
-    }
     return true;
   } catch (e) {
     console.warn('loadDraft failed', e);
@@ -535,7 +500,7 @@ $('#survey-form').addEventListener('submit', async (e) => {
     const result = await res.json();
     if (result.ok) {
       showStatus('success', `送出成功！案件編號：${result.caseId}。報告連結：${result.clientReportUrl || '稍後寄送'}`);
-      localStorage.removeItem(getDraftKey());
+      localStorage.removeItem(AUTOSAVE_KEY);
     } else {
       throw new Error(result.error || 'unknown');
     }
@@ -1141,19 +1106,7 @@ async function loadDraftFromCloud() {
     const res = await fetch(url);
     const result = await res.json();
     if (result.ok && result.data) {
-      // P2: 只在雲端版本較新（或本機無草稿）時才覆蓋
-      const cloudData = result.data;
-      const cloudTime = cloudData._savedAt || 0;
-      try {
-        const localRaw = localStorage.getItem(getDraftKey());
-        const localData = localRaw ? JSON.parse(localRaw) : null;
-        const localTime = localData ? (localData._savedAt || 0) : 0;
-        if (cloudTime >= localTime) {
-          localStorage.setItem(getDraftKey(), JSON.stringify(cloudData));
-        }
-      } catch (_) {
-        localStorage.setItem(getDraftKey(), JSON.stringify(cloudData));
-      }
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(result.data));
       localStorage.setItem(DRAFT_TOKEN_KEY, urlDraft);
       return true;
     }
@@ -1181,104 +1134,32 @@ function startCloudSync() {
   }, CLOUD_SYNC_INTERVAL);
 }
 
-// P1: 儲存進度 modal（取代原本的 prompt/alert）
-function showSaveModal() {
-  document.getElementById('gln-save-modal')?.remove();
-  const modal = document.createElement('div');
-  modal.id = 'gln-save-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;';
-  modal.innerHTML = `
-    <div style="background:#faf9f7;border-radius:14px;padding:1.75rem 1.5rem;max-width:420px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,0.28);font-family:inherit;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-        <strong style="font-size:1.05rem;">💾 儲存進度 &amp; 取得連結</strong>
-        <button id="gln-save-close-btn" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999;line-height:1;" aria-label="關閉">×</button>
-      </div>
-      <p style="margin:0 0 1rem;font-size:0.875rem;color:#666;line-height:1.5;">
-        填入 Email 即可寄出連結，從任何裝置繼續填寫。<br>也可直接複製連結自行儲存。
-      </p>
-      <div style="margin-bottom:1rem;">
-        <div style="font-size:0.78rem;color:#888;margin-bottom:0.35rem;">草稿連結（可直接複製貼給自己）</div>
-        <div style="display:flex;gap:0.5rem;">
-          <input id="gln-draft-link-input" readonly
-            style="flex:1;padding:0.45rem 0.65rem;border:1px solid #ddd;border-radius:7px;font-size:0.8rem;background:#f5f5f5;color:#444;min-width:0;" />
-          <button id="gln-copy-link-btn"
-            style="padding:0.45rem 0.9rem;background:#5a4a3a;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:0.85rem;white-space:nowrap;">複製</button>
-        </div>
-      </div>
-      <div style="border-top:1px solid #eee;padding-top:1rem;margin-bottom:0.75rem;">
-        <div style="font-size:0.78rem;color:#888;margin-bottom:0.35rem;">或寄連結到 Email</div>
-        <div style="display:flex;gap:0.5rem;">
-          <input id="gln-email-input" type="email" placeholder="your@email.com"
-            style="flex:1;padding:0.5rem 0.75rem;border:1px solid #ddd;border-radius:7px;font-size:0.9rem;min-width:0;" />
-          <button id="gln-email-send-btn"
-            style="padding:0.5rem 1rem;background:#8B6F47;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:0.9rem;white-space:nowrap;">寄送</button>
-        </div>
-      </div>
-      <div id="gln-save-msg" style="font-size:0.85rem;min-height:1.2rem;line-height:1.5;"></div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  // 立即顯示草稿連結
-  const draftToken = getOrCreateDraftToken();
-  const draftUrl = window.location.origin + window.location.pathname + '?d=' + encodeURIComponent(draftToken);
-  const linkInput = document.getElementById('gln-draft-link-input');
-  linkInput.value = draftUrl;
-
-  // 複製連結
-  document.getElementById('gln-copy-link-btn').addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(draftUrl);
-    } catch (_) {
-      linkInput.select();
-      document.execCommand('copy');
-    }
-    const btn = document.getElementById('gln-copy-link-btn');
-    if (btn) { btn.textContent = '✓ 已複製'; setTimeout(() => { if (btn) btn.textContent = '複製'; }, 2000); }
-  });
-
-  // 寄送 Email
-  document.getElementById('gln-email-send-btn').addEventListener('click', async () => {
-    const email = document.getElementById('gln-email-input').value.trim();
-    const msgEl = document.getElementById('gln-save-msg');
-    if (!email.includes('@') || !email.includes('.')) {
-      msgEl.style.color = '#c00'; msgEl.textContent = '⚠️ Email 格式不正確'; return;
-    }
-    const sendBtn = document.getElementById('gln-email-send-btn');
-    sendBtn.disabled = true; sendBtn.textContent = '寄送中…';
-    msgEl.style.color = '#888'; msgEl.textContent = '正在同步並寄信…';
-    try {
-      const result = await syncDraftToCloud({ email });
-      if (result && result.emailSent) {
-        msgEl.style.color = '#2a7c2a';
-        msgEl.textContent = `✅ 連結已寄到 ${email}，隨時點擊即可繼續填寫。`;
-      } else if (result && result.emailError) {
-        msgEl.style.color = '#c00';
-        msgEl.textContent = `⚠️ 進度已存雲端，但寄信失敗：${result.emailError}`;
-      } else {
-        msgEl.style.color = '#c00';
-        msgEl.textContent = '⚠️ 請稍後再試一次。（本機草稿仍自動保存）';
-      }
-    } catch (e) {
-      msgEl.style.color = '#c00';
-      msgEl.textContent = '❌ 儲存失敗：' + e.message;
-    } finally {
-      if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = '寄送'; }
-    }
-  });
-
-  // 關閉（點 × 或點遮罩）
-  const closeHandler = () => document.getElementById('gln-save-modal')?.remove();
-  document.getElementById('gln-save-close-btn').addEventListener('click', closeHandler);
-  modal.addEventListener('click', e => { if (e.target === modal) closeHandler(); });
-
-  // 自動 focus email 輸入框
-  setTimeout(() => document.getElementById('gln-email-input')?.focus(), 80);
-}
-
 async function manualSaveWithEmail() {
-  syncDraftToCloud().catch(() => {}); // 先靜默同步一次，確保雲端有最新資料
-  showSaveModal();
+  // 優先用表單填寫的 Email 欄位（client_email），省去 prompt
+  const formEmail = (document.querySelector('[name="client_email"]')?.value || '').trim();
+  let email = formEmail;
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    email = prompt('輸入 Email，我們會寄一個連結讓你從任何裝置繼續填寫：\n\n（連結未過期，可重複使用）');
+    if (email === null) return;
+  }
+  if (!email.includes('@') || !email.includes('.')) {
+    alert('⚠️ Email 格式不正確');
+    return;
+  }
+  try {
+    const result = await syncDraftToCloud({ email });
+    if (result && result.emailSent) {
+      alert(`✅ 進度已存好，連結已寄到 ${email}。\n隨時點 email 連結即可繼續，不會過期。\n\n（若沒收到請檢查垃圾信件夾）`);
+    } else if (result && result.emailError) {
+      alert(`⚠️ 進度已存雲端，但寄信失敗：${result.emailError}\n\n請通知設計師協助處理。本機草稿仍會自動保存。`);
+    } else if (!result) {
+      alert('⚠️ 系統正忙，請再按一次「保存進度」。\n（本機草稿仍會自動保存）');
+    } else {
+      alert(`⚠️ 進度已存雲端，但 email 似乎沒有送出（GAS 無回傳確認）。\n請通知設計師確認伺服器設定。`);
+    }
+  } catch (e) {
+    alert('❌ 儲存失敗：' + e.message + '\n（但本機草稿仍會自動保存）');
+  }
 }
 
 // === Accordion（可折疊 Section）===
@@ -1342,33 +1223,60 @@ function initAccordion() {
   });
 }
 
+// === 各段底部保存進度按鈕 ===
+function bindSectionSaveButtons() {
+  $$('.section.collapsible').forEach(section => {
+    const body = section.querySelector('.section-body');
+    if (!body) return;
+    const bar = document.createElement('div');
+    bar.className = 'section-save-bar';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-section-save';
+    btn.textContent = '💾 保存進度';
+    btn.addEventListener('click', manualSaveWithEmail);
+    bar.appendChild(btn);
+    body.appendChild(bar);
+  });
+}
 
-// === 預填：從 GAS 拉 admin 填的客戶基本資料，填入空白欄位 ===
+// === 修改模式：若 token 已使用，從 GAS 載回舊答案 ===
 async function fetchAndApplyPrefill() {
   const t = getURLParam('t');
-  if (!t || t === 'test') return; // test token 跳過
+  if (!t || t === 'test') return;
   try {
     const url = GAS_ENDPOINT + '?action=get_prefill&t=' + encodeURIComponent(t);
     const res = await fetch(url);
     const result = await res.json();
-    if (!result.ok || !result.prefill) return;
-    const pf = result.prefill;
-    // 只填入目前空白的欄位（不覆蓋客戶已填的內容）
-    const fieldMap = {
-      client_name:   pf.client_name,
-      client_phone:  pf.client_phone,
-      house_address: pf.house_address,
-      house_size:    pf.house_size,
-      house_age:     pf.house_age,
-      house_type:    pf.house_type,
-      case_type:     pf.case_type,
-      budget:        pf.budget,
-    };
-    Object.entries(fieldMap).forEach(([name, val]) => {
-      if (!val) return;
-      const el = document.querySelector('[name="' + name + '"]');
-      if (el && !el.value) el.value = val;
-    });
+    if (!result.ok) return;
+
+    // 修改模式：token 已曾送出，載入舊答案
+    if (result.isResubmit && result.submittedData) {
+      localStorage.setItem(getDraftKey(), JSON.stringify(result.submittedData));
+      loadDraft();
+      const banner = document.createElement('div');
+      banner.className = 'resubmit-banner';
+      banner.textContent = '✏️ 您之前已填寫過這份問卷，以下是您上次的答案，可以直接修改後重新送出。';
+      const form = document.getElementById('survey-form');
+      if (form) form.insertBefore(banner, form.firstChild);
+      return;
+    }
+
+    // 首次：套 admin 預填欄位（只填空白）
+    if (result.prefill) {
+      const pf = result.prefill;
+      const fieldMap = {
+        client_name: pf.client_name, client_phone: pf.client_phone,
+        house_address: pf.house_address, house_size: pf.house_size,
+        house_age: pf.house_age, house_type: pf.house_type,
+        case_type: pf.case_type, budget: pf.budget,
+      };
+      Object.entries(fieldMap).forEach(([name, val]) => {
+        if (!val) return;
+        const el = document.querySelector('[name="' + name + '"]');
+        if (el && !el.value) el.value = val;
+      });
+    }
   } catch (e) {
     console.warn('prefill fetch failed', e);
   }
@@ -1388,6 +1296,9 @@ async function init() {
   // Accordion 必須在所有 DOM 渲染完成後才包 section-body（避免 dynamic 渲染斷裂）
   initAccordion();
 
+  // 各段底部加保存按鈕（在 initAccordion 後，section-body 已存在）
+  bindSectionSaveButtons();
+
   // 1. 先看 URL 有沒有 ?d=draftToken，若有則從雲端拉草稿覆蓋 localStorage
   await loadDraftFromCloud();
 
@@ -1397,16 +1308,16 @@ async function init() {
     addMember(); // 至少給一張成員卡
   }
 
-  // 3. 從 GAS 拉 admin 預填的客戶基本資料（只填空白欄位，不覆蓋已填內容）
+  // 3. 從 GAS 拉 prefill（首次）或舊答案（修改模式）
   await fetchAndApplyPrefill();
 
   updateProgress();
 
-  // 3. 綁「保存進度寄連結」按鈕
+  // 4. 綁「保存進度」按鈕
   const saveCloudBtn = $('#save-cloud-btn');
   if (saveCloudBtn) saveCloudBtn.addEventListener('click', manualSaveWithEmail);
 
-  // 4. 開始每 30 秒自動推雲端
+  // 5. 開始每 30 秒自動推雲端
   startCloudSync();
 }
 

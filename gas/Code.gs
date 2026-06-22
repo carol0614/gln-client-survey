@@ -37,6 +37,11 @@ function doPost(e) {
       return handleSaveDraft(payload);
     }
 
+    // Admin：從丈量筆記自動產生客戶草稿連結
+    if (payload.action === 'prefill_from_notes') {
+      return handlePrefillFromNotes(payload);
+    }
+
     // Admin：產生新案件 Token（需要 adminKey 驗證）
     if (payload.action === 'create_token') {
       const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
@@ -64,7 +69,10 @@ function doPost(e) {
       return jsonResponse({ ok: false, error: 'invalid_token' });
     }
 
-    const caseId = generateCaseId();
+    // 檢查是否已有提交（修改重送）
+    const existingCase = findCaseByToken(token);
+    const caseId = existingCase ? existingCase.caseId : generateCaseId();
+    const isResubmit = !!existingCase;
 
     // 提取上傳的參考圖（如有），存進 Drive 客戶資料夾，將 dataUrl 換成 Drive URL
     try {
@@ -75,7 +83,6 @@ function doPost(e) {
         if (Array.isArray(refPhotos) && refPhotos.length > 0) {
           const driveUrls = saveReferencePhotosToDrive(caseId, refPhotos);
           data._reference_photo_urls = driveUrls;
-          // 從 data 拿掉超大 base64，避免 Sheet 爆欄位
           data._reference_photos = `[已存進 Drive，共 ${refPhotos.length} 張]`;
         }
       }
@@ -84,8 +91,12 @@ function doPost(e) {
       data._reference_photo_upload_error = uploadErr.message;
     }
 
-    writeSubmission(caseId, token, timestamp, data);
-    invalidateToken(token);
+    if (isResubmit) {
+      updateSubmission(existingCase.rowIndex, timestamp, data);
+    } else {
+      writeSubmission(caseId, token, timestamp, data);
+      invalidateToken(token);
+    }
 
     // 若有對應草稿，標記為已提交（不刪，留作 audit）
     if (payload.draftToken) {
@@ -139,7 +150,14 @@ function handleGetPrefill(token) {
       if (rows[i][0] === token) {
         const prefillJson = rows[i][6] || '';
         const prefill = prefillJson ? JSON.parse(prefillJson) : null;
-        return jsonResponse({ ok: true, prefill });
+        // 若 token 已使用（曾送出），也回傳已提交的完整答案供修改
+        const isUsed = !!rows[i][3];
+        let submittedData = null;
+        if (isUsed) {
+          const sub = findSubmissionByToken(token);
+          if (sub) submittedData = sub.data;
+        }
+        return jsonResponse({ ok: true, prefill, submittedData, isResubmit: isUsed });
       }
     }
     return jsonResponse({ ok: true, prefill: null });
@@ -713,21 +731,59 @@ function validateToken(token) {
   const sh = getOrCreateSheet(TOKENS_SHEET);
   const rows = sh.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] === token && !rows[i][3]) return true;
+    if (rows[i][0] === token) return true; // 允許已使用的 token 重新送出（修改功能）
   }
   return false;
 }
 
 function invalidateToken(token) {
+  // 僅在第一次送出時記錄 UsedAt，不阻止重複送出
   if (token === 'test') return;
   const sh = getOrCreateSheet(TOKENS_SHEET);
   const rows = sh.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] === token) {
+    if (rows[i][0] === token && !rows[i][3]) { // 只在尚未記錄時才寫
       sh.getRange(i + 1, 4).setValue(new Date().toISOString());
       return;
     }
   }
+}
+
+// 以 token 查找已提交的案件
+function findCaseByToken(token) {
+  if (!token || token === 'test') return null;
+  const sh = getOrCreateSheet(SUBMISSIONS_SHEET);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][2] === token) {
+      return { rowIndex: i + 1, caseId: rows[i][0] };
+    }
+  }
+  return null;
+}
+
+// 以 token 查找已提交的案件資料
+function findSubmissionByToken(token) {
+  if (!token || token === 'test') return null;
+  const sh = getOrCreateSheet(SUBMISSIONS_SHEET);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][2] === token) {
+      return {
+        caseId: rows[i][0],
+        timestamp: rows[i][1],
+        data: JSON.parse(rows[i][3] || '{}'),
+      };
+    }
+  }
+  return null;
+}
+
+// 更新已存在的提交（客戶修改後重送）
+function updateSubmission(rowIndex, timestamp, data) {
+  const sh = getOrCreateSheet(SUBMISSIONS_SHEET);
+  sh.getRange(rowIndex, 2).setValue(timestamp);
+  sh.getRange(rowIndex, 4).setValue(JSON.stringify(data));
 }
 
 function randomHex(bytes) {
@@ -1106,4 +1162,141 @@ function createNewCaseTokens() {
   Logger.log('Client URL: ' + baseUrl + '/?t=' + clientToken);
   Logger.log('Designer URL: ' + baseUrl + '/designer.html?t=' + designerToken);
   return { clientToken, designerToken };
+}
+
+// ============================================================
+// === 代填模式：從丈量筆記自動產生客戶草稿連結 ===
+// ============================================================
+
+/**
+ * 接收丈量筆記文字，用 Claude API 解析成表單欄位，
+ * 自動建立 token + 草稿，回傳客戶可直接開啟補充的連結。
+ *
+ * Payload:
+ *   action    : 'prefill_from_notes'
+ *   adminKey  : string（同 create_token 的 adminKey）
+ *   notes     : string（丈量筆記全文）
+ *   location  : string（案件地址/簡稱，例 "屏東市明中新村"）
+ */
+function handlePrefillFromNotes(payload) {
+  const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
+  if (payload.adminKey !== adminKey) {
+    return jsonResponse({ ok: false, error: 'unauthorized' });
+  }
+
+  const notes = (payload.notes || '').trim();
+  const location = (payload.location || '').trim();
+  if (!notes) return jsonResponse({ ok: false, error: 'missing_notes' });
+
+  // 用 Claude API 把筆記解析成表單 JSON
+  let prefillData;
+  try {
+    prefillData = extractFormDataFromNotes(notes, location);
+  } catch (err) {
+    return jsonResponse({ ok: false, error: 'claude_parse_failed', detail: err.message });
+  }
+
+  // 產生案件 token
+  const projectNumber = generateProjectNumber();
+  const { clientToken, designerToken } = generateTokenPair(projectNumber);
+
+  // 產生 draftToken
+  const draftToken = 'prefill-' + randomHex(12);
+
+  // 補充 admin 標記
+  prefillData._adminPrefill = true;
+  prefillData._adminNote = '由 GLN 設計師根據丈量會談筆記預填。請確認標有「＊」的欄位，並補充其餘空白項目。';
+  prefillData._prefillLocation = location;
+  prefillData._prefillProjectNumber = projectNumber;
+
+  // 儲存草稿
+  handleSaveDraft({
+    draftToken,
+    originalToken: clientToken,
+    data: prefillData,
+  });
+
+  const baseUrl = getReportBaseUrl();
+  return jsonResponse({
+    ok: true,
+    projectNumber,
+    location,
+    draftToken,
+    clientToken,
+    designerToken,
+    clientUrl: baseUrl + '/?d=' + draftToken,
+    designerReportUrl: baseUrl + '/report.html?v=designer',
+  });
+}
+
+/**
+ * 呼叫 Claude API，從丈量筆記中提取表單欄位 JSON
+ */
+function extractFormDataFromNotes(notes, location) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set');
+
+  const model = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_MODEL') || DEFAULT_MODEL;
+
+  const systemPrompt = `你是 GLN 好感室內設計公司的助理，負責從設計師的丈量筆記中提取結構化資料，填入客戶生活習慣問卷的對應欄位。
+
+輸出格式：嚴格的 JSON 物件，只包含能從筆記中確認的欄位，無法確認的欄位不要輸出（讓客戶自填）。
+
+可填欄位清單（只填能從筆記中確認的）：
+- house_type: "老屋" | "中古屋" | "新成屋" | "透天" | "透天老屋"
+- case_type: "老屋翻新" | "全室翻新" | "局部翻新" | "新成屋裝修"
+- house_location: 地址或地區
+- house_use: "自住" | "出租" | "自住兼出租"
+- floor_plan: 樓層配置描述
+- _memberCount: 人數（數字）
+- member-N_role: 第 N 位成員稱謂（如 "王先生", "梁小姐"）
+- member-N_main_need: 第 N 位成員主要需求
+- _petCount: 寵物數量
+- pet-N_role: 第 N 隻寵物種類（如 "狗（拉布拉多）", "貓", "鸚鵡"）
+- pet-N_weight: 體重（如 "15kg"）
+- pet-N_note: 寵物特殊需求說明
+- wishlist: 心願清單（從筆記中整理出客戶明確說想要的東西）
+- pain_points: 陣列，從 ["採光不足","動線不順","收納不夠","潮濕","噪音","老舊設備","格局不佳","空間太小"] 中選
+- renovation_reason: 改造原因（一句話）
+- designer_notes: 設計師備註（把整理好的丈量重點放這裡，逐樓層條列）
+
+回應只輸出 JSON，不要其他文字。`;
+
+  const userPrompt = `地址：${location || '未提供'}
+
+丈量筆記：
+${notes}`;
+
+  const body = {
+    model,
+    max_tokens: 4096,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }],
+  };
+
+  const response = UrlFetchApp.fetch(ANTHROPIC_API_URL, {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': ANTHROPIC_VERSION,
+    },
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true,
+  });
+
+  const status = response.getResponseCode();
+  if (status !== 200) {
+    throw new Error('Anthropic API ' + status + ': ' + response.getContentText().substring(0, 300));
+  }
+
+  const respJson = JSON.parse(response.getContentText());
+  const text = (respJson.content && respJson.content[0] && respJson.content[0].text) || '';
+  const cleaned = text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    throw new Error('Claude 回傳非 JSON：' + cleaned.substring(0, 300));
+  }
 }
