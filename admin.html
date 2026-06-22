@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>GLN 照片管理 · Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="site-logo-link">
+        <img src="assets/gln-circle.png" alt="GLN" class="site-logo-img" />
+        <span class="site-logo-text">照片管理 · Admin</span>
+      </a>
+      <div id="admin-status" class="muted">尚未掃描</div>
+    </div>
+  </header>
+
+  <main class="container admin-container">
+
+    <div id="auth-gate" style="display:none;">
+      <div class="status-banner error">
+        ⚠️ 需要管理員權限。在網址加上 <code>?t=admin</code> 進入。
+      </div>
+    </div>
+
+    <div id="admin-app" style="display:none;">
+
+      <!-- ===== 新建案件 Token 產生器 ===== -->
+      <section class="admin-token-section">
+        <h2>新建案件 · 產生客戶連結</h2>
+        <p class="muted">每個新客戶需要獨立的問卷連結。填入案件備註後按「產生連結」，系統會在 Google Sheet 登記並產出專屬 URL。</p>
+        <div class="token-form">
+          <input type="text" id="token-note" placeholder="案件備註（如：王小明 42坪 大安區）" class="token-input" maxlength="100" />
+          <button type="button" id="btn-create-token" class="btn btn-primary">產生連結</button>
+        </div>
+        <div id="token-result" class="token-result" style="display:none;">
+          <div class="token-result-title">連結已產生</div>
+          <div class="token-row">
+            <span class="token-row-label">客戶問卷</span>
+            <a id="token-client-url" href="#" target="_blank" class="token-url"></a>
+            <button class="btn-copy" data-copy="token-client-url">複製</button>
+          </div>
+          <div class="token-row">
+            <span class="token-row-label">設計師報告</span>
+            <a id="token-designer-url" href="#" target="_blank" class="token-url"></a>
+            <button class="btn-copy" data-copy="token-designer-url">複製</button>
+          </div>
+          <p class="muted" style="margin-top:.75rem;font-size:.8rem;">⚠️ 此連結只能使用一次。客戶送出後 token 自動失效。</p>
+        </div>
+        <div id="token-error" class="status-banner error" style="display:none;"></div>
+      </section>
+
+      <hr class="admin-divider" />
+
+      <section class="admin-intro">
+        <h1>GLN 照片管理工具</h1>
+        <p class="muted">
+          管理「Section C+ 感覺光譜」的照片池。把照片丟進 <code>assets/photos/</code> 後按 <strong>重新掃描</strong>，為每張勾選感覺 tag，最後按 <strong>匯出 photos.json</strong> 取代 <code>data/photos.json</code>。
+        </p>
+
+        <details class="admin-help">
+          <summary>📘 使用說明</summary>
+          <ol>
+            <li>把照片（.jpg / .png / .webp）放進 <code>assets/photos/</code> 資料夾</li>
+            <li>建議直幅 4:5、短邊 800-1200px、單檔 &lt; 300KB</li>
+            <li>按「重新掃描」抓出全部照片</li>
+            <li>每張照片勾 3-5 個感覺 tag（建議）</li>
+            <li>邊勾邊自動存到瀏覽器（refresh 不會掉）</li>
+            <li>勾完按「匯出 photos.json」下載新版本</li>
+            <li>把下載的檔案拖進 <code>data/</code> 覆蓋舊的 <code>photos.json</code></li>
+            <li>到 <a href="/?t=test" target="_blank">客戶問卷頁</a> 重新整理就能看到</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="admin-toolbar">
+        <button type="button" id="btn-rescan" class="btn btn-primary">🔄 重新掃描</button>
+        <button type="button" id="btn-export" class="btn btn-primary">⬇️ 匯出 photos.json</button>
+        <button type="button" id="btn-clear" class="btn btn-ghost">🗑️ 清空所有 tag</button>
+        <div class="admin-stats" id="admin-stats"></div>
+      </section>
+
+      <section class="admin-legend">
+        <strong>15 個感覺 tag</strong>（建議每張 3-5 個）：
+        <div id="feeling-legend" class="feeling-legend"></div>
+      </section>
+
+      <section id="photo-grid" class="photo-grid">
+        <p class="muted" style="padding: 3rem 0; text-align: center;">按「重新掃描」開始</p>
+      </section>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    GLN Admin · 此頁僅供總監使用 · 資料只存在你的瀏覽器
+  </footer>
+
+  <script src="admin.js"></script>
+</body>
+</html>

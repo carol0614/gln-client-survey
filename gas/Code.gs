@@ -1,26 +1,63 @@
 /**
- * GLN 客戶問卷系統 — Google Apps Script 後端
+ * GLN 客戶問卷系統 — Google Apps Script 後端（含 Claude API 自動分析）
  *
  * 部署方式：
  * 1. 開啟 Google Sheet（ID 由 Script Properties 提供）
  * 2. 擴充功能 → Apps Script，把本檔貼上
  * 3. 部署 → 新增部署 → 類型：網頁應用程式
  *    執行身分：我；存取權：任何人
- * 4. 複製 Web App URL，填到前端 app.js 的 GAS_ENDPOINT
+ * 4. 複製 Web App URL，填到前端 app.js / report.js 的 GAS_ENDPOINT
  *
- * 需設定的 Script Properties：
- *   SHEET_ID      → 主 Sheet ID
- *   NOTIFY_EMAILS → 通知 email（逗號分隔）
- *   TOKEN_SECRET  → 簽 token 用（隨機 32 字元）
+ * 需設定的 Script Properties（檔案 → 專案設定 → 指令碼屬性）：
+ *   SHEET_ID            → 主 Sheet ID（必填）
+ *   NOTIFY_EMAILS       → 通知 email（逗號分隔，必填）
+ *   REPORT_BASE_URL     → GitHub Pages URL（部署後填，例 https://carol0614.github.io/gln-client-survey）
+ *   ANTHROPIC_API_KEY   → Claude API key（自動 AI 分析必填，console.anthropic.com 取得）
+ *   ANTHROPIC_MODEL     → 模型（預設 claude-sonnet-4-6；高品質改 claude-opus-4-6）
+ *   KNOWLEDGE_BASE_URL  → 知識庫 JSON URL（建議 GitHub Pages 上的 data/knowledge-base.json）
+ *   ANALYSIS_ENABLED    → 'true' 啟用自動分析，'false' 暫停（預設 true）
+ *   FEELINGS_URL        → feelings.json URL（用於將感覺 key 翻譯成中文標籤）
  */
 
 const SUBMISSIONS_SHEET = 'Submissions';
 const TOKENS_SHEET = 'Tokens';
+const ANALYSES_SHEET = 'Analyses';
+
+const DEFAULT_MODEL = 'claude-sonnet-4-6';
+const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
+const ANTHROPIC_VERSION = '2023-06-01';
 
 // === 入口：POST 收問卷 ===
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
+
+    // 草稿同步路徑（不需 token 驗證，用 draftToken 自己識別）
+    if (payload.action === 'save_draft') {
+      return handleSaveDraft(payload);
+    }
+
+    // Admin：產生新案件 Token（需要 adminKey 驗證）
+    if (payload.action === 'create_token') {
+      const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
+      if (payload.adminKey !== adminKey) return jsonResponse({ ok: false, error: 'unauthorized' });
+      const projectNumber = generateProjectNumber();
+      const location = (payload.location || payload.note || '').trim();
+      const note = projectNumber + (location ? ' ' + location : '');
+      const { clientToken, designerToken } = generateTokenPair(projectNumber);
+      const baseUrl = getReportBaseUrl();
+      return jsonResponse({
+        ok: true,
+        projectNumber,
+        location,
+        note,
+        clientToken,
+        designerToken,
+        clientUrl: baseUrl + '/?t=' + clientToken,
+        designerReportUrl: baseUrl + '/report.html?v=designer',
+      });
+    }
+
     const { token, timestamp, data } = payload;
 
     if (!validateToken(token)) {
@@ -28,19 +65,58 @@ function doPost(e) {
     }
 
     const caseId = generateCaseId();
+
+    // 提取上傳的參考圖（如有），存進 Drive 客戶資料夾，將 dataUrl 換成 Drive URL
+    try {
+      if (data._reference_photos) {
+        const refPhotos = typeof data._reference_photos === 'string'
+          ? JSON.parse(data._reference_photos)
+          : data._reference_photos;
+        if (Array.isArray(refPhotos) && refPhotos.length > 0) {
+          const driveUrls = saveReferencePhotosToDrive(caseId, refPhotos);
+          data._reference_photo_urls = driveUrls;
+          // 從 data 拿掉超大 base64，避免 Sheet 爆欄位
+          data._reference_photos = `[已存進 Drive，共 ${refPhotos.length} 張]`;
+        }
+      }
+    } catch (uploadErr) {
+      console.error('Reference photo upload failed for ' + caseId + ':', uploadErr);
+      data._reference_photo_upload_error = uploadErr.message;
+    }
+
     writeSubmission(caseId, token, timestamp, data);
     invalidateToken(token);
+
+    // 若有對應草稿，標記為已提交（不刪，留作 audit）
+    if (payload.draftToken) {
+      markDraftSubmitted(payload.draftToken);
+    }
+
     sendNotifications(caseId, data);
 
-    const baseUrl = ScriptApp.getService().getUrl().replace('/exec', '');
-    const clientReportUrl = `${getReportBaseUrl()}/report.html?id=${caseId}&v=client`;
-    const designerReportUrl = `${getReportBaseUrl()}/report.html?id=${caseId}&v=designer`;
+    // 自動觸發 AI 分析（同步、可能 10-30 秒）
+    // 若不希望客戶等待，改成 async：用 ScriptApp.newTrigger 排程
+    let analysisResult = null;
+    const analysisEnabled = (PropertiesService.getScriptProperties().getProperty('ANALYSIS_ENABLED') || 'true') === 'true';
+    if (analysisEnabled) {
+      try {
+        analysisResult = runClaudeAnalysis(caseId, data);
+      } catch (analysisErr) {
+        console.error('Analysis failed for ' + caseId + ':', analysisErr);
+        writeAnalysisRecord(caseId, null, 'failed', analysisErr.message);
+      }
+    }
+
+    const reportBase = getReportBaseUrl();
+    const clientReportUrl = `${reportBase}/report.html?id=${caseId}&v=client`;
+    const designerReportUrl = `${reportBase}/report.html?id=${caseId}&v=designer`;
 
     return jsonResponse({
       ok: true,
       caseId,
       clientReportUrl,
       designerReportUrl,
+      analysisStatus: analysisResult ? 'success' : (analysisEnabled ? 'failed' : 'skipped'),
     });
 
   } catch (err) {
@@ -49,9 +125,14 @@ function doPost(e) {
   }
 }
 
-// === 入口：GET 查報告資料 ===
+// === 入口：GET 查報告資料（含 AI 分析）===
 function doGet(e) {
   try {
+    // 草稿載入路徑
+    if (e.parameter.action === 'load_draft') {
+      return handleLoadDraft(e.parameter.t);
+    }
+
     const caseId = e.parameter.id;
     const version = e.parameter.v || 'client'; // client | designer
     if (!caseId) return jsonResponse({ ok: false, error: 'missing_id' });
@@ -59,14 +140,427 @@ function doGet(e) {
     const submission = findSubmissionByCaseId(caseId);
     if (!submission) return jsonResponse({ ok: false, error: 'not_found' });
 
-    // 客戶版隱藏部分總監後台欄位（v1 簡化：全顯示）
-    return jsonResponse({ ok: true, version, data: submission });
+    const response = { ok: true, version, data: submission };
+
+    // 設計師版額外回傳分析結果
+    if (version === 'designer') {
+      const analysis = findAnalysisByCaseId(caseId);
+      if (analysis) response.analysis = analysis;
+    }
+
+    return jsonResponse(response);
   } catch (err) {
     return jsonResponse({ ok: false, error: err.message });
   }
 }
 
+// ============================================================
+// === Claude API 整合：自動隱性需求分析 ===
+// ============================================================
+
+/**
+ * 跑 Claude 分析，回傳結構化 JSON
+ * 失敗會 throw error（呼叫端要包 try/catch）
+ */
+function runClaudeAnalysis(caseId, data) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  if (!apiKey) {
+    throw new Error('ANTHROPIC_API_KEY not set in Script Properties');
+  }
+
+  const model = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_MODEL') || DEFAULT_MODEL;
+  const knowledgeBase = fetchKnowledgeBase(); // 可能為 null
+  const feelingsMap = fetchFeelingsMap();      // key → 中文 label
+
+  // 把感覺光譜的 key 翻譯成中文，幫 Claude 理解
+  const dataForPrompt = enrichDataWithFeelingLabels(data, feelingsMap);
+
+  const systemPrompt = buildSystemPrompt(knowledgeBase);
+  const userPrompt = buildUserPrompt(caseId, dataForPrompt);
+
+  const body = {
+    model,
+    max_tokens: 8192,  // 提高，避免長分析被截斷導致 JSON parse 失敗
+    system: systemPrompt,
+    messages: [
+      { role: 'user', content: userPrompt }
+    ],
+  };
+
+  const response = UrlFetchApp.fetch(ANTHROPIC_API_URL, {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': ANTHROPIC_VERSION,
+    },
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true,
+  });
+
+  const status = response.getResponseCode();
+  const respText = response.getContentText();
+  if (status !== 200) {
+    // 401 = API key 無效，402 = 餘額不足 → 寄警告信給 Carol
+    if (status === 401 || status === 402) {
+      const alertMsg = status === 401
+        ? '⚠️ Anthropic API Key 無效或已過期，請到 console.anthropic.com 確認。'
+        : '⚠️ Anthropic 帳戶餘額不足，AI 分析已停止，請儘快至 console.anthropic.com 儲值。';
+      try {
+        const notifyEmails = PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAILS') || '';
+        if (notifyEmails) {
+          MailApp.sendEmail(notifyEmails.split(',')[0].trim(), '[GLN] AI 分析停止警告', alertMsg + '\n\n案件：' + caseId);
+        }
+      } catch (mailErr) { /* ignore */ }
+    }
+    throw new Error('Anthropic API ' + status + ': ' + respText.substring(0, 500));
+  }
+
+  const respJson = JSON.parse(respText);
+  const text = (respJson.content && respJson.content[0] && respJson.content[0].text) || '';
+
+  // 模型輸出可能包 ```json ... ``` 標籤，先剝除
+  const cleaned = text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+  let analysis;
+  try {
+    analysis = JSON.parse(cleaned);
+  } catch (parseErr) {
+    throw new Error('Model returned non-JSON output: ' + cleaned.substring(0, 500));
+  }
+
+  // 補充 metadata
+  analysis._meta = analysis._meta || {};
+  analysis._meta.case_id = caseId;
+  analysis._meta.generated_at = new Date().toISOString();
+  analysis._meta.generated_by = 'Claude API (' + model + ') + GLN 機能設計知識庫';
+  analysis._meta.model = model;
+  analysis._meta.usage = respJson.usage || null;
+
+  writeAnalysisRecord(caseId, analysis, 'success', '');
+  return analysis;
+}
+
+function buildSystemPrompt(knowledgeBase) {
+  let kbSection = '';
+  if (knowledgeBase) {
+    kbSection = `
+
+你可使用以下 GLN 機能設計知識庫做交叉比對（每條知識有 id、problem、applies_to、severity、solution）：
+
+\`\`\`json
+${JSON.stringify(knowledgeBase).substring(0, 12000)}
+\`\`\`
+
+引用知識時把 id（如 K-02、L-04）填入 knowledge_refs 欄位。
+`;
+  }
+
+  return `你是 GLN 好感生活提案（Good Living Notes）室內設計公司的資深設計總監。
+你的工作是從客戶問卷資料中，識別客戶「沒明說但顯然需要」的隱性需求，並將所有設計建議依預算可行性分級。
+
+分析原則：
+1. 用 McKinsey #問對問題框架（Goal → Obstacle → Strategic Recommendation → KPI）
+2. 識別「客戶沒說、但設計師專業上知道必須處理」的需求
+3. 識別「客戶自述風格 vs 實際感覺光譜」的矛盾點
+4. 識別「客戶現有條件可以額外發揮」的機會點
+5. 給每個洞察一個明確的設計回應（不只是診斷）
+6. 嚴格輸出 JSON，不要其他文字
+
+**絕對禁止（違反這些規則 = 輸出無效）：**
+7. 禁止結構不可行建議：中段樓層住宅不能「開天井」「開採光罩」；不要建議任何需要建築師執照的結構變更（移柱、打掉承重牆等）；所有設計回應必須在室內裝修許可（非建照）範圍內可執行。
+8. 設計回應必須具體且可落地：不要寫「可以考慮」「建議討論」等模糊語，要寫實際設計動作（「將廚房動線改為 L 型」「在鞋櫃旁增設 60cm 寬穿鞋椅」）。
+
+**結構性不可建議清單（出現 = 自動判定 Level C）：**
+- 開天井（非頂樓住宅）
+- 拆除或移動承重牆/承重柱
+- 樓板開洞/樓板穿孔
+- 增建違建（頂樓加蓋、陽台外推等）
+- 變更建築外觀（外牆材質變更、加設採光罩需建照）
+- 新增或移動電梯
+- 結構性挑高（拆除夾層樓板）
+- 任何需要「建造執照」而非「室內裝修許可」的工程
+
+═══════════════════════════════════════════
+📊 GLN 預算護欄系統 v1.0（2026-05）
+═══════════════════════════════════════════
+
+**案型參數（影響每坪單價）：**
+| 案型 | 倍率 | 預算結構（基礎/裝修/設計監管稅） |
+|------|------|-------------------------------|
+| 新成屋/預售客變 | ×0.80 | 基礎 20% / 裝修 75% / 其餘 5% |
+| 中古屋 5-25 年 | ×0.90 | 基礎 45% / 裝修 40% / 其餘 15% |
+| 老屋 25+ 年（大樓） | ×1.10 | 基礎 60% / 裝修 30% / 其餘 10% |
+| 透天 5-25 年 | ×1.15 | 基礎 50% / 裝修 35% / 其餘 15% |
+| 透天老屋 25+ 年 | ×1.20 | 基礎 60% / 裝修 25% / 其餘 15% |
+
+**每坪基準價：7 萬/坪**（乘以上表倍率 × 風格倍率 × 區域加成）
+
+**風格倍率：** 簡約 ×0.85 / 局部設計感 ×1.15 / 強調精緻 ×1.30
+
+**你必須執行的預算計算（讀取客戶的案型、坪數、風格、預算後）：**
+1. 粗估工程總預算 = 坪數 × 7萬 × 案型倍率 × 風格倍率
+2. 可用基礎工程預算 = 粗估總預算 × 基礎工程%
+3. 可用裝修工程預算 = 粗估總預算 × 裝修工程%
+4. 若客戶有填期待預算，以「客戶期待預算 vs 粗估預算」取較低者為預算上限
+5. 每個設計建議必須評估是否在可用預算內
+
+**天書基準價參考表（已驗證的 50 項單價，單位：新台幣元）：**
+
+假設工程：大門保護 3,400/式、室內保護 8,000/式、磁磚保護 6,000/式、臨時給水 5,500/式、臨時馬桶 5,500/式
+拆除工程：清運 56,000/式
+泥作工程：砌半B磚牆 7,000/坪、粗胚打底 4,000/坪、人造石門檻 3,800/支、地坪打底 40,000/式、壁癌處理 85,313/式
+水電工程：總開關箱 11,500/式、專用迴路110V 3,350/迴、專用迴路220V 4,700/迴、插座110V 850/處、網路點 100,000/式、電視點 2,500/處、單切開關 1,100/迴、雙切開關 2,200/迴、燈具出線 850/口、冷水主管 15,000/式、冷水支管 1,700/口、熱水主管 23,500/式、熱水支管 2,700/口、臨時水 8,000/式
+木作工程：平釘天花 4,250/坪、造型天花 6,500/坪、包樑 800/尺、窗簾盒 430/尺、單面隔間 2,560/尺、雙面隔間 2,560/尺、冷氣出風口 600/尺、房門 21,500/樘、浴室門 22,000/樘、隱藏門 34,800/樘
+系統櫃：安裝工資 4,000/式
+油漆工程：舊牆上漆 1,250/坪、新水泥牆上漆 2,000/坪、新木作牆上漆 1,875/坪、平頂天花上漆 3,000/坪、立體天花上漆 3,000/坪、司曼特藝術漆 7,500/坪、室外漆 3,750/坪、未改色修補 39,635/式、矽利康收邊 21,000/式
+玻璃工程：矽利康施打 36,030/式、安裝工資 8,000/式
+空調工程：室內外機 25,800/臺
+清潔工程：全室清潔 27,500/式、廢棄物清運 12,500/式
+
+**空白工種（無天書基準價，建議涉及時標註「⚠️ 需設計師現場估價」）：**
+化糞池、防水、地坪、隔間、鐵件、鋁門窗、磁磚材料、打除、窗簾、石材
+
+**加項固定單價（params.json v3.3）：**
+- 冷氣：(房數+1) × 4.5萬/台
+- 廚房翻新（屋齡≥15年）：2房 27萬 / 3房 35萬 / 4房 45萬
+- 衛浴翻新（屋齡≥15年）：翻新 15萬/間、新增 25萬/間
+- 窗戶：一般窗 0.8萬/扇、落地窗 3.5萬/扇
+- 監工費 10%、稅金 5%
+
+═══════════════════════════════════════════
+📋 設計建議分級規則（Level A / B / C）
+═══════════════════════════════════════════
+
+每個設計建議（design_response）必須標註 feasibility_level：
+
+**Level A — 預算內可行：**
+- 該建議所涉及的工種/項目，在計算出的可用預算內可執行
+- 或屬於設計手法調整（動線重新規劃、開放式廚房、收納優化等），不需額外大筆費用
+- 客戶報告只顯示這一級
+
+**Level B — 超預算但技術可行：**
+- 該建議需要追加預算才能實現
+- 必須標註 budget_note 說明超出原因和概略差額範圍（用天書基準價推算）
+- 只在設計師報告顯示
+
+**Level C — 不建議：**
+- 結構不可行（在不可建議清單上）
+- 法規限制（需建照、違反消防法規等）
+- 技術上在該屋況下不可能
+- 必須標註 rejection_reason
+- 只在設計師報告顯示，作為「已排除」的決策紀錄
+
+特別注意以下資料欄位（容易被忽略，但對設計判斷影響大）：
+- **寵物資料**（data 內以 pet-N_ 為 prefix）：體型影響走道/門寬、活動區域影響地板材質、
+  飲食/如廁位置影響水點/通風規劃、掉毛/抓咬狀況影響沙發/牆面材質選擇
+- **客戶上傳的參考圖 URLs**（data._reference_photo_urls）：客戶心中真正的家，
+  如果與自述風格不一致，是重要矛盾訊號（contradictions）
+- **10 個材質喜好評分**（material_wood/metal/stone/glass/leather/fabric/rattan/concrete/tile/plaster）
+  高分（4-5）= 偏好；低分（1-2）= 排斥，建議避開
+- **痛點 19 項分 4 群**（環境/空間/品質/族群），勾選多者代表問題嚴重${kbSection}
+
+輸出 JSON schema（嚴格遵守）：
+{
+  "summary": "string，案件 1 段話總結（200 字內）",
+  "budget_context": {
+    "estimated_total_10k": "number，粗估工程總預算（萬）",
+    "available_foundation_10k": "number，可用基礎工程預算（萬）",
+    "available_renovation_10k": "number，可用裝修工程預算（萬）",
+    "client_budget_10k": "number|null，客戶期待預算（萬），未填則 null",
+    "effective_budget_10k": "number，實際採用的預算上限（萬）= min(粗估, 客戶期待)",
+    "calculation_note": "string，計算過程簡述（案型×坪數×風格=多少）"
+  },
+  "space_personality": {
+    "archetype_name": "從感覺光譜 Top 3 交叉分析出的空間人格名稱（例：溫柔的生活守護者）",
+    "cross_analysis": "string，150-250 字，結合 Top 3 感覺的心理側寫，第二人稱「你」，溫暖且有洞察力，說明這個客戶對生活和空間的直覺是什麼。不要提及設計師，只聚焦在「你是怎樣的人」。",
+    "feeling_contradictions": [
+      {
+        "feeling_a": "感覺 A 標籤",
+        "feeling_b": "感覺 B 標籤",
+        "insight": "這兩個感覺同時出現說明了什麼，以及設計上如何兼顧",
+        "client_version": "給客戶看的正向框架版本（「你的品味有層次…」）",
+        "design_strategy": "給設計師的具體策略（主調/點綴建議）"
+      }
+    ]
+  },
+  "implicit_needs": [
+    {
+      "id": "IN-01",
+      "title": "🔴/🟠/🟡 + 一句話標題",
+      "signals": ["客戶答案中觀察到的訊號（可多條）"],
+      "inference": "推論的隱性需求，為什麼客戶沒說但需要",
+      "design_response": [
+        {
+          "action": "具體設計動作",
+          "feasibility_level": "A|B|C",
+          "budget_note": "Level B 時必填：超出原因和概略差額",
+          "rejection_reason": "Level C 時必填：為什麼不建議",
+          "requires_site_survey": false,
+          "blank_trade_warning": "若涉及空白工種（無天書基準價），填工種名稱，否則 null"
+        }
+      ],
+      "knowledge_refs": ["K-02", "L-04"],
+      "priority": "P0|P1|P2"
+    }
+  ],
+  "contradictions": [
+    {
+      "id": "CONT-01",
+      "title": "矛盾點標題",
+      "description": "問題描述",
+      "resolution": "建議解法",
+      "knowledge_refs": []
+    }
+  ],
+  "opportunities": [
+    {
+      "id": "OPP-01",
+      "title": "✨ 機會點標題",
+      "description": "為什麼是機會",
+      "design_response": {
+        "action": "如何把握",
+        "feasibility_level": "A|B|C",
+        "budget_note": "Level B 時必填",
+        "rejection_reason": "Level C 時必填",
+        "blank_trade_warning": null
+      }
+    }
+  ]
+}
+
+目標：
+- budget_context 必填（讀取客戶案型/坪數/風格後計算）
+- space_personality 必填（依感覺光譜 Top 3 分析）
+- 5-8 個 implicit_needs，每個 design_response 都必須標註 feasibility_level
+- contradictions 含感覺光譜矛盾（CONT 系列）和行為矛盾
+- feeling_contradictions 只填感覺軸向有衝突時（如溫潤×靜謐）
+- 2-4 個 opportunities，每個 design_response 都必須標註 feasibility_level
+- Level A 建議應佔多數（≥60%），Level C 應極少（結構不可行才標）
+- 涉及空白工種的建議，blank_trade_warning 必填工種名稱
+`;
+}
+
+function buildUserPrompt(caseId, data) {
+  return `案件編號：${caseId}
+
+請分析以下客戶問卷資料，輸出嚴格符合 schema 的 JSON（不要包 markdown code block，直接純 JSON）：
+
+\`\`\`json
+${JSON.stringify(data, null, 2)}
+\`\`\``;
+}
+
+/**
+ * 把 _feeling_spectrum 中的 key 轉成中文 label，避免 Claude 看到 'warm' 不知道是什麼
+ */
+function enrichDataWithFeelingLabels(data, feelingsMap) {
+  if (!feelingsMap || !data._feeling_spectrum) return data;
+  const clone = JSON.parse(JSON.stringify(data));
+  try {
+    const spectrum = typeof clone._feeling_spectrum === 'string'
+      ? JSON.parse(clone._feeling_spectrum) : clone._feeling_spectrum;
+    if (Array.isArray(spectrum)) {
+      clone._feeling_spectrum_readable = spectrum.map(s => ({
+        感覺: feelingsMap[s.key] || s.label || s.key,
+        百分比: s.pct + '%',
+        喜歡張數: s.liked + '/' + s.total,
+      }));
+    }
+  } catch (e) { /* ignore */ }
+  return clone;
+}
+
+function fetchKnowledgeBase() {
+  const url = PropertiesService.getScriptProperties().getProperty('KNOWLEDGE_BASE_URL');
+  if (!url) return null;
+  try {
+    const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) return null;
+    return JSON.parse(res.getContentText());
+  } catch (e) {
+    console.warn('fetchKnowledgeBase failed:', e);
+    return null;
+  }
+}
+
+function fetchFeelingsMap() {
+  const url = PropertiesService.getScriptProperties().getProperty('FEELINGS_URL');
+  if (!url) return {};
+  try {
+    const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) return {};
+    const data = JSON.parse(res.getContentText());
+    const map = {};
+    (data.feelings || []).forEach(f => { map[f.key] = f.label; });
+    return map;
+  } catch (e) { return {}; }
+}
+
+// ============================================================
+// === Analyses Sheet：分析結果儲存 ===
+// ============================================================
+
+function writeAnalysisRecord(caseId, analysisJson, status, errorMsg) {
+  const sh = getOrCreateSheet(ANALYSES_SHEET, ['CaseID', 'GeneratedAt', 'Status', 'Model', 'InputTokens', 'OutputTokens', 'AnalysisJSON', 'Error']);
+  const usage = analysisJson && analysisJson._meta && analysisJson._meta.usage;
+  sh.appendRow([
+    caseId,
+    new Date().toISOString(),
+    status,
+    (analysisJson && analysisJson._meta && analysisJson._meta.model) || '',
+    usage ? usage.input_tokens : '',
+    usage ? usage.output_tokens : '',
+    analysisJson ? JSON.stringify(analysisJson) : '',
+    errorMsg || '',
+  ]);
+}
+
+function findAnalysisByCaseId(caseId) {
+  const sh = getOrCreateSheet(ANALYSES_SHEET, ['CaseID', 'GeneratedAt', 'Status', 'Model', 'InputTokens', 'OutputTokens', 'AnalysisJSON', 'Error']);
+  const rows = sh.getDataRange().getValues();
+  // 從後往前找最新一筆 success
+  for (let i = rows.length - 1; i >= 1; i--) {
+    if (rows[i][0] === caseId && rows[i][2] === 'success' && rows[i][6]) {
+      try {
+        return JSON.parse(rows[i][6]);
+      } catch (e) { return null; }
+    }
+  }
+  return null;
+}
+
+// === 手動重跑分析（在 Apps Script 編輯器執行）===
+function rerunAnalysis(caseId) {
+  const sub = findSubmissionByCaseId(caseId);
+  if (!sub) throw new Error('Case not found: ' + caseId);
+  const result = runClaudeAnalysis(caseId, sub.data);
+  Logger.log('Analysis done for ' + caseId);
+  return result;
+}
+
+// === 跑最新一個 case 的分析（測試用）===
+function rerunLatestAnalysis() {
+  const sh = getOrCreateSheet(SUBMISSIONS_SHEET);
+  const rows = sh.getDataRange().getValues();
+  if (rows.length < 2) throw new Error('No submissions');
+  const latest = rows[rows.length - 1];
+  return rerunAnalysis(latest[0]);
+}
+
+// === 估算 API 成本（給 Carol 參考）===
+function estimateMonthlyCost(casesPerMonth) {
+  // Sonnet 4.6: input $3/M, output $15/M
+  // 估每案 input 6000 tokens, output 3000 tokens
+  const inputCost = (casesPerMonth * 6000 / 1000000) * 3;
+  const outputCost = (casesPerMonth * 3000 / 1000000) * 15;
+  const totalUSD = inputCost + outputCost;
+  Logger.log('估每月 ' + casesPerMonth + ' 案 ≈ $' + totalUSD.toFixed(2) + ' USD（NT$ ' + (totalUSD * 31).toFixed(0) + '）');
+  return totalUSD;
+}
+
+// ============================================================
 // === Helper ===
+// ============================================================
 function jsonResponse(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
@@ -119,23 +613,33 @@ function findSubmissionByCaseId(caseId) {
 }
 
 // === Token 機制（每案一組）===
-// Tokens sheet schema: Token | CaseSeed | CreatedAt | UsedAt | DesignerToken
-function generateTokenPair() {
-  const ss = getSheet();
-  const sh = getOrCreateSheet(TOKENS_SHEET, ['Token', 'CaseSeed', 'CreatedAt', 'UsedAt', 'DesignerToken']);
+function generateTokenPair(projectNumber) {
+  const sh = getOrCreateSheet(TOKENS_SHEET, ['Token', 'CaseSeed', 'CreatedAt', 'UsedAt', 'DesignerToken', 'ProjectNumber']);
   const clientToken = randomHex(16);
   const designerToken = randomHex(16);
-  const seed = randomHex(8);
-  sh.appendRow([clientToken, seed, new Date().toISOString(), '', designerToken]);
+  sh.appendRow([clientToken, projectNumber || randomHex(8), new Date().toISOString(), '', designerToken, projectNumber || '']);
   return { clientToken, designerToken };
 }
 
+// 自動遞增案件編號：YYYY-NNN（每年從 001 重算）
+function generateProjectNumber() {
+  const year = new Date().getFullYear();
+  const sh = getOrCreateSheet(TOKENS_SHEET, ['Token', 'CaseSeed', 'CreatedAt', 'UsedAt', 'DesignerToken', 'ProjectNumber']);
+  const rows = sh.getDataRange().getValues().slice(1);
+  const count = rows.filter(r => {
+    if (!r[2]) return false;
+    const d = (r[2] instanceof Date) ? r[2] : new Date(r[2]);
+    return !isNaN(d) && d.getFullYear() === year;
+  }).length;
+  return year + '-' + String(count + 1).padStart(3, '0');
+}
+
 function validateToken(token) {
-  if (token === 'test') return true; // dev mode
+  if (token === 'test') return true;
   const sh = getOrCreateSheet(TOKENS_SHEET);
   const rows = sh.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] === token && !rows[i][3]) return true; // unused client token
+    if (rows[i][0] === token && !rows[i][3]) return true;
   }
   return false;
 }
@@ -183,6 +687,9 @@ function sendNotifications(caseId, data) {
 請至 Google Sheet 查看完整資料：
 ${SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SHEET_ID')).getUrl()}
 
+設計師版報告（含 AI 分析）：
+${getReportBaseUrl()}/report.html?id=${caseId}&v=designer
+
 — GLN 客戶問卷系統自動通知
 `.trim();
 
@@ -196,12 +703,329 @@ ${SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('S
 }
 
 function getReportBaseUrl() {
-  // 部署到 GitHub Pages 後填入
   return PropertiesService.getScriptProperties().getProperty('REPORT_BASE_URL') || '';
 }
 
+// ============================================================
+// === 一次性初始化（首次部署跑這個就好）===
+// 在 Apps Script 編輯器選 init → 執行 → 授權
+// ============================================================
+function init() {
+  const props = PropertiesService.getScriptProperties();
+  props.setProperties({
+    SHEET_ID: '1yNZnmfzB5gxQpANj-pmfbdkiuGceK3FhuOUsyjGiUZ0',
+    NOTIFY_EMAILS: 'carol@goodlivingnotes.com',
+    ANALYSIS_ENABLED: 'false',  // 預設關閉 AI 分析；加 API key 後改 true
+    ANTHROPIC_MODEL: 'claude-sonnet-4-6',
+    KNOWLEDGE_BASE_URL: 'https://carol0614.github.io/gln-client-survey/data/knowledge-base.json',
+    FEELINGS_URL: 'https://carol0614.github.io/gln-client-survey/data/feelings.json',
+    REPORT_BASE_URL: 'https://carol0614.github.io/gln-client-survey',
+    // ANTHROPIC_API_KEY: 'sk-ant-api03-...',  // 想啟用 AI 分析時手動加
+  });
+  Logger.log('✅ Properties 已設定完成。目前值：');
+  const current = props.getProperties();
+  Object.keys(current).sort().forEach(k => {
+    const v = current[k];
+    const display = v.length > 60 ? v.substring(0, 60) + '...' : v;
+    Logger.log('  ' + k + ' = ' + display);
+  });
+  Logger.log('');
+  Logger.log('下一步：右上角「部署 → 新增部署 → 網頁應用程式」');
+  Logger.log('  執行身分：我 / 存取權限：任何人');
+}
+
+// ============================================================
+// === 雲端草稿同步（跨裝置續填）===
+// ============================================================
+
+const DRAFTS_SHEET = 'Drafts';
+
+function handleSaveDraft(payload) {
+  const { draftToken, originalToken, email, data } = payload;
+  if (!draftToken) return jsonResponse({ ok: false, error: 'missing_draft_token' });
+
+  const sh = getOrCreateSheet(DRAFTS_SHEET,
+    ['DraftToken', 'OriginalToken', 'Email', 'CreatedAt', 'UpdatedAt', 'DataJSON', 'Status']);
+  const rows = sh.getDataRange().getValues();
+  const now = new Date().toISOString();
+
+  // 找既有 row
+  let rowIdx = -1;
+  let existingEmail = '';
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] === draftToken) {
+      rowIdx = i + 1; // Sheet 1-indexed
+      existingEmail = rows[i][2];
+      break;
+    }
+  }
+
+  if (rowIdx > 0) {
+    // Update updatedAt + data
+    sh.getRange(rowIdx, 5).setValue(now);
+    sh.getRange(rowIdx, 6).setValue(JSON.stringify(data || {}));
+    if (email && email !== existingEmail) {
+      sh.getRange(rowIdx, 3).setValue(email);
+    }
+  } else {
+    sh.appendRow([
+      draftToken,
+      originalToken || '',
+      email || '',
+      now,
+      now,
+      JSON.stringify(data || {}),
+      'active'
+    ]);
+  }
+
+  // 有給 email 就寄（重複按也會重寄，方便使用者；GAS quota 每日 100 封應該夠）
+  let emailSent = false;
+  let emailError = null;
+  if (email) {
+    try {
+      sendDraftLinkEmail(email, draftToken);
+      emailSent = true;
+    } catch (mailErr) {
+      console.error('Draft email failed:', mailErr);
+      emailError = String(mailErr.message || mailErr);
+    }
+  }
+
+  return jsonResponse({ ok: true, draftToken, emailSent, emailError });
+}
+
+function handleLoadDraft(draftToken) {
+  if (!draftToken) return jsonResponse({ ok: false, error: 'missing_token' });
+  const sh = getOrCreateSheet(DRAFTS_SHEET);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] === draftToken && rows[i][6] !== 'submitted') {
+      try {
+        return jsonResponse({ ok: true, data: JSON.parse(rows[i][5] || '{}') });
+      } catch (e) {
+        return jsonResponse({ ok: false, error: 'parse_failed' });
+      }
+    }
+  }
+  return jsonResponse({ ok: false, error: 'not_found' });
+}
+
+function markDraftSubmitted(draftToken) {
+  if (!draftToken) return;
+  try {
+    const sh = getOrCreateSheet(DRAFTS_SHEET);
+    const rows = sh.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][0] === draftToken) {
+        sh.getRange(i + 1, 7).setValue('submitted');
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('markDraftSubmitted failed', e);
+  }
+}
+
+// 診斷工具：測試寄信到指定 email（模擬「保存進度」的完整路徑）
+// 用法：在 Apps Script 編輯器把 TO_EMAIL 換成客戶 email → 執行
+function testSaveDraftEmailTo() {
+  const TO_EMAIL = 'carol@goodlivingnotes.com'; // ← 改成要測試的 email
+  const testToken = 'test-' + Date.now().toString(36);
+  Logger.log('=== 測試寄信到: ' + TO_EMAIL + ' ===');
+  Logger.log('Draft token: ' + testToken);
+  Logger.log('MailApp 每日剩餘配額: ' + MailApp.getRemainingDailyQuota());
+  try {
+    sendDraftLinkEmail(TO_EMAIL, testToken);
+    Logger.log('✅ 寄出成功！請到 ' + TO_EMAIL + ' 收件匣（含垃圾信件夾）確認');
+  } catch (e) {
+    Logger.log('❌ 寄出失敗: ' + e.message);
+    Logger.log('完整錯誤: ' + (e.stack || ''));
+  }
+}
+
+// 診斷工具：手動跑這個確認 MailApp 能否寄信
+function testEmailSending() {
+  const myEmail = Session.getActiveUser().getEmail();
+  Logger.log('=== Email 診斷 ===');
+  Logger.log('目前帳號: ' + myEmail);
+  Logger.log('Gmail 每日剩餘配額: ' + MailApp.getRemainingDailyQuota());
+  Logger.log('');
+  Logger.log('=== 試寄信給自己 ===');
+  try {
+    MailApp.sendEmail(myEmail, '[GLN 測試] Draft email 診斷', '這是測試信。如果你收到代表 MailApp 沒問題。');
+    Logger.log('✅ 寄出成功，請檢查 ' + myEmail + ' 的收件匣（含垃圾信箱）');
+  } catch (e) {
+    Logger.log('❌ 寄出失敗: ' + e.message);
+    Logger.log('完整錯誤: ' + e.stack);
+  }
+}
+
+function sendDraftLinkEmail(email, draftToken) {
+  const base = getReportBaseUrl();
+  const link = `${base}/?d=${draftToken}`;
+  const subject = '[GLN] 你的生活習慣討論表 — 草稿連結';
+  const body = `感謝你開始填寫 GLN 生活習慣討論表。
+
+你目前的進度已存進雲端。可在任何裝置（手機、平板、電腦）開啟以下連結繼續填寫：
+
+${link}
+
+填寫完成後，按頁面底部的「送出問卷」即可。
+
+連結請妥善保管。在未送出前可重複使用，不會過期。
+
+GLN 設計團隊敬上
+Good Living Notes`;
+  MailApp.sendEmail(email, subject, body);
+}
+
+// === 客戶上傳參考圖：存進 Drive 「GLN_生活習慣整理表_客戶上傳/{caseId}/」===
+const REFERENCE_ROOT_FOLDER = 'GLN_生活習慣整理表_客戶上傳';
+
+function saveReferencePhotosToDrive(caseId, photos) {
+  const rootFolder = getOrCreateFolder(REFERENCE_ROOT_FOLDER);
+  const caseFolder = getOrCreateChildFolder(rootFolder, caseId);
+  const urls = [];
+
+  photos.forEach((p, idx) => {
+    if (!p.dataUrl) return;
+    const base64 = p.dataUrl.split(',')[1];
+    if (!base64) return;
+
+    const mimeType = p.mimeType || 'image/jpeg';
+    const ext = mimeType.split('/')[1] || 'jpg';
+    const safeName = (p.name || `reference-${idx + 1}`).replace(/[^\w\u4e00-\u9fa5.-]+/g, '_');
+    const filename = `${String(idx + 1).padStart(2, '0')}-${safeName}.${ext}`;
+
+    const blob = Utilities.newBlob(Utilities.base64Decode(base64), mimeType, filename);
+    const file = caseFolder.createFile(blob);
+    urls.push({
+      name: filename,
+      url: file.getUrl(),
+      id: file.getId(),
+    });
+  });
+
+  return urls;
+}
+
+function getOrCreateFolder(name) {
+  const it = DriveApp.getFoldersByName(name);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(name);
+}
+
+function getOrCreateChildFolder(parent, name) {
+  const it = parent.getFoldersByName(name);
+  return it.hasNext() ? it.next() : parent.createFolder(name);
+}
+
+// === 清測試資料（執行一次就好；刪所有 token='test' 的 row + 對應 Analyses）===
+function cleanTestData() {
+  const ss = getSheet();
+  const subSh = ss.getSheetByName(SUBMISSIONS_SHEET);
+  const anaSh = ss.getSheetByName(ANALYSES_SHEET);
+  const tokSh = ss.getSheetByName(TOKENS_SHEET);
+
+  let deletedSub = 0, deletedAna = 0, deletedTok = 0;
+  const testCaseIds = new Set();
+
+  // 1. 從 Submissions 找出 token='test' 的 CaseID（從後往前刪）
+  if (subSh) {
+    const rows = subSh.getDataRange().getValues();
+    for (let i = rows.length - 1; i >= 1; i--) {
+      if (rows[i][2] === 'test') {
+        testCaseIds.add(rows[i][0]);
+        subSh.deleteRow(i + 1);
+        deletedSub++;
+      }
+    }
+  }
+
+  // 2. 從 Analyses 刪除對應 CaseID
+  if (anaSh && testCaseIds.size > 0) {
+    const rows = anaSh.getDataRange().getValues();
+    for (let i = rows.length - 1; i >= 1; i--) {
+      if (testCaseIds.has(rows[i][0])) {
+        anaSh.deleteRow(i + 1);
+        deletedAna++;
+      }
+    }
+  }
+
+  // 3. 從 Tokens 刪除 'test' 紀錄（若有）
+  if (tokSh) {
+    const rows = tokSh.getDataRange().getValues();
+    for (let i = rows.length - 1; i >= 1; i--) {
+      if (rows[i][0] === 'test') {
+        tokSh.deleteRow(i + 1);
+        deletedTok++;
+      }
+    }
+  }
+
+  Logger.log('✅ 清理完成');
+  Logger.log('  Submissions 刪 ' + deletedSub + ' 列');
+  Logger.log('  Analyses 刪 ' + deletedAna + ' 列');
+  Logger.log('  Tokens 刪 ' + deletedTok + ' 列（test token 紀錄）');
+  Logger.log('  刪除的 CaseID: ' + Array.from(testCaseIds).join(', '));
+  return { deletedSub, deletedAna, deletedTok };
+}
+
+// === 診斷：檢查 API key 設定狀態（不會把 key 暴露在 log）===
+function debugApiKey() {
+  const props = PropertiesService.getScriptProperties().getProperties();
+  Logger.log('=== Script Properties 清單 ===');
+  Object.keys(props).sort().forEach(k => {
+    const v = props[k];
+    if (k.toLowerCase().includes('key') || k.toLowerCase().includes('secret')) {
+      Logger.log('  ' + k + ' = ' + v.substring(0, 12) + '...' + v.substring(v.length - 4) + ' (長度 ' + v.length + ')');
+    } else {
+      Logger.log('  ' + k + ' = ' + v);
+    }
+  });
+
+  const key = props.ANTHROPIC_API_KEY;
+  if (!key) {
+    Logger.log('❌ ANTHROPIC_API_KEY 不存在！屬性名稱可能拼錯。');
+    return;
+  }
+  Logger.log('');
+  Logger.log('=== Key 健康檢查 ===');
+  Logger.log('開頭: ' + key.substring(0, 12));
+  Logger.log('結尾: ' + key.substring(key.length - 4));
+  Logger.log('長度: ' + key.length + ' (正常應為 ~108)');
+  Logger.log('開頭正確 (sk-ant-)? ' + key.startsWith('sk-ant-'));
+  Logger.log('有開頭空格? ' + (key !== key.trimStart()));
+  Logger.log('有結尾空格? ' + (key !== key.trimEnd()));
+  Logger.log('有換行字元? ' + /[\r\n]/.test(key));
+
+  Logger.log('');
+  Logger.log('=== 實測呼叫 Anthropic API ===');
+  try {
+    const res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      payload: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 20,
+        messages: [{ role: 'user', content: 'Say hi in 3 words.' }]
+      }),
+      muteHttpExceptions: true,
+    });
+    const status = res.getResponseCode();
+    const body = res.getContentText().substring(0, 300);
+    Logger.log('HTTP ' + status);
+    Logger.log('回應: ' + body);
+    if (status === 200) Logger.log('✅ Key 有效！');
+    else Logger.log('❌ Key 無效。對照錯誤訊息修正。');
+  } catch (e) {
+    Logger.log('呼叫失敗: ' + e.message);
+  }
+}
+
 // === 管理員工具：手動產生新案件 token pair ===
-// 在 Apps Script 編輯器執行 createNewCaseTokens() 即可印出兩個 token
 function createNewCaseTokens() {
   const { clientToken, designerToken } = generateTokenPair();
   const baseUrl = getReportBaseUrl();

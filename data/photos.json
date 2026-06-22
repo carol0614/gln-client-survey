@@ -1,0 +1,777 @@
+{
+  "_doc": "由 admin.html 匯出。每張照片含 feeling tags 陣列。",
+  "_exported_at": "2026-05-24T14:14:28.717Z",
+  "_replace_guide": "把此檔覆蓋 data/photos.json 即可上線。",
+  "photos": [
+    {
+      "id": 1,
+      "src": "assets/photos/01-1拷貝.jpg",
+      "tags": [
+        "bright",
+        "serene",
+        "warm"
+      ],
+      "isPlaceholder": false,
+      "filename": "01-1拷貝.jpg"
+    },
+    {
+      "id": 2,
+      "src": "assets/photos/015-1.jpg",
+      "tags": [
+        "warm",
+        "healing",
+        "rustic"
+      ],
+      "isPlaceholder": false,
+      "filename": "015-1.jpg"
+    },
+    {
+      "id": 3,
+      "src": "assets/photos/20230216-156拷貝.jpg",
+      "tags": [
+        "resort",
+        "elegant",
+        "healing",
+        "rustic"
+      ],
+      "isPlaceholder": false,
+      "filename": "20230216-156拷貝.jpg"
+    },
+    {
+      "id": 4,
+      "src": "assets/photos/20230217-20230216-294拷貝.jpg",
+      "tags": [
+        "warm",
+        "healing",
+        "cafe"
+      ],
+      "isPlaceholder": false,
+      "filename": "20230217-20230216-294拷貝.jpg"
+    },
+    {
+      "id": 5,
+      "src": "assets/photos/20231201-DSC0842-51merge PS-C 拷貝2.jpg",
+      "tags": [
+        "distinctive",
+        "avantgarde",
+        "cafe"
+      ],
+      "isPlaceholder": false,
+      "filename": "20231201-DSC0842-51merge PS-C 拷貝2.jpg"
+    },
+    {
+      "id": 6,
+      "src": "assets/photos/20250307-157拷貝.jpg",
+      "tags": [
+        "elegant",
+        "hotel",
+        "serene",
+        "bright"
+      ],
+      "isPlaceholder": false,
+      "filename": "20250307-157拷貝.jpg"
+    },
+    {
+      "id": 7,
+      "src": "assets/photos/20250308-132拷貝.jpg",
+      "tags": [
+        "warm",
+        "elegant",
+        "rustic",
+        "cafe"
+      ],
+      "isPlaceholder": false,
+      "filename": "20250308-132拷貝.jpg"
+    },
+    {
+      "id": 8,
+      "src": "assets/photos/20250527-41拷貝.jpg",
+      "tags": [
+        "resort",
+        "healing",
+        "rustic"
+      ],
+      "isPlaceholder": false,
+      "filename": "20250527-41拷貝.jpg"
+    },
+    {
+      "id": 9,
+      "src": "assets/photos/20251209-14拷貝.jpg",
+      "tags": [
+        "museum",
+        "natural",
+        "rustic",
+        "healing",
+        "serene"
+      ],
+      "isPlaceholder": false,
+      "filename": "20251209-14拷貝.jpg"
+    },
+    {
+      "id": 10,
+      "src": "assets/photos/20251209-238拷貝.jpg",
+      "tags": [
+        "museum",
+        "natural",
+        "cafe",
+        "resort",
+        "rustic"
+      ],
+      "isPlaceholder": false,
+      "filename": "20251209-238拷貝.jpg"
+    },
+    {
+      "id": 11,
+      "src": "assets/photos/20251209-3拷貝.jpg",
+      "tags": [
+        "museum",
+        "serene",
+        "natural",
+        "rustic"
+      ],
+      "isPlaceholder": false,
+      "filename": "20251209-3拷貝.jpg"
+    },
+    {
+      "id": 12,
+      "src": "assets/photos/27+ Scandinavian Kitchen Ideas That Feel Bright, Calm, and Effortless.jpeg",
+      "tags": [
+        "bright",
+        "elegant",
+        "refined",
+        "hotel"
+      ],
+      "isPlaceholder": false,
+      "filename": "27+ Scandinavian Kitchen Ideas That Feel Bright, Calm, and Effortless.jpeg"
+    },
+    {
+      "id": 13,
+      "src": "assets/photos/29 Wabi Sabi Japandi Living Room Ideas for a Peaceful and Zen-Inspired Space.jpeg",
+      "tags": [
+        "rustic",
+        "healing",
+        "serene",
+        "warm"
+      ],
+      "isPlaceholder": false,
+      "filename": "29 Wabi Sabi Japandi Living Room Ideas for a Peaceful and Zen-Inspired Space.jpeg"
+    },
+    {
+      "id": 14,
+      "src": "assets/photos/A two-level penthouse apartment with a sophisticated monochrome palette.jpeg",
+      "tags": [
+        "silent",
+        "distinctive",
+        "avantgarde"
+      ],
+      "isPlaceholder": false,
+      "filename": "A two-level penthouse apartment with a sophisticated monochrome palette.jpeg"
+    },
+    {
+      "id": 15,
+      "src": "assets/photos/A004拷貝.jpg",
+      "tags": [
+        "refined",
+        "warm",
+        "elegant"
+      ],
+      "isPlaceholder": false,
+      "filename": "A004拷貝.jpg"
+    },
+    {
+      "id": 16,
+      "src": "assets/photos/Amsterdam café with seasonal daytime dishes and specialty coffee.jpeg",
+      "tags": [
+        "cafe",
+        "distinctive",
+        "avantgarde"
+      ],
+      "isPlaceholder": false,
+      "filename": "Amsterdam café with seasonal daytime dishes and specialty coffee.jpeg"
+    },
+    {
+      "id": 17,
+      "src": "assets/photos/BecomingHomebody on LTK.jpeg",
+      "tags": [
+        "cafe",
+        "refined",
+        "hotel"
+      ],
+      "isPlaceholder": false,
+      "filename": "BecomingHomebody on LTK.jpeg"
+    },
+    {
+      "id": 18,
+      "src": "assets/photos/Chambre style Bali _ les meubles et objets déco à choisir.jpeg",
+      "tags": [
+        "healing",
+        "rustic",
+        "resort",
+        "hotel"
+      ],
+      "isPlaceholder": false,
+      "filename": "Chambre style Bali _ les meubles et objets déco à choisir.jpeg"
+    },
+    {
+      "id": 19,
+      "src": "assets/photos/Coastal Minimalist Living Room.jpeg",
+      "tags": [
+        "museum",
+        "resort",
+        "silent",
+        "distinctive"
+      ],
+      "isPlaceholder": false,
+      "filename": "Coastal Minimalist Living Room.jpeg"
+    },
+    {
+      "id": 20,
+      "src": "assets/photos/Cozy Living Room with Fireplace and Large Window.jpeg",
+      "tags": [
+        "warm",
+        "healing",
+        "rustic",
+        "resort"
+      ],
+      "isPlaceholder": false,
+      "filename": "Cozy Living Room with Fireplace and Large Window.jpeg"
+    },
+    {
+      "id": 21,
+      "src": "assets/photos/Cozy Scandinavian Living Room with Wood Accents and Minimalist Decor _ Warm Interior Inspiration.jpeg",
+      "tags": [
+        "natural",
+        "healing",
+        "rustic",
+        "warm",
+        "resort"
+      ],
+      "isPlaceholder": false,
+      "filename": "Cozy Scandinavian Living Room with Wood Accents and Minimalist Decor _ Warm Interior Inspiration.jpeg"
+    },
+    {
+      "id": 22,
+      "src": "assets/photos/DSC06032拷貝.jpg",
+      "tags": [
+        "bright",
+        "healing",
+        "serene"
+      ],
+      "isPlaceholder": false,
+      "filename": "DSC06032拷貝.jpg"
+    },
+    {
+      "id": 23,
+      "src": "assets/photos/Enigma Mykonos Hideaway Suites.jpeg",
+      "tags": [
+        "hotel",
+        "silent",
+        "healing",
+        "rustic"
+      ],
+      "isPlaceholder": false,
+      "filename": "Enigma Mykonos Hideaway Suites.jpeg"
+    },
+    {
+      "id": 24,
+      "src": "assets/photos/Greenterior _ Kaunas - Matas Miliauskas.jpeg",
+      "tags": [
+        "silent",
+        "elegant",
+        "hotel",
+        "refined"
+      ],
+      "isPlaceholder": false,
+      "filename": "Greenterior _ Kaunas - Matas Miliauskas.jpeg"
+    },
+    {
+      "id": 25,
+      "src": "assets/photos/IMG_6454.jpg",
+      "tags": [
+        "serene",
+        "elegant",
+        "warm",
+        "healing"
+      ],
+      "isPlaceholder": false,
+      "filename": "IMG_6454.jpg"
+    },
+    {
+      "id": 26,
+      "src": "assets/photos/Insta_TikTok_ zialanche__• metal shelving system in a loft with skylight above dining area with acrylic chairs.jpeg",
+      "tags": [
+        "museum",
+        "avantgarde",
+        "distinctive",
+        "bright"
+      ],
+      "isPlaceholder": false,
+      "filename": "Insta_TikTok_ zialanche__• metal shelving system in a loft with skylight above dining area with acrylic chairs.jpeg"
+    },
+    {
+      "id": 27,
+      "src": "assets/photos/Instagram (1).jpeg",
+      "tags": [
+        "hotel",
+        "refined",
+        "resort",
+        "warm"
+      ],
+      "isPlaceholder": false,
+      "filename": "Instagram (1).jpeg"
+    },
+    {
+      "id": 28,
+      "src": "assets/photos/Instagram.jpeg",
+      "tags": [
+        "elegant",
+        "hotel",
+        "refined"
+      ],
+      "isPlaceholder": false,
+      "filename": "Instagram.jpeg"
+    },
+    {
+      "id": 29,
+      "src": "assets/photos/Minimalist Sanctuary.jpeg",
+      "tags": [
+        "rustic",
+        "cafe",
+        "warm",
+        "healing"
+      ],
+      "isPlaceholder": false,
+      "filename": "Minimalist Sanctuary.jpeg"
+    },
+    {
+      "id": 30,
+      "src": "assets/photos/Modern Art Gallery Interior _ Современный интерьер художественной галереи.jpeg",
+      "tags": [
+        "museum",
+        "bright",
+        "resort",
+        "refined"
+      ],
+      "isPlaceholder": false,
+      "filename": "Modern Art Gallery Interior _ Современный интерьер художественной галереи.jpeg"
+    },
+    {
+      "id": 31,
+      "src": "assets/photos/Modern Neoclassical Living Room.jpeg",
+      "tags": [
+        "refined",
+        "elegant",
+        "hotel"
+      ],
+      "isPlaceholder": false,
+      "filename": "Modern Neoclassical Living Room.jpeg"
+    },
+    {
+      "id": 32,
+      "src": "assets/photos/Moody Japandi Kitchen with Dark Oak Cabinets & Island.jpeg",
+      "tags": [
+        "silent",
+        "distinctive",
+        "refined",
+        "hotel"
+      ],
+      "isPlaceholder": false,
+      "filename": "Moody Japandi Kitchen with Dark Oak Cabinets & Island.jpeg"
+    },
+    {
+      "id": 33,
+      "src": "assets/photos/Mulberry Manor.jpeg",
+      "tags": [
+        "refined",
+        "healing",
+        "warm",
+        "cafe",
+        "natural"
+      ],
+      "isPlaceholder": false,
+      "filename": "Mulberry Manor.jpeg"
+    },
+    {
+      "id": 34,
+      "src": "assets/photos/Open Plan by Martha Mulholland Interior Design _ 1stDibs.jpeg",
+      "tags": [
+        "bright",
+        "museum",
+        "natural",
+        "serene"
+      ],
+      "isPlaceholder": false,
+      "filename": "Open Plan by Martha Mulholland Interior Design _ 1stDibs.jpeg"
+    },
+    {
+      "id": 35,
+      "src": "assets/photos/Palm Springs Home by Stephanie Brown Inc Photography by Phil Crozier.jpeg",
+      "tags": [
+        "distinctive",
+        "avantgarde",
+        "bright"
+      ],
+      "isPlaceholder": false,
+      "filename": "Palm Springs Home by Stephanie Brown Inc Photography by Phil Crozier.jpeg"
+    },
+    {
+      "id": 36,
+      "src": "assets/photos/Rubchaka apartment _ Lviv - OD design studio.jpeg",
+      "tags": [
+        "bright",
+        "elegant",
+        "hotel"
+      ],
+      "isPlaceholder": false,
+      "filename": "Rubchaka apartment _ Lviv - OD design studio.jpeg"
+    },
+    {
+      "id": 37,
+      "src": "assets/photos/The Ultimate Hygge Nook_ Cozy Floor Cushion Corner for Quiet Reading.jpeg",
+      "tags": [
+        "healing",
+        "warm",
+        "resort",
+        "cafe"
+      ],
+      "isPlaceholder": false,
+      "filename": "The Ultimate Hygge Nook_ Cozy Floor Cushion Corner for Quiet Reading.jpeg"
+    },
+    {
+      "id": 38,
+      "src": "assets/photos/This Bright and Airy Minimalist Home In Belgium Is A Vision In White - Nordic Design.jpeg",
+      "tags": [
+        "bright",
+        "elegant",
+        "museum",
+        "serene"
+      ],
+      "isPlaceholder": false,
+      "filename": "This Bright and Airy Minimalist Home In Belgium Is A Vision In White - Nordic Design.jpeg"
+    },
+    {
+      "id": 39,
+      "src": "assets/photos/Where Fashion Meets Nature_ A Nature-Inspired Fashion Home conceived by Ping Zhang of Shangceng Design.jpeg",
+      "tags": [
+        "silent",
+        "natural",
+        "cafe",
+        "healing"
+      ],
+      "isPlaceholder": false,
+      "filename": "Where Fashion Meets Nature_ A Nature-Inspired Fashion Home conceived by Ping Zhang of Shangceng Design.jpeg"
+    },
+    {
+      "id": 40,
+      "src": "assets/photos/_ (1).jpeg",
+      "tags": [
+        "refined",
+        "hotel",
+        "natural",
+        "serene",
+        "healing"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (1).jpeg"
+    },
+    {
+      "id": 41,
+      "src": "assets/photos/_ (10).jpeg",
+      "tags": [
+        "refined",
+        "elegant",
+        "hotel"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (10).jpeg"
+    },
+    {
+      "id": 42,
+      "src": "assets/photos/_ (11).jpeg",
+      "tags": [
+        "refined",
+        "cafe",
+        "elegant",
+        "hotel"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (11).jpeg"
+    },
+    {
+      "id": 43,
+      "src": "assets/photos/_ (12).jpeg",
+      "tags": [
+        "avantgarde",
+        "distinctive",
+        "cafe",
+        "bright"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (12).jpeg"
+    },
+    {
+      "id": 44,
+      "src": "assets/photos/_ (13).jpeg",
+      "tags": [
+        "distinctive",
+        "avantgarde",
+        "cafe"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (13).jpeg"
+    },
+    {
+      "id": 45,
+      "src": "assets/photos/_ (14).jpeg",
+      "tags": [
+        "bright",
+        "museum",
+        "distinctive",
+        "warm"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (14).jpeg"
+    },
+    {
+      "id": 46,
+      "src": "assets/photos/_ (15).jpeg",
+      "tags": [
+        "avantgarde",
+        "distinctive",
+        "bright"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (15).jpeg"
+    },
+    {
+      "id": 47,
+      "src": "assets/photos/_ (16).jpeg",
+      "tags": [
+        "bright",
+        "serene",
+        "distinctive"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (16).jpeg"
+    },
+    {
+      "id": 48,
+      "src": "assets/photos/_ (17).jpeg",
+      "tags": [
+        "museum",
+        "silent",
+        "serene"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (17).jpeg"
+    },
+    {
+      "id": 49,
+      "src": "assets/photos/_ (18).jpeg",
+      "tags": [
+        "refined",
+        "distinctive",
+        "museum"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (18).jpeg"
+    },
+    {
+      "id": 50,
+      "src": "assets/photos/_ (19).jpeg",
+      "tags": [
+        "distinctive",
+        "avantgarde",
+        "bright",
+        "cafe"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (19).jpeg"
+    },
+    {
+      "id": 51,
+      "src": "assets/photos/_ (2).jpeg",
+      "tags": [
+        "warm",
+        "bright",
+        "rustic",
+        "resort",
+        "museum"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (2).jpeg"
+    },
+    {
+      "id": 52,
+      "src": "assets/photos/_ (20).jpeg",
+      "tags": [
+        "resort",
+        "hotel",
+        "refined",
+        "warm",
+        "bright"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (20).jpeg"
+    },
+    {
+      "id": 53,
+      "src": "assets/photos/_ (21).jpeg",
+      "tags": [
+        "refined",
+        "hotel",
+        "elegant",
+        "healing"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (21).jpeg"
+    },
+    {
+      "id": 54,
+      "src": "assets/photos/_ (22).jpeg",
+      "tags": [
+        "museum",
+        "silent",
+        "serene",
+        "refined"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (22).jpeg"
+    },
+    {
+      "id": 55,
+      "src": "assets/photos/_ (3).jpeg",
+      "tags": [
+        "healing",
+        "rustic",
+        "warm",
+        "natural"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (3).jpeg"
+    },
+    {
+      "id": 56,
+      "src": "assets/photos/_ (6).jpeg",
+      "tags": [
+        "natural",
+        "cafe",
+        "bright",
+        "warm",
+        "refined"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (6).jpeg"
+    },
+    {
+      "id": 57,
+      "src": "assets/photos/_ (6)拷貝.jpeg",
+      "tags": [
+        "silent",
+        "museum",
+        "refined",
+        "healing",
+        "elegant"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (6)拷貝.jpeg"
+    },
+    {
+      "id": 58,
+      "src": "assets/photos/_ (7).jpeg",
+      "tags": [
+        "natural",
+        "resort",
+        "healing"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (7).jpeg"
+    },
+    {
+      "id": 59,
+      "src": "assets/photos/_ (7)拷貝.jpeg",
+      "tags": [
+        "distinctive",
+        "avantgarde",
+        "cafe",
+        "bright"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (7)拷貝.jpeg"
+    },
+    {
+      "id": 60,
+      "src": "assets/photos/_ (8).jpeg",
+      "tags": [
+        "warm",
+        "rustic",
+        "resort",
+        "cafe",
+        "natural"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (8).jpeg"
+    },
+    {
+      "id": 61,
+      "src": "assets/photos/_ (8)拷貝.jpeg",
+      "tags": [
+        "distinctive",
+        "avantgarde",
+        "cafe"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (8)拷貝.jpeg"
+    },
+    {
+      "id": 62,
+      "src": "assets/photos/_ (9).jpeg",
+      "tags": [
+        "refined",
+        "hotel",
+        "healing",
+        "warm",
+        "elegant"
+      ],
+      "isPlaceholder": false,
+      "filename": "_ (9).jpeg"
+    },
+    {
+      "id": 63,
+      "src": "assets/photos/_.jpeg",
+      "tags": [
+        "bright",
+        "healing",
+        "natural",
+        "warm"
+      ],
+      "isPlaceholder": false,
+      "filename": "_.jpeg"
+    },
+    {
+      "id": 64,
+      "src": "assets/photos/_拷貝.jpeg",
+      "tags": [
+        "silent",
+        "rustic",
+        "healing",
+        "hotel"
+      ],
+      "isPlaceholder": false,
+      "filename": "_拷貝.jpeg"
+    },
+    {
+      "id": 65,
+      "src": "assets/photos/bali mornings_3_little weekend getaway to the other side of the island!__at beautiful place @mazaristays _& baby Oliver enjoyed it too🤍_would you stay here___my dress @flookthelabel__#morningvibes #pinterestinspired #pinterestaesthetic .jpeg",
+      "tags": [
+        "resort",
+        "bright",
+        "healing",
+        "warm",
+        "natural"
+      ],
+      "isPlaceholder": false,
+      "filename": "bali mornings_3_little weekend getaway to the other side of the island!__at beautiful place @mazaristays _& baby Oliver enjoyed it too🤍_would you stay here___my dress @flookthelabel__#morningvibes #pinterestinspired #pinterestaesthetic .jpeg"
+    }
+  ]
+}

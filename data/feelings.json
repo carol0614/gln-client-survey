@@ -1,0 +1,272 @@
+{
+  "_doc": "15 個感覺光譜定義。每個感覺有 key（英文 id）、label（中文）、desc（視覺特徵）、color（光譜條色）、axis（光譜軸向）、profile（心理側寫）、design_brief（設計方向）、search_en（Pinterest/Unsplash 搜尋詞）。",
+  "feelings": [
+    {
+      "key": "warm",
+      "label": "溫潤",
+      "desc": "木質、暖光、織物",
+      "color": "#C89B7B",
+      "axis": "temperature",
+      "profile": "你重視家人之間真實的連結，享受在廚房準備一頓飯的過程，對觸感和材質有天生的感知力。對你來說，家是一種「包覆感」的來源，不需要特別說出口，但你會花時間讓每個角落都有溫度。你有主見，對生活品質有清楚的感受，但從不需要用外在炫耀來確認——那種舒適感，只有真正住在裡面的人才懂。",
+      "design_brief": ["木紋地板或木皮牆面", "暖色照明 3000K", "布面沙發或絨面單椅", "開放式餐廚動線，讓家人自然聚在一起"],
+      "search_en": ["warm wood interior", "cozy wabi-sabi home", "warm minimal living"]
+    },
+    {
+      "key": "bright",
+      "label": "明亮",
+      "desc": "高採光、白為主、清爽",
+      "color": "#E8DCC4",
+      "axis": "light",
+      "profile": "你的生活有一種輕盈感，喜歡讓光線和空氣流通，不喜歡被空間「壓著」。白天在家的品質對你很重要，你需要一個讓思路清晰、讓人想動起來的環境。你適應力強、直接，傾向把事情做簡單，空間裡多餘的東西會讓你感覺不自在。",
+      "design_brief": ["白或淺色系主調", "採光最大化（窗戶、天井、玻璃隔間）", "輕量家具，視覺不壓迫", "裝飾以少為美"],
+      "search_en": ["bright airy interior", "scandinavian bright home", "white minimal living"]
+    },
+    {
+      "key": "silent",
+      "label": "靜謐",
+      "desc": "暗色、低光、沉穩",
+      "color": "#5C5A57",
+      "axis": "light_dark",
+      "profile": "你有豐富的內在世界，喜歡在沉靜的環境裡思考或創作。深色和低光對你來說是安全感，不是壓迫；你對空間有很強的感知力，知道什麼樣的環境能讓你進入狀態。你的品味清晰，選擇都很有意識，不需要外界的認可來做決定。",
+      "design_brief": ["深色主調（炭/橄欖/深棕）", "臥室隔音優先", "間接光源，無強烈主燈", "減少視覺干擾，整體色調統一"],
+      "search_en": ["moody dark interior", "dark wood quiet room", "low-lit serene bedroom"]
+    },
+    {
+      "key": "serene",
+      "label": "寧靜",
+      "desc": "留白、低彩度、簡單線條",
+      "color": "#B8B6B0",
+      "axis": "mood",
+      "profile": "你對視覺「雜訊」非常敏感，需要一個能讓心安靜下來的空間。你的生活節奏是刻意選擇的，而不是被事情推著走——你可能有靜心、運動或某種日常儀式的習慣。極簡對你來說不只是風格，是你和這個世界相處的方式。",
+      "design_brief": ["大面留白，空間要有呼吸感", "全隱藏式收納", "日系低彩度選色系統", "避免任何不必要的裝飾性元素"],
+      "search_en": ["serene minimal interior", "calm zen room", "quiet japanese home"]
+    },
+    {
+      "key": "healing",
+      "label": "療癒",
+      "desc": "柔軟線條、暖中性色",
+      "color": "#D9B89C",
+      "axis": "mood",
+      "profile": "你感受力細膩，對周圍的人和環境有高度的感應力，能量消耗得快，也深知自己需要什麼來恢復。家對你來說是真正意義上的充電站，一個好的角落比大空間更重要。你對觸感、氣味、光線的細節很在意，這不是挑剔，是你對自己的照顧。",
+      "design_brief": ["圓角家具，避免銳角", "柔性材質（棉麻/羊毛地毯/布面）", "閱讀角或壁龕，有安全感的角落", "臥室是全案核心，優先設計"],
+      "search_en": ["soft warm minimalist", "soothing neutral interior", "hygge home"]
+    },
+    {
+      "key": "rustic",
+      "label": "樸質",
+      "desc": "原始材質、不修邊、手感",
+      "color": "#9B8268",
+      "axis": "texture",
+      "profile": "你欣賞真實的東西，喜歡材質上帶著時間的印記。流行對你沒有太大吸引力，你更在意「這個東西是不是真心做的」、「有沒有自己的靈魂」。你的選擇有一種誠實感——不是嘩眾取寵，而是對永續、真實和工藝的直覺偏好。",
+      "design_brief": ["清水模或手工磁磚", "鐵件手感元素", "材質允許有自然瑕疵和歲月感", "老件或特色材料混搭"],
+      "search_en": ["wabi sabi raw interior", "rustic natural home", "imperfect organic interior"]
+    },
+    {
+      "key": "refined",
+      "label": "細緻",
+      "desc": "工藝感、精細收邊",
+      "color": "#8E877D",
+      "axis": "texture",
+      "profile": "你重視品質勝過數量，一個好的五金、一個精準的收邊對你來說不是小事——它代表「被認真對待」。你有清晰的審美標準，生活中有自己的節奏和秩序，這份標準來自對美的真誠感受，不是焦慮，是自信。",
+      "design_brief": ["訂製傢俱或精工傢俱品牌", "精工五金，把手和鉸鏈是細節重點", "所有材料樣品親自確認", "收邊是設計的一部分，不是施工末端"],
+      "search_en": ["refined minimal interior", "craftsmanship detail home", "high-end finish bedroom"]
+    },
+    {
+      "key": "natural",
+      "label": "自然",
+      "desc": "植物、石材、有機形狀",
+      "color": "#7C837B",
+      "axis": "texture",
+      "profile": "你喜歡植物和自然材質，對健康和身體感覺很在意，希望空間有「呼吸感」，能讓人感覺和戶外是連通的。你踏實、有生命力，對有機的、非完美的形態有直覺的喜愛——一塊石材上的紋理、一片葉子的形狀，這些細節對你來說都是美的來源。",
+      "design_brief": ["植栽照明計畫（生長燈整合）", "石材或仿石磁磚", "通風動線設計（對流窗/換氣扇）", "陽台或戶外空間延伸"],
+      "search_en": ["biophilic design interior", "natural material home", "plant-filled living room"]
+    },
+    {
+      "key": "elegant",
+      "label": "優雅",
+      "desc": "對稱、品質感、深調",
+      "color": "#5E5347",
+      "axis": "personality",
+      "profile": "你對美有清晰且成熟的品味，知道自己喜歡什麼，也喜歡在空間裡招待重要的人。家對你有一種「舞台感」，但不是表演，是你對生活態度的自然呈現。你的選擇自成一格，不需要潮流加持，重要的是那種沉穩的存在感。",
+      "design_brief": ["對稱格局，軸線感", "深色主牆搭配精品感陳設", "精緻燈具作為空間雕塑焦點", "材質精選，寧少勿多但件件到位"],
+      "search_en": ["elegant dark wood interior", "moody luxury home", "classic refined living"]
+    },
+    {
+      "key": "distinctive",
+      "label": "個性",
+      "desc": "強烈材質對比、收藏感",
+      "color": "#7A4F3A",
+      "axis": "personality",
+      "profile": "你的空間是你自我的延伸。你有明確的愛好——可能是書、藝術、音樂或旅行帶回來的東西——這些不是裝飾，是你的一部分。你的自我意識清晰，有強烈的個人美學，不怕與眾不同，你希望空間讓人一眼就能「讀懂你是誰」。",
+      "design_brief": ["材質大膽對比（金屬+木+岩板）", "展示收藏的系統設計", "保留一面有「說話能力」的主牆", "傢俱不追品牌，但要有故事"],
+      "search_en": ["eclectic statement interior", "bold material mix home", "curated collector apartment"]
+    },
+    {
+      "key": "avantgarde",
+      "label": "前衛",
+      "desc": "異材質、雕塑造型、實驗感",
+      "color": "#3D4744",
+      "axis": "personality",
+      "profile": "你不把居住當成「安頓下來」，而是一種持續的探索。你對慣例有好奇也有質疑，思維靈活，對新形式和不確定性有高容忍度。你希望空間能陪你一起演進，而不是一個固定的答案。",
+      "design_brief": ["非典型格局安排", "裸頂或裸管設計，工業感元素", "雕塑造型傢俱或特殊材質", "不對稱美學，拒絕常規"],
+      "search_en": ["avant-garde interior", "sculptural minimal home", "experimental architecture residence"]
+    },
+    {
+      "key": "resort",
+      "label": "度假感",
+      "desc": "開放、藤編、海岸/山林",
+      "color": "#A8B89F",
+      "axis": "scene",
+      "profile": "你喜歡旅遊，更喜歡把那種感覺帶回日常。對你來說，家要能讓人「切換」——打開窗、泡個澡、躺在某個好的角落，就能暫時離開日常一會兒。你享受感官上的豐富和放鬆，對開放、流動的空間感有強烈的偏好。",
+      "design_brief": ["室內外連通設計（折疊門/大開窗）", "藤編或麻繩自然材質元素", "大型植栽，室內叢林感", "半戶外空間或露台優先設計"],
+      "search_en": ["tropical resort villa", "vacation home interior", "open-air retreat residence"]
+    },
+    {
+      "key": "hotel",
+      "label": "飯店感",
+      "desc": "訂製感、精緻、儀式感",
+      "color": "#6B5D4F",
+      "axis": "scene",
+      "profile": "你的日常有儀式感——晨間的準備、睡前的放鬆，這些時刻對你很重要。你喜歡「被環境照顧」的感覺，空間的秩序讓你的心也有序。你對自我照顧有高標準，重視服務品質，空間要能支撐你每天最好的狀態。",
+      "design_brief": ["訂製床頭板和床架", "隱藏式行李和外出包收納", "每日物件（鑰匙/手機/眼鏡）有固定歸位設計", "主臥的投資比例高於公領域"],
+      "search_en": ["boutique hotel suite", "luxury hotel bedroom", "five star hotel interior"]
+    },
+    {
+      "key": "cafe",
+      "label": "咖啡館感",
+      "desc": "小巧、暖光、慢活",
+      "color": "#A07C5A",
+      "axis": "scene",
+      "profile": "你喜歡「在家慢下來」的感覺——一杯咖啡、一本書、陽光從某個角度斜進來。你享受獨處時光，有閱讀或創作習慣，對氛圍的細節很有感知。你不需要大空間，你需要的是「那個對的角落」，讓你每天都有個地方可以真正放鬆、思考、做自己。",
+      "design_brief": ["角落閱讀區，有窗光、有層次感", "吧台或中島作為家裡的咖啡角", "暖光桌燈，調光系統", "書架是空間視覺重心之一"],
+      "search_en": ["cozy cafe interior", "warm coffee shop design", "intimate cafe vibe"]
+    },
+    {
+      "key": "museum",
+      "label": "美術館感",
+      "desc": "留白、聚光、藝術品為主角",
+      "color": "#D8D4CC",
+      "axis": "scene",
+      "profile": "你對美有高度的選擇性——寧可少，要精準。你可能在收藏畫作、攝影或設計品，你希望家是一個能讓每件東西「被好好看見」的地方。你有策展者的思維，知道「什麼都不放」有時比「放什麼」更重要，留白是你最習慣使用的設計語言。",
+      "design_brief": ["軌道燈或聚光燈系統", "大面留白牆，讓作品說話", "極簡無玻璃展示架", "地材極簡，作為視覺的無聲背景"],
+      "search_en": ["gallery white interior", "museum-like home", "minimal art space residence"]
+    }
+  ],
+  "archetypes": [
+    {
+      "key": "guardian",
+      "name": "溫柔的生活守護者",
+      "tagline": "你把家人的舒適感放在心上，懂得用生活的質地滋養身邊的人",
+      "triggers": ["warm", "healing", "cafe"],
+      "cross_note": "你的空間直覺是「家要讓人想留下來」。你對溫度、觸感和慢下來的時光有天生的敏感度，一個能讓家人自然聚在一起的廚房，一個讓自己可以真正放鬆的角落，是你判斷一個空間是否成功的標準。你不需要戲劇性的設計，你需要的是一種讓人覺得「這裡好安心」的感覺。"
+    },
+    {
+      "key": "minimalist",
+      "name": "清醒的留白主義者",
+      "tagline": "你用「少」保護自己最重要的東西，空間的留白是你選擇的語言",
+      "triggers": ["serene", "bright", "museum"],
+      "cross_note": "你對空間的要求是清醒的——太多的東西讓你感到壓迫，光線和空白是你最重要的設計元素。你有策展者的眼光，知道「拿掉什麼」比「放什麼」更難，也更重要。一個讓你每天早晨感覺清晰的空間，是你對好生活最直接的定義。"
+    },
+    {
+      "key": "builder",
+      "name": "沉穩的品味建構者",
+      "tagline": "你不需要外界認可，你的選擇自成一套清晰的邏輯，久了才看得懂",
+      "triggers": ["silent", "elegant", "refined"],
+      "cross_note": "你的品味沉穩而清晰。你喜歡在靜謐中思考，欣賞精工帶來的存在感，對你來說一個好的空間不需要大聲宣告自己——它只需要在每一個細節上都「對」。你的選擇自成一格，值得用訂製和精選的方式去實現。"
+    },
+    {
+      "key": "wanderer",
+      "name": "自在的感官漫遊者",
+      "tagline": "你的生活有一種踏實的自由感，不被規則綁住，讓感官引路",
+      "triggers": ["natural", "rustic", "resort"],
+      "cross_note": "你對空間的感受從感官出發。你喜歡真實材質的質感，喜歡自然物帶來的有機感，也喜歡那種「暫時逃離日常」的度假節奏。你的家不需要刻意，它只需要有真實感和放鬆感，讓人打開門就覺得呼吸順暢了。"
+    },
+    {
+      "key": "curator",
+      "name": "清醒的空間策展人",
+      "tagline": "你有策展者的眼光，每一個選擇都是刻意的，空間是你最誠實的自我表達",
+      "triggers": ["distinctive", "museum", "avantgarde"],
+      "cross_note": "你有強烈的自我意識，對美有高度的選擇性。你的空間是你品味的宣言——每一個物件都是刻意選擇的，每一個留白都是有意識的設計。你不需要別人理解，但你知道當對的人走進你的家，他們會懂。"
+    },
+    {
+      "key": "host",
+      "name": "有儀式感的生活主理人",
+      "tagline": "你把日常過得像精心策劃的體驗，生活的儀式感讓你找到自己的中心",
+      "triggers": ["hotel", "elegant", "refined"],
+      "cross_note": "你重視生活的儀式感。晨間的準備、睡前的放鬆、招待朋友時桌上的那瓶花——這些時刻對你來說都有意義。你喜歡一個被精心設計過的環境帶來的「被照顧」感，家是你每天給自己的最好犒賞。"
+    },
+    {
+      "key": "connoisseur",
+      "name": "享樂主義的生活鑑賞家",
+      "tagline": "你知道好的生活是什麼感覺，也知道怎麼創造它，感官的滿足是你的優先事項",
+      "triggers": ["resort", "hotel", "natural"],
+      "cross_note": "你懂得怎麼享受生活。你對感官體驗有清晰的要求，開放的空間、自然的材質、度假般的氛圍——這些不是奢侈，是你對生活品質的基本標準。你的家應該讓任何走進來的人都覺得：這個主人，很懂得照顧自己。"
+    },
+    {
+      "key": "experimenter",
+      "name": "獨立的美學實驗者",
+      "tagline": "你對慣例保持好奇和質疑，你的空間是你持續探索和演進的場域",
+      "triggers": ["avantgarde", "distinctive", "silent"],
+      "cross_note": "你把居住當作一種持續的探索。你的空間不需要讓所有人都喜歡，它只需要讓你每天都覺得「住在這裡讓我是更好的自己」。你對常規有好奇也有質疑，你的家應該是你最誠實、最無拘束的自我表達場域。"
+    },
+    {
+      "key": "healer",
+      "name": "回歸本質的療癒探索者",
+      "tagline": "你在生活的真實感和身體感受裡找到安靜，不需要任何包裝",
+      "triggers": ["healing", "natural", "rustic"],
+      "cross_note": "你在真實的觸感和身體的感受裡找到安靜。植物、石材、木頭的紋理，這些有機的元素讓你覺得踏實。你的家不需要精緻，它需要真實，需要讓人感覺「這個空間是活的、有生命力的」。"
+    },
+    {
+      "key": "lightliving",
+      "name": "陽光系的自由生活家",
+      "tagline": "你把輕盈帶進日常，喜歡讓空間和空氣一起流動，生活要有開放的出口",
+      "triggers": ["bright", "natural", "resort"],
+      "cross_note": "你把輕盈帶進生活的每一個角落。你需要一個讓思路清晰、讓身體感覺自由的空間——有足夠的光線、有連接戶外的通道、有放鬆的可能性。你的家是你充電和出發的基地。"
+    },
+    {
+      "key": "slowlife",
+      "name": "慢活的日常美學家",
+      "tagline": "你懂得在日常的縫隙裡找到美，對的角落比大空間更重要",
+      "triggers": ["cafe", "warm", "serene"],
+      "cross_note": "你懂得在日常的縫隙裡找到美。一個讓你每天早晨可以安靜喝杯咖啡的角落，暖光、木質感、剛好的溫度——這樣的時刻對你比任何大場景都重要。你的家不需要讓人讚嘆，它只需要每天都讓你捨不得出門。"
+    },
+    {
+      "key": "explorer",
+      "name": "豐富多層次的生活探索者",
+      "tagline": "你的品味有多個面向，空間要夠聰明才能容納你全部的自己",
+      "triggers": [],
+      "cross_note": "你的品味豐富且多層次，很多種感覺都能讓你心動——這不是猶豫，而是你對生活的好奇心和開放態度。這樣的空間需要一個夠聰明、夠細膩的設計師來幫你找到那個「把所有面向都容納進去」的設計語言。我們一起來探索哪種感覺的組合最讓你覺得「對」。"
+    }
+  ],
+  "fragility": [
+    {
+      "key": "exploring",
+      "label": "風格搜尋中",
+      "condition": "top3_spread_lt_10",
+      "client_note": "你對空間保持開放和好奇，這樣的人通常在真實看到提案後才知道自己要什麼——這正是我們陪你探索的起點。",
+      "designer_alert": "客戶風格未定型，top 3 分數差距 < 10%。建議提案時給 2-3 個明確方向讓客戶選擇，而不是開放式提問。"
+    },
+    {
+      "key": "layered",
+      "label": "感知矛盾型",
+      "condition": "axis_conflict",
+      "client_note": "你的品味有多個層次，你在不同方向的感覺都有共鳴——這說明你的空間需要夠細膩的設計語言，才能容納你全部的自己。",
+      "designer_alert": "Top 3 中存在視覺溫度軸向矛盾（如溫潤×靜謐、明亮×靜謐）。建議以其中一個為主調，另一個作為局部點綴，並在初次提案時與客戶確認主從關係。"
+    },
+    {
+      "key": "precise",
+      "label": "精準型",
+      "condition": "total_liked_lt_15",
+      "client_note": "你的選擇非常精準，每一個喜歡背後都有強烈的理由。對你來說，設計不在多，在對。",
+      "designer_alert": "客戶右滑照片極少（< 15 張），視覺標準高。提案材料要精準，不要給太多選項，每一個呈現都要到位。"
+    },
+    {
+      "key": "atmosphere",
+      "label": "氛圍型",
+      "condition": "all_scene_axis",
+      "client_note": "你對空間的感受從整體氛圍和情境出發，你在意的是走進去的感覺，不是材料名稱。",
+      "designer_alert": "Top 3 全在 scene 軸（度假感/飯店感/咖啡館感/美術館感）。客戶從情境感受出發，溝通時用感覺語言，避免先談材料和工法。提案用情境故事板（mood board）切入。"
+    }
+  ],
+  "_note": "search_en 用途：Carol 在 Pinterest / Unsplash / Google Images 搜尋參考照片時的關鍵字。admin.html 的 legend 會顯示為可點擊的 Pinterest 搜尋連結。"
+}

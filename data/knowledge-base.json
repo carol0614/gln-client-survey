@@ -1,128 +1,1268 @@
 {
   "_meta": {
-    "name": "GLN 機能設計知識庫 V3",
-    "version": "3.0",
-    "total_entries": 58,
+    "name": "GLN 機能設計知識庫 V4",
+    "version": "4.0",
+    "total_entries": 93,
     "source": "https://docs.google.com/spreadsheets/d/10EG8F8aM8n9Ta3oukBTknU1c0TmeFw3R/",
-    "note": "整合台灣住宅機能設計研究 + 國際睡眠/健康/建築學研究的設計知識"
+    "note": "V3（58項）+ V4新增（電氣10、排水10、收納7、盲點8）= 113項"
   },
   "areas": [
     {
       "key": "entrance",
       "name": "玄關",
       "entries": [
-        { "id": "G-01", "problem": "鞋子收納不足", "applies_to": "通用", "severity": 5, "solution": "360 度旋轉鞋架 + 可調層板 + 懸空落塵區", "tags": ["收納", "鞋類", "玄關"] },
-        { "id": "G-02", "problem": "玄關無落塵區，污塵直上樓", "applies_to": "通用", "severity": 4, "solution": "三段式動線 + 材質分區", "tags": ["過敏", "PM2.5", "玄關", "落塵"] },
-        { "id": "G-03", "problem": "無整裝角落，出門前手忙腳亂", "applies_to": "新屋", "severity": 3, "solution": "出門動線 + 60×80cm 整裝檯面 + 鏡前燈", "tags": ["晨間動線", "出門"] },
-        { "id": "G-04", "problem": "老屋無玄關，家塵與氣味直入", "applies_to": "老屋", "severity": 4, "solution": "屏風式玄關 + 段差 + 過渡帶", "tags": ["老屋", "玄關", "過渡帶"] },
-        { "id": "G-05", "problem": "寵物進出造成清潔與動線問題", "applies_to": "養寵物", "severity": 3, "solution": "寵物清潔站 + 防水引流 + 動線分離", "tags": ["寵物", "清潔", "動線"] },
-        { "id": "G-06", "problem": "雨天濕傘與溼度管理", "applies_to": "通用", "severity": 3, "solution": "傘架 + 乾燥區 + 珪藻土 + 除濕", "tags": ["濕度", "玄關"] }
+        {
+          "id": "G-01",
+          "problem": "鞋子收納不足",
+          "applies_to": "通用",
+          "severity": 5,
+          "solution": "360 度旋轉鞋架 + 可調層板 + 懸空落塵區",
+          "tags": [
+            "收納",
+            "鞋類",
+            "玄關"
+          ]
+        },
+        {
+          "id": "G-02",
+          "problem": "玄關無落塵區，污塵直上樓",
+          "applies_to": "通用",
+          "severity": 4,
+          "solution": "三段式動線 + 材質分區",
+          "tags": [
+            "過敏",
+            "PM2.5",
+            "玄關",
+            "落塵"
+          ]
+        },
+        {
+          "id": "G-03",
+          "problem": "無整裝角落，出門前手忙腳亂",
+          "applies_to": "新屋",
+          "severity": 3,
+          "solution": "出門動線 + 60×80cm 整裝檯面 + 鏡前燈",
+          "tags": [
+            "晨間動線",
+            "出門"
+          ]
+        },
+        {
+          "id": "G-04",
+          "problem": "老屋無玄關，家塵與氣味直入",
+          "applies_to": "老屋",
+          "severity": 4,
+          "solution": "屏風式玄關 + 段差 + 過渡帶",
+          "tags": [
+            "老屋",
+            "玄關",
+            "過渡帶"
+          ]
+        },
+        {
+          "id": "G-05",
+          "problem": "寵物進出造成清潔與動線問題",
+          "applies_to": "養寵物",
+          "severity": 3,
+          "solution": "寵物清潔站 + 防水引流 + 動線分離",
+          "tags": [
+            "寵物",
+            "清潔",
+            "動線"
+          ]
+        },
+        {
+          "id": "G-06",
+          "problem": "雨天濕傘與溼度管理",
+          "applies_to": "通用",
+          "severity": 3,
+          "solution": "傘架 + 乾燥區 + 珪藻土 + 除濕",
+          "tags": [
+            "濕度",
+            "玄關"
+          ]
+        }
       ]
     },
     {
       "key": "living",
       "name": "客廳",
       "entries": [
-        { "id": "L-01", "problem": "採光不足（街屋暗房）", "applies_to": "老屋街屋", "severity": 5, "solution": "天井 + 天窗 + 長虹玻璃 + 室內窗", "tags": ["採光", "老屋", "心理健康", "SAD"] },
-        { "id": "L-02", "problem": "坪數過小，客餐廳分離感強", "applies_to": "新屋", "severity": 4, "solution": "LDK 一體化開放式設計", "tags": ["小坪數", "LDK", "開放式"] },
-        { "id": "L-03", "problem": "電線雜亂", "applies_to": "通用", "severity": 4, "solution": "整線槽 + 隱線 + 無線化", "tags": ["電線", "視覺"] },
-        { "id": "L-04", "problem": "共壁漏水 + 壁癌，黴菌氣味", "applies_to": "老屋公寓/華廈", "severity": 5, "solution": "斷開式防水 + 懸空 + 透氣背板 + 維修檢測口", "tags": ["老屋", "漏水", "黴菌", "公寓"] },
-        { "id": "L-05", "problem": "收納不足，客廳堆雜物", "applies_to": "通用", "severity": 4, "solution": "牆面 + 天花 + 高櫃 + 電視牆機能整合", "tags": ["收納", "客廳"] },
-        { "id": "L-06", "problem": "空調效率差，冷熱不均", "applies_to": "通用", "severity": 3, "solution": "變頻多聯機 + 出風管道優化", "tags": ["空調", "節能"] },
-        { "id": "L-07", "problem": "兒童安全隱患（尖角/跌倒/夾手）", "applies_to": "有幼兒", "severity": 5, "solution": "圓角家具 + 護角 + 吸震地墊 + 防夾止擋", "tags": ["兒童安全", "幼兒"] },
-        { "id": "L-08", "problem": "長輩無障礙困難", "applies_to": "三代同堂/長輩", "severity": 5, "solution": "下壓把手 + 靜音鎖舌 + 扶手 + 沙發 ≥45cm", "tags": ["長輩", "無障礙"] },
-        { "id": "L-09", "problem": "色彩與親生物性設計", "applies_to": "通用", "severity": 3, "solution": "大地色客廳 + 室內植栽 + 2700K 暖光", "tags": ["色彩", "心理", "植栽"] }
+        {
+          "id": "L-01",
+          "problem": "採光不足（街屋暗房）",
+          "applies_to": "老屋街屋",
+          "severity": 5,
+          "solution": "天井 + 天窗 + 長虹玻璃 + 室內窗",
+          "tags": [
+            "採光",
+            "老屋",
+            "心理健康",
+            "SAD"
+          ]
+        },
+        {
+          "id": "L-02",
+          "problem": "坪數過小，客餐廳分離感強",
+          "applies_to": "新屋",
+          "severity": 4,
+          "solution": "LDK 一體化開放式設計",
+          "tags": [
+            "小坪數",
+            "LDK",
+            "開放式"
+          ]
+        },
+        {
+          "id": "L-03",
+          "problem": "電線雜亂",
+          "applies_to": "通用",
+          "severity": 4,
+          "solution": "整線槽 + 隱線 + 無線化",
+          "tags": [
+            "電線",
+            "視覺"
+          ]
+        },
+        {
+          "id": "L-04",
+          "problem": "共壁漏水 + 壁癌，黴菌氣味",
+          "applies_to": "老屋公寓/華廈",
+          "severity": 5,
+          "solution": "斷開式防水 + 懸空 + 透氣背板 + 維修檢測口",
+          "tags": [
+            "老屋",
+            "漏水",
+            "黴菌",
+            "公寓"
+          ]
+        },
+        {
+          "id": "L-05",
+          "problem": "收納不足，客廳堆雜物",
+          "applies_to": "通用",
+          "severity": 4,
+          "solution": "牆面 + 天花 + 高櫃 + 電視牆機能整合",
+          "tags": [
+            "收納",
+            "客廳"
+          ]
+        },
+        {
+          "id": "L-06",
+          "problem": "空調效率差，冷熱不均",
+          "applies_to": "通用",
+          "severity": 3,
+          "solution": "變頻多聯機 + 出風管道優化",
+          "tags": [
+            "空調",
+            "節能"
+          ]
+        },
+        {
+          "id": "L-07",
+          "problem": "兒童安全隱患（尖角/跌倒/夾手）",
+          "applies_to": "有幼兒",
+          "severity": 5,
+          "solution": "圓角家具 + 護角 + 吸震地墊 + 防夾止擋",
+          "tags": [
+            "兒童安全",
+            "幼兒"
+          ]
+        },
+        {
+          "id": "L-08",
+          "problem": "長輩無障礙困難",
+          "applies_to": "三代同堂/長輩",
+          "severity": 5,
+          "solution": "下壓把手 + 靜音鎖舌 + 扶手 + 沙發 ≥45cm",
+          "tags": [
+            "長輩",
+            "無障礙"
+          ]
+        },
+        {
+          "id": "L-09",
+          "problem": "色彩與親生物性設計",
+          "applies_to": "通用",
+          "severity": 3,
+          "solution": "大地色客廳 + 室內植栽 + 2700K 暖光",
+          "tags": [
+            "色彩",
+            "心理",
+            "植栽"
+          ]
+        }
       ]
     },
     {
       "key": "kitchen",
       "name": "廚房",
       "entries": [
-        { "id": "K-01", "problem": "廚房採光不足，安全隱患", "applies_to": "通用", "severity": 5, "solution": "天窗 + 長虹玻璃 + 工作檯 ≥750 lux LED", "tags": ["採光", "廚房", "食品安全"] },
-        { "id": "K-02", "problem": "檯面過小，烹飪效率低", "applies_to": "通用", "severity": 4, "solution": "L/U 型 + 中島 + 掛牆收納 + 動線 <3m", "tags": ["檯面", "效率", "中島"] },
-        { "id": "K-03", "problem": "油煙排擠不出，廚房油膩", "applies_to": "老屋", "severity": 5, "solution": "強力排油煙機 ≥15m³/分 + 直管 + 防倒風閥", "tags": ["油煙", "老屋", "肺部健康"] },
-        { "id": "K-04", "problem": "檯面材質不耐用", "applies_to": "通用", "severity": 3, "solution": "石英石 + 防汙膜 + 圓弧邊角", "tags": ["檯面", "材質"] },
-        { "id": "K-05", "problem": "廚房收納不足", "applies_to": "通用", "severity": 4, "solution": "吊櫃 + 深抽屜 + 掛牆 + 轉角妙用", "tags": ["收納", "廚房"] },
-        { "id": "K-06", "problem": "爐火近窗戶，油煙外溢與安全", "applies_to": "老屋", "severity": 3, "solution": "爐位 ≥120cm 離窗 + 隔屏 + 防油濺擋", "tags": ["油煙", "防火", "老屋"] }
+        {
+          "id": "K-01",
+          "problem": "廚房採光不足，安全隱患",
+          "applies_to": "通用",
+          "severity": 5,
+          "solution": "天窗 + 長虹玻璃 + 工作檯 ≥750 lux LED",
+          "tags": [
+            "採光",
+            "廚房",
+            "食品安全"
+          ]
+        },
+        {
+          "id": "K-02",
+          "problem": "檯面過小，烹飪效率低",
+          "applies_to": "通用",
+          "severity": 4,
+          "solution": "L/U 型 + 中島 + 掛牆收納 + 動線 <3m",
+          "tags": [
+            "檯面",
+            "效率",
+            "中島"
+          ]
+        },
+        {
+          "id": "K-03",
+          "problem": "油煙排擠不出，廚房油膩",
+          "applies_to": "老屋",
+          "severity": 5,
+          "solution": "強力排油煙機 ≥15m³/分 + 直管 + 防倒風閥",
+          "tags": [
+            "油煙",
+            "老屋",
+            "肺部健康"
+          ]
+        },
+        {
+          "id": "K-04",
+          "problem": "檯面材質不耐用",
+          "applies_to": "通用",
+          "severity": 3,
+          "solution": "石英石 + 防汙膜 + 圓弧邊角",
+          "tags": [
+            "檯面",
+            "材質"
+          ]
+        },
+        {
+          "id": "K-05",
+          "problem": "廚房收納不足",
+          "applies_to": "通用",
+          "severity": 4,
+          "solution": "吊櫃 + 深抽屜 + 掛牆 + 轉角妙用",
+          "tags": [
+            "收納",
+            "廚房"
+          ]
+        },
+        {
+          "id": "K-06",
+          "problem": "爐火近窗戶，油煙外溢與安全",
+          "applies_to": "老屋",
+          "severity": 3,
+          "solution": "爐位 ≥120cm 離窗 + 隔屏 + 防油濺擋",
+          "tags": [
+            "油煙",
+            "防火",
+            "老屋"
+          ]
+        }
       ]
     },
     {
       "key": "bathroom",
       "name": "衛浴",
       "entries": [
-        { "id": "B-01", "problem": "浴室濕度過高，黴菌滋生", "applies_to": "通用", "severity": 5, "solution": "排氣扇 (面積×8 CFM) + 濕度感應 + 防黴材", "tags": ["黴菌", "濕度", "過敏"] },
-        { "id": "B-02", "problem": "浴室防滑不足，老人跌倒", "applies_to": "有老人/幼兒", "severity": 5, "solution": "防滑磚 (係數 ≥0.6) + 扶手 + 地墊", "tags": ["防滑", "長輩", "幼兒"] },
-        { "id": "B-03", "problem": "兒童洗漱不便", "applies_to": "有幼兒", "severity": 3, "solution": "兒童洗手檯 40-50cm + 踏腳板 + 安全五金", "tags": ["兒童", "衛生習慣"] },
-        { "id": "B-04", "problem": "沐浴水溫不穩定，燙傷風險", "applies_to": "通用", "severity": 4, "solution": "恆溫水龍頭 (±2°C) + 防燙 ≤43°C", "tags": ["水溫", "燙傷"] },
-        { "id": "B-05", "problem": "衛浴收納不足", "applies_to": "通用", "severity": 3, "solution": "浴室櫃 + 掛牆 + 鏡櫃 + 排水設計", "tags": ["收納", "衛浴"] },
-        { "id": "B-06", "problem": "老屋衛浴漏水，樓下糾紛", "applies_to": "老屋", "severity": 5, "solution": "防水層重做 + 乾濕分離 + 防臭地漏 + 定期檢查", "tags": ["老屋", "漏水", "防水"] }
+        {
+          "id": "B-01",
+          "problem": "浴室濕度過高，黴菌滋生",
+          "applies_to": "通用",
+          "severity": 5,
+          "solution": "排氣扇 (面積×8 CFM) + 濕度感應 + 防黴材",
+          "tags": [
+            "黴菌",
+            "濕度",
+            "過敏"
+          ]
+        },
+        {
+          "id": "B-02",
+          "problem": "浴室防滑不足，老人跌倒",
+          "applies_to": "有老人/幼兒",
+          "severity": 5,
+          "solution": "防滑磚 (係數 ≥0.6) + 扶手 + 地墊",
+          "tags": [
+            "防滑",
+            "長輩",
+            "幼兒"
+          ]
+        },
+        {
+          "id": "B-03",
+          "problem": "兒童洗漱不便",
+          "applies_to": "有幼兒",
+          "severity": 3,
+          "solution": "兒童洗手檯 40-50cm + 踏腳板 + 安全五金",
+          "tags": [
+            "兒童",
+            "衛生習慣"
+          ]
+        },
+        {
+          "id": "B-04",
+          "problem": "沐浴水溫不穩定，燙傷風險",
+          "applies_to": "通用",
+          "severity": 4,
+          "solution": "恆溫水龍頭 (±2°C) + 防燙 ≤43°C",
+          "tags": [
+            "水溫",
+            "燙傷"
+          ]
+        },
+        {
+          "id": "B-05",
+          "problem": "衛浴收納不足",
+          "applies_to": "通用",
+          "severity": 3,
+          "solution": "浴室櫃 + 掛牆 + 鏡櫃 + 排水設計",
+          "tags": [
+            "收納",
+            "衛浴"
+          ]
+        },
+        {
+          "id": "B-06",
+          "problem": "老屋衛浴漏水，樓下糾紛",
+          "applies_to": "老屋",
+          "severity": 5,
+          "solution": "防水層重做 + 乾濕分離 + 防臭地漏 + 定期檢查",
+          "tags": [
+            "老屋",
+            "漏水",
+            "防水"
+          ]
+        }
       ]
     },
     {
       "key": "bedroom",
       "name": "臥室",
       "entries": [
-        { "id": "BR-01", "problem": "衣物收納不足，穿衣選擇困難", "applies_to": "通用", "severity": 3, "solution": "推拉門衣櫃 + 雙層吊掛 + 抽屜分層 + 季節輪換", "tags": ["衣櫃", "收納"] },
-        { "id": "BR-02", "problem": "睡眠環境科學化設計", "applies_to": "通用", "severity": 5, "solution": "溫 18-22°C + 濕 40-60% + 遮光簾 ≥99% + 記憶棉", "tags": ["睡眠科學", "REM", "褪黑激素"] },
-        { "id": "BR-03", "problem": "床頭燈光配置不當", "applies_to": "通用", "severity": 4, "solution": "三層照明 + 2700-3000K + 地腳感應 + 床邊開關", "tags": ["燈光", "色溫", "入睡"] },
-        { "id": "BR-04", "problem": "空調氣流與床位（風直吹偏頭痛）", "applies_to": "通用", "severity": 4, "solution": "床腳兩側牆面 + 吊隱式 ≥3m 離床 + 不在床頭", "tags": ["空調", "偏頭痛", "末梢循環"] },
-        { "id": "BR-05", "problem": "臥室 CO₂ 濃度過高", "applies_to": "通用", "severity": 5, "solution": "全熱交換器 + CO₂ 感應 + PM2.5 過濾 97%", "tags": ["CO₂", "全熱交換", "認知功能"] },
-        { "id": "BR-06", "problem": "臥室隔音不足", "applies_to": "通用", "severity": 4, "solution": "隔音窗 STC ≥32 + 衣櫃靠共壁 + 地毯 + 防震墊", "tags": ["噪音", "睡眠", "隔音"] },
-        { "id": "BR-07", "problem": "臥室色溫與情緒調節", "applies_to": "通用", "severity": 3, "solution": "冷色調牆 + 綠色軟裝 + 避免紅橘", "tags": ["色彩", "睡眠", "情緒"] },
-        { "id": "BR-08", "problem": "兒童房分齡設計", "applies_to": "有兒童/青少年", "severity": 4, "solution": "0-3 安全防護 / 3-12 分區學習 / 12+ 隱私隔間", "tags": ["兒童", "成長", "學習"] },
-        { "id": "BR-09", "problem": "西曬臥室過熱", "applies_to": "西曬", "severity": 3, "solution": "外遮陽 + 隔熱窗膜 + 穿堂風", "tags": ["西曬", "隔熱"] },
-        { "id": "BR-10", "problem": "女性專用空間設計（經期/更年期）", "applies_to": "女性/更年期", "severity": 3, "solution": "快冷暖空調 + 香氛 + 柔和色 + 私密收納", "tags": ["女性", "更年期", "經期"] }
+        {
+          "id": "BR-01",
+          "problem": "衣物收納不足，穿衣選擇困難",
+          "applies_to": "通用",
+          "severity": 3,
+          "solution": "推拉門衣櫃 + 雙層吊掛 + 抽屜分層 + 季節輪換",
+          "tags": [
+            "衣櫃",
+            "收納"
+          ]
+        },
+        {
+          "id": "BR-02",
+          "problem": "睡眠環境科學化設計",
+          "applies_to": "通用",
+          "severity": 5,
+          "solution": "溫 18-22°C + 濕 40-60% + 遮光簾 ≥99% + 記憶棉",
+          "tags": [
+            "睡眠科學",
+            "REM",
+            "褪黑激素"
+          ]
+        },
+        {
+          "id": "BR-03",
+          "problem": "床頭燈光配置不當",
+          "applies_to": "通用",
+          "severity": 4,
+          "solution": "三層照明 + 2700-3000K + 地腳感應 + 床邊開關",
+          "tags": [
+            "燈光",
+            "色溫",
+            "入睡"
+          ]
+        },
+        {
+          "id": "BR-04",
+          "problem": "空調氣流與床位（風直吹偏頭痛）",
+          "applies_to": "通用",
+          "severity": 4,
+          "solution": "床腳兩側牆面 + 吊隱式 ≥3m 離床 + 不在床頭",
+          "tags": [
+            "空調",
+            "偏頭痛",
+            "末梢循環"
+          ]
+        },
+        {
+          "id": "BR-05",
+          "problem": "臥室 CO₂ 濃度過高",
+          "applies_to": "通用",
+          "severity": 5,
+          "solution": "全熱交換器 + CO₂ 感應 + PM2.5 過濾 97%",
+          "tags": [
+            "CO₂",
+            "全熱交換",
+            "認知功能"
+          ]
+        },
+        {
+          "id": "BR-06",
+          "problem": "臥室隔音不足",
+          "applies_to": "通用",
+          "severity": 4,
+          "solution": "隔音窗 STC ≥32 + 衣櫃靠共壁 + 地毯 + 防震墊",
+          "tags": [
+            "噪音",
+            "睡眠",
+            "隔音"
+          ]
+        },
+        {
+          "id": "BR-07",
+          "problem": "臥室色溫與情緒調節",
+          "applies_to": "通用",
+          "severity": 3,
+          "solution": "冷色調牆 + 綠色軟裝 + 避免紅橘",
+          "tags": [
+            "色彩",
+            "睡眠",
+            "情緒"
+          ]
+        },
+        {
+          "id": "BR-08",
+          "problem": "兒童房分齡設計",
+          "applies_to": "有兒童/青少年",
+          "severity": 4,
+          "solution": "0-3 安全防護 / 3-12 分區學習 / 12+ 隱私隔間",
+          "tags": [
+            "兒童",
+            "成長",
+            "學習"
+          ]
+        },
+        {
+          "id": "BR-09",
+          "problem": "西曬臥室過熱",
+          "applies_to": "西曬",
+          "severity": 3,
+          "solution": "外遮陽 + 隔熱窗膜 + 穿堂風",
+          "tags": [
+            "西曬",
+            "隔熱"
+          ]
+        },
+        {
+          "id": "BR-10",
+          "problem": "女性專用空間設計（經期/更年期）",
+          "applies_to": "女性/更年期",
+          "severity": 3,
+          "solution": "快冷暖空調 + 香氛 + 柔和色 + 私密收納",
+          "tags": [
+            "女性",
+            "更年期",
+            "經期"
+          ]
+        }
       ]
     },
     {
       "key": "dining",
       "name": "餐廳",
       "entries": [
-        { "id": "D-01", "problem": "餐廳採光不足，失去食慾", "applies_to": "通用", "severity": 3, "solution": "天窗 + 玻璃隔間 + 2700-3000K 吊燈 ≥300 lux", "tags": ["採光", "食慾", "暖光"] },
-        { "id": "D-02", "problem": "餐廳與廚房分離，互動感缺", "applies_to": "新屋", "severity": 3, "solution": "開放式 LDK + 中島吧檯 + 視線穿透", "tags": ["開放式", "互動", "LDK"] },
-        { "id": "D-03", "problem": "餐廳座位不舒適", "applies_to": "通用", "severity": 2, "solution": "餐桌 70-75cm + 椅 40-45cm + 靠背 35-40cm", "tags": ["人體工學", "脊椎"] }
+        {
+          "id": "D-01",
+          "problem": "餐廳採光不足，失去食慾",
+          "applies_to": "通用",
+          "severity": 3,
+          "solution": "天窗 + 玻璃隔間 + 2700-3000K 吊燈 ≥300 lux",
+          "tags": [
+            "採光",
+            "食慾",
+            "暖光"
+          ]
+        },
+        {
+          "id": "D-02",
+          "problem": "餐廳與廚房分離，互動感缺",
+          "applies_to": "新屋",
+          "severity": 3,
+          "solution": "開放式 LDK + 中島吧檯 + 視線穿透",
+          "tags": [
+            "開放式",
+            "互動",
+            "LDK"
+          ]
+        },
+        {
+          "id": "D-03",
+          "problem": "餐廳座位不舒適",
+          "applies_to": "通用",
+          "severity": 2,
+          "solution": "餐桌 70-75cm + 椅 40-45cm + 靠背 35-40cm",
+          "tags": [
+            "人體工學",
+            "脊椎"
+          ]
+        }
       ]
     },
     {
       "key": "balcony",
       "name": "陽台",
       "entries": [
-        { "id": "BL-01", "problem": "陽台積水堆物，蚊蟲", "applies_to": "通用", "severity": 3, "solution": "1-2% 坡度 + 排水口 + 垂直收納", "tags": ["蚊蟲", "登革熱", "陽台"] },
-        { "id": "BL-02", "problem": "陽台採光與居家聯繫不足，迴遊動線缺", "applies_to": "通用", "severity": 2, "solution": "開放式陽台 + 廚房-洗衣-陽台-臥室環形動線", "tags": ["動線", "家事效率", "迴遊"] },
-        { "id": "BL-03", "problem": "陽台西曬過熱", "applies_to": "西曬", "severity": 2, "solution": "外遮陽 + 隔熱窗膜 + 攀爬植栽", "tags": ["西曬", "陽台"] },
-        { "id": "BL-04", "problem": "陽台防水隱蔽工程隱患", "applies_to": "老屋", "severity": 3, "solution": "防水層重做 + 排水優化 + 檢測口", "tags": ["老屋", "防水", "陽台"] }
+        {
+          "id": "BL-01",
+          "problem": "陽台積水堆物，蚊蟲",
+          "applies_to": "通用",
+          "severity": 3,
+          "solution": "1-2% 坡度 + 排水口 + 垂直收納",
+          "tags": [
+            "蚊蟲",
+            "登革熱",
+            "陽台"
+          ]
+        },
+        {
+          "id": "BL-02",
+          "problem": "陽台採光與居家聯繫不足，迴遊動線缺",
+          "applies_to": "通用",
+          "severity": 2,
+          "solution": "開放式陽台 + 廚房-洗衣-陽台-臥室環形動線",
+          "tags": [
+            "動線",
+            "家事效率",
+            "迴遊"
+          ]
+        },
+        {
+          "id": "BL-03",
+          "problem": "陽台西曬過熱",
+          "applies_to": "西曬",
+          "severity": 2,
+          "solution": "外遮陽 + 隔熱窗膜 + 攀爬植栽",
+          "tags": [
+            "西曬",
+            "陽台"
+          ]
+        },
+        {
+          "id": "BL-04",
+          "problem": "陽台防水隱蔽工程隱患",
+          "applies_to": "老屋",
+          "severity": 3,
+          "solution": "防水層重做 + 排水優化 + 檢測口",
+          "tags": [
+            "老屋",
+            "防水",
+            "陽台"
+          ]
+        }
       ]
     },
     {
       "key": "study",
       "name": "書房 / 多功能房",
       "entries": [
-        { "id": "S-01", "problem": "書房光線暗淡，視力受損", "applies_to": "有工作/學生", "severity": 3, "solution": "工作檯 ≥500 lux + 4000-4500K + 護眼燈 + 避免逆光", "tags": ["照明", "視力", "WFH"] },
-        { "id": "S-02", "problem": "書房干擾多，專注力難集中", "applies_to": "有工作/學生", "severity": 3, "solution": "隔音窗 + 白噪音 + 吸音材料 + 視覺簡潔", "tags": ["專注", "WFH", "隔音"] },
-        { "id": "S-03", "problem": "書房溫度不適", "applies_to": "有工作/學生", "severity": 2, "solution": "獨立分區空調 + 桌邊冷氣 + 衣物調適", "tags": ["WFH", "溫控"] }
+        {
+          "id": "S-01",
+          "problem": "書房光線暗淡，視力受損",
+          "applies_to": "有工作/學生",
+          "severity": 3,
+          "solution": "工作檯 ≥500 lux + 4000-4500K + 護眼燈 + 避免逆光",
+          "tags": [
+            "照明",
+            "視力",
+            "WFH"
+          ]
+        },
+        {
+          "id": "S-02",
+          "problem": "書房干擾多，專注力難集中",
+          "applies_to": "有工作/學生",
+          "severity": 3,
+          "solution": "隔音窗 + 白噪音 + 吸音材料 + 視覺簡潔",
+          "tags": [
+            "專注",
+            "WFH",
+            "隔音"
+          ]
+        },
+        {
+          "id": "S-03",
+          "problem": "書房溫度不適",
+          "applies_to": "有工作/學生",
+          "severity": 2,
+          "solution": "獨立分區空調 + 桌邊冷氣 + 衣物調適",
+          "tags": [
+            "WFH",
+            "溫控"
+          ]
+        }
       ]
     },
     {
       "key": "corridor",
       "name": "走廊動線",
       "entries": [
-        { "id": "C-01", "problem": "走廊狹窄昏暗", "applies_to": "老屋", "severity": 3, "solution": "室內窗 + LED + 淺色 + 圓角防撞 + 防滑", "tags": ["老屋", "走廊", "採光"] },
-        { "id": "C-02", "problem": "走廊迴遊動線不良，家事效率低", "applies_to": "通用", "severity": 2, "solution": "環形動線 + 寬度 ≥80cm + 轉角圓弧", "tags": ["動線", "家事"] },
-        { "id": "C-03", "problem": "走廊收納不足，雜物堆放", "applies_to": "老屋", "severity": 2, "solution": "壁面掛牆 + 邊角櫃 + 吊櫃 + 收納盒", "tags": ["走廊", "收納"] }
+        {
+          "id": "C-01",
+          "problem": "走廊狹窄昏暗",
+          "applies_to": "老屋",
+          "severity": 3,
+          "solution": "室內窗 + LED + 淺色 + 圓角防撞 + 防滑",
+          "tags": [
+            "老屋",
+            "走廊",
+            "採光"
+          ]
+        },
+        {
+          "id": "C-02",
+          "problem": "走廊迴遊動線不良，家事效率低",
+          "applies_to": "通用",
+          "severity": 2,
+          "solution": "環形動線 + 寬度 ≥80cm + 轉角圓弧",
+          "tags": [
+            "動線",
+            "家事"
+          ]
+        },
+        {
+          "id": "C-03",
+          "problem": "走廊收納不足，雜物堆放",
+          "applies_to": "老屋",
+          "severity": 2,
+          "solution": "壁面掛牆 + 邊角櫃 + 吊櫃 + 收納盒",
+          "tags": [
+            "走廊",
+            "收納"
+          ]
+        }
       ]
     },
     {
       "key": "whole_house",
       "name": "全屋通用",
       "entries": [
-        { "id": "W-01", "problem": "全屋甲醛污染 VOCs 超標", "applies_to": "新屋", "severity": 5, "solution": "F1/F0 建材 + 光觸媒 + 全熱交換器", "tags": ["甲醛", "新屋", "兒童白血病", "孕婦"] },
-        { "id": "W-02", "problem": "全屋空調能耗高", "applies_to": "通用", "severity": 3, "solution": "變頻多聯機 SEER ≥4.5 + 分區 + 隔熱", "tags": ["能耗", "電費", "節能"] },
-        { "id": "W-03", "problem": "全屋照明不足", "applies_to": "老屋", "severity": 3, "solution": "分層照明 + LED 升級 + 智能調控 + 夜燈", "tags": ["照明", "視覺", "老屋"] },
-        { "id": "W-04", "problem": "全屋濕度控制不良", "applies_to": "新屋", "severity": 3, "solution": "獨立除濕 + 濕度感應 + 目標 40-60%", "tags": ["濕度", "家塵螨", "黴菌"] },
-        { "id": "W-05", "problem": "全屋電線雜亂", "applies_to": "老屋", "severity": 4, "solution": "整線槽 + 隱線 + 無線化 + 老化檢查", "tags": ["電線", "老屋", "火災"] },
-        { "id": "W-06", "problem": "全屋無障礙設計缺失", "applies_to": "三代同堂/長輩/幼兒", "severity": 5, "solution": "無高度差 + 扶手 + 防滑 + 緊急鈴", "tags": ["無障礙", "長輩", "幼兒", "跌倒"] },
-        { "id": "W-07", "problem": "全屋室內空氣品質不良", "applies_to": "新屋", "severity": 5, "solution": "全熱交換器 + PM2.5/CO₂ 監測 + 室內植栽", "tags": ["IAQ", "PM2.5", "CO₂", "新屋"] },
-        { "id": "W-08", "problem": "全屋噪音問題", "applies_to": "通用", "severity": 4, "solution": "隔音窗 STC ≥32 + 隔音門 + 家電防震墊", "tags": ["噪音", "睡眠", "專注", "STC"] }
+        {
+          "id": "W-01",
+          "problem": "全屋甲醛污染 VOCs 超標",
+          "applies_to": "新屋",
+          "severity": 5,
+          "solution": "F1/F0 建材 + 光觸媒 + 全熱交換器",
+          "tags": [
+            "甲醛",
+            "新屋",
+            "兒童白血病",
+            "孕婦"
+          ]
+        },
+        {
+          "id": "W-02",
+          "problem": "全屋空調能耗高",
+          "applies_to": "通用",
+          "severity": 3,
+          "solution": "變頻多聯機 SEER ≥4.5 + 分區 + 隔熱",
+          "tags": [
+            "能耗",
+            "電費",
+            "節能"
+          ]
+        },
+        {
+          "id": "W-03",
+          "problem": "全屋照明不足",
+          "applies_to": "老屋",
+          "severity": 3,
+          "solution": "分層照明 + LED 升級 + 智能調控 + 夜燈",
+          "tags": [
+            "照明",
+            "視覺",
+            "老屋"
+          ]
+        },
+        {
+          "id": "W-04",
+          "problem": "全屋濕度控制不良",
+          "applies_to": "新屋",
+          "severity": 3,
+          "solution": "獨立除濕 + 濕度感應 + 目標 40-60%",
+          "tags": [
+            "濕度",
+            "家塵螨",
+            "黴菌"
+          ]
+        },
+        {
+          "id": "W-05",
+          "problem": "全屋電線雜亂",
+          "applies_to": "老屋",
+          "severity": 4,
+          "solution": "整線槽 + 隱線 + 無線化 + 老化檢查",
+          "tags": [
+            "電線",
+            "老屋",
+            "火災"
+          ]
+        },
+        {
+          "id": "W-06",
+          "problem": "全屋無障礙設計缺失",
+          "applies_to": "三代同堂/長輩/幼兒",
+          "severity": 5,
+          "solution": "無高度差 + 扶手 + 防滑 + 緊急鈴",
+          "tags": [
+            "無障礙",
+            "長輩",
+            "幼兒",
+            "跌倒"
+          ]
+        },
+        {
+          "id": "W-07",
+          "problem": "全屋室內空氣品質不良",
+          "applies_to": "新屋",
+          "severity": 5,
+          "solution": "全熱交換器 + PM2.5/CO₂ 監測 + 室內植栽",
+          "tags": [
+            "IAQ",
+            "PM2.5",
+            "CO₂",
+            "新屋"
+          ]
+        },
+        {
+          "id": "W-08",
+          "problem": "全屋噪音問題",
+          "applies_to": "通用",
+          "severity": 4,
+          "solution": "隔音窗 STC ≥32 + 隔音門 + 家電防震墊",
+          "tags": [
+            "噪音",
+            "睡眠",
+            "專注",
+            "STC"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "electrical",
+      "name": "插座電氣開關迴路",
+      "entries": [
+        {
+          "id": "E-01",
+          "problem": "客廳插座數量不足：電視、冷氣、燈具、充電器需求",
+          "applies_to": "通用",
+          "family_type": "全部家庭類型",
+          "severity": 5,
+          "solution": "客廳插座配置 6-8 組（含 USB 與 PD 快充）",
+          "detailed_method": "電視牆預留 4 組插座+USB；沙發側邊牆 2 組；電視櫃下方 2 組為電器設備預留。預留 220V 冷氣插座獨立迴路。",
+          "scientific_basis": "日本住宅設計標準建議客廳每 2m 牆面配置 1 組插座。美國住宅標準每房間 1.5 組/10 m²。",
+          "health_risks": "插座數量不足迫使使用多孔延長線，增加漏電風險、佔用地面空間、降低美觀度、造成電線糾結安全隱患。",
+          "equipment_suggestions": "Philips USB PD 快充座、美國 NEMA 標準接地插座、TW 電源滑軌系統",
+          "sources": "台灣建築技術規則 3.1.2、日本 JIS A 4401",
+          "designer_notes": "「預留額外插座不只是方便，而是未來 20 年家電配置的彈性。每增加一組成本不到 500 元，但省去日後打牆的費用。」"
+        },
+        {
+          "id": "E-02",
+          "problem": "臥室充電插座難以觸及：手機、平板、手錶同步充電",
+          "applies_to": "通用",
+          "family_type": "年輕家庭、科技重度使用者",
+          "severity": 4,
+          "solution": "床邊配置 USB-C 快充面板與雙插座",
+          "detailed_method": "床頭牆面距床面 30cm 安裝雙 USB-C + 雙 110V 插座面板；配合床頭燈開關整合設計；可選無線充電台。",
+          "scientific_basis": "人體工學：床上躺著使用手機時插座易受床架遮擋。USB 快充面板需距床面 60-80cm 高度（舒適充電姿勢）。",
+          "health_risks": "頻繁使用延長線在床邊造成漏電風險；反覆彎腰插拔導致腰部壓力；長期手機輻射距離過近。",
+          "equipment_suggestions": "Noctua 床邊 USB 面板、Anker 65W GaN 快充、無線充電台（Apple MagSafe / Qi 標準）",
+          "sources": "人體工學指南 ISO 9355、日本生活文化研究「就寢充電習慣調查」",
+          "designer_notes": "「床邊插座就像浴室蓮蓬頭，一旦有了就回不去。這是改善睡眠環境的投資。」"
+        },
+        {
+          "id": "E-03",
+          "problem": "廚房插座位置不當：後擋板空間狹小，大型電器無法接電",
+          "applies_to": "廚房",
+          "family_type": "全部家庭類型",
+          "severity": 5,
+          "solution": "廚房工作台上後擋板配置 4-6 組插座（含 220V）",
+          "detailed_method": "後擋板距工作台面 10-15cm 預留 220V 插座 1 組（烤箱/洗碗機）；110V 插座 3-4 組（微波、果汁機、電鍋）。插座凸出深度不超過 3cm 避免盛裝食材時碰撞。",
+          "scientific_basis": "廚房工作流程研究（Gallley Kitchen 標準）建議插座距工作面 15-25cm。歐洲 DIN 標準廚電插座需獨立迴路避免跳電。",
+          "health_risks": "後擋板空間狹小導致大型電器無法同時使用（共用同一插座）；多孔延長線在廚房潮濕環境造成觸電風險；頻繁插拔引發火災隱患。",
+          "equipment_suggestions": "Legrand 廚房模組化插座系統、Siemens 220V 嵌入式插座、防水插座蓋板",
+          "sources": "台灣 CNS 12514 廚房設計標準、日本 JIS S 0015 廚房工作面積計算",
+          "designer_notes": "「廚房插座不足就像廚師只能用一隻手。每增加一組成本 600 元但能提升 70% 料理效率。」"
+        },
+        {
+          "id": "E-04",
+          "problem": "衛浴防潮插座規劃缺失：熱水器、浴霸、乾燥機無法獨立接電",
+          "applies_to": "衛浴",
+          "family_type": "全部家庭類型",
+          "severity": 5,
+          "solution": "衛浴獨立 220V 迴路 × 2 + 防水插座 × 4",
+          "detailed_method": "熱水器專用 220V 迴路（15A）；浴霸/乾燥機專用 220V 迴路（20A）；洗臉盆旁防水插座 2 組（吹風機、電動牙刷）；鏡前帶防霧鏡 + USB 插座整合。所有插座需 IP67 等級防水蓋。",
+          "scientific_basis": "衛浴濕度 60-95%，插座需防潮設計（IEC 60529 IP67）。熱水器與浴霸同時運行需分離迴路避免跳電。日本規範建議衛浴插座距淋浴區 60cm 以上。",
+          "health_risks": "共用迴路導致浴霸+熱水器運行時跳電；濕度高造成插座氧化、接觸不良、漏電危險；吹風機功率大（1200W）與其他電器共用引發火災。",
+          "equipment_suggestions": "Philips 衛浴防霧鏡（含 LED+USB）、Rhéme 220V 防水插座、Panasonic 多功能浴霸（乾燥+換氣+暖風）",
+          "sources": "IEC 60529 防水等級標準、日本 JIS A 4401 衛浴設計指南",
+          "designer_notes": "「衛浴安全不是奢侈，是底線。防水插座成本多 1000 元，但保護全家人 20 年的生命安全。」"
+        },
+        {
+          "id": "E-05",
+          "problem": "書房多功能房插座規劃不足：工作台、充電站、照明需求分散",
+          "applies_to": "書房/多功能房",
+          "family_type": "工作族、遠距工作者",
+          "severity": 4,
+          "solution": "工作台周邊配置 8-10 組插座（分三區）",
+          "detailed_method": "工作台後方 4 組 110V（電腦主機、螢幕、路由器、USB 集線器）；工作台側邊 2 組（充電站、檯燈）；書架旁 2 組（動線補充）；預留 1 組 220V（空調或大型電器）。使用排插/軌道式插座增加彈性。",
+          "scientific_basis": "遠距工作人體工學研究（Cornell 大學）建議工作台每 1m 牆面需 1 組插座避免延長線在腳下造成絆倒風險。",
+          "health_risks": "延長線在工作室地面造成人員跌倒風險；多孔排插過載引發火災；充電設備散落影響視線和工作效率；頻繁更換設備位置增加工時。",
+          "equipment_suggestions": "Modular 軌道式插座系統、Baseus 多埠 USB 快充中樞、人體感應 LED 軌道燈",
+          "sources": "人體工學標準 ISO 9241、遠距工作環境設計指南",
+          "designer_notes": "「書房插座規劃就像程式碼架構——預留容量比事後補救便宜 10 倍。」"
+        },
+        {
+          "id": "E-06",
+          "problem": "陽台插座缺失：洗衣機、乾衣機、盆栽澆水機無法接電",
+          "applies_to": "陽台",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "陽台配置 2-3 組防水插座 + 1 組 220V",
+          "detailed_method": "洗衣機區域預留 220V 獨立迴路（10A）；乾衣機用 220V 插座；盆栽區域防水插座 2 組（澆水自動機、除蟲燈）。所有插座需加防雨蓋，冬季防冷凝設計。",
+          "scientific_basis": "陽台日照強、溫差大、濕度高（戶外環境）；台灣氣候多雨，需 IP65 以上防水等級。洗衣機 2200W 電力需獨立迴路避免與其他電器衝突。",
+          "health_risks": "缺乏專用插座導致拖長延長線進室內佔用空間、美觀度差；潮濕環境插座氧化、接觸不良；頻繁進出陽台踩踏延長線增加漏電風險。",
+          "equipment_suggestions": "防雨戶外插座蓋板、Bosch 洗衣機專用 220V 插座盒、自動澆水系統（含 USB 供電）",
+          "sources": "台灣電業法戶外安裝規範、IEC 60364 陽台插座標準",
+          "designer_notes": "「陽台是家的後花園，也是家電的最後一站。不能用延長線將就。」"
+        },
+        {
+          "id": "E-07",
+          "problem": "走廊與間接照明插座規劃：感應燈、裝飾燈、夜間照明無法整合",
+          "applies_to": "走廊",
+          "family_type": "全家庭類型",
+          "severity": 3,
+          "solution": "走廊配置 2-3 組隱藏式插座 + LED 控制面板",
+          "detailed_method": "走廊中點預留 2 組隱藏式插座（與牆面齊平，美觀）用於感應夜燈、走廊照明；與主開關整合 LED 控制面板；可選智慧化聯動設計（進出自動開關）。",
+          "scientific_basis": "走廊是過渡空間，美觀度需求高。人體行為研究表明夜間照明可減少 30% 的跌倒事故（老年人群）；感應燈設計需避免誤觸發與死角。",
+          "health_risks": "缺乏照明插座導致走廊昏暗增加夜間跌倒風險；頻繁開關造成視覺壓力；沒有感應控制浪費電力；臨時插座影響走廊通暢度。",
+          "equipment_suggestions": "Nanoleaf 智慧走廊燈、感應式 LED 夜燈、Aqara 聯動開關模組",
+          "sources": "通用設計 (UD) 標準、日本高齡友善居宅設計指南",
+          "designer_notes": "「走廊插座要隱形，但功能要強大。」"
+        },
+        {
+          "id": "E-08",
+          "problem": "玄關鞋櫃與盆栽區插座缺失：乾燥機、生長燈無法接電",
+          "applies_to": "玄關",
+          "family_type": "全家庭類型",
+          "severity": 3,
+          "solution": "玄關鞋櫃內預留 1-2 組插座 + 盆栽區專用插座",
+          "detailed_method": "鞋櫃內頂部預留 1 組 110V 插座（濕鞋乾燥機、除臭機）；盆栽區域預留 1 組防水插座（植物生長燈、自動澆水系統）。插座需低位隱藏設計避免外露。",
+          "scientific_basis": "濕鞋長期存放易發霉、滋生細菌（健康風險）；植物生長需 12-16 小時光照日本園藝研究基礎；玄關濕度控制影響全宅空氣品質。",
+          "health_risks": "缺乏乾燥設備導致鞋類發霉、異味、細菌傳播到室內；盆栽無生長燈導致植物衰弱；臨時插座影響玄關視覺與活動空間。",
+          "equipment_suggestions": "自動鞋乾燥機、LED 植物生長燈、自動澆水計時器",
+          "sources": "室內環境衛生標準、植物栽培學基礎",
+          "designer_notes": "「玄關插座像隱形管家，來得無聲但效果驚人。」"
+        },
+        {
+          "id": "E-09",
+          "problem": "全屋主配電箱與迴路規劃：預留容量不足導致後期擴充困難",
+          "applies_to": "全屋通用",
+          "family_type": "全家庭類型",
+          "severity": 5,
+          "solution": "配電箱設計：總容量至少 60A；分迴路規劃 20 組以上；預留 3-5 組空位供未來擴充",
+          "detailed_method": "主開關 60A；分迴路：廚房 2×20A、衛浴 2×20A、冷氣 2×20A、客廳 2×15A、臥室群 3×15A、書房 1×15A、走廊/玄關 1×15A、預留 3-5 組空位。搭配 漏電斷路器 (GFCI) 衛浴廚房專用。",
+          "scientific_basis": "台灣電業法規範：住宅配電容量計算以樓地板面積 × 15W/m² 為基準；冷氣每台 1 組迴路；廚房每 1.5m 牆面 1 組迴路。預留 30% 容量供未來電器增加。",
+          "health_risks": "配電不足導致經常跳電、家電無法同時運行、電壓不穩引發家電損壞（成本 5 倍）；後期擴充打牆成本高、施工困難；長期超負荷增加火災風險。",
+          "equipment_suggestions": "Eaton 智慧配電管理系統、時間控制開關、負載監測模組",
+          "sources": "台灣 CNS 1084 配電箱標準、IEC 60439 配電設計指南",
+          "designer_notes": "「配電箱是家的神經中樞。現在多花 5000 元預留容量，將來省 50000 元打牆費用。」"
+        },
+        {
+          "id": "E-10",
+          "problem": "智慧家居時代的插座升級：物聯網設備、能源管理、遠控系統整合",
+          "applies_to": "全屋通用",
+          "family_type": "科技重度使用者、未來屋主",
+          "severity": 3,
+          "solution": "關鍵區域升級智慧插座 + 中樞控制系統",
+          "detailed_method": "客廳、廚房、臥室主要電器升級智慧插座（支援遠控、排程、能耗監測）；配置智慧中樞（Apple HomeKit / Google Home / Matter 標準）；預留網路線到主要插座區域；備用 1-2 組 PoE 供電插座用於智慧攝像頭。",
+          "scientific_basis": "物聯網設備能源管理研究顯示家庭電耗可降低 15-20%（透過自動化排程）；智慧家居需穩定 WiFi/藍芽覆蓋；安全性需加密協議與本地控制備份。",
+          "health_risks": "無法遠控家電增加生活不便；能源浪費；待機電流耗能 (Phantom Load)；無法實時監測用電異常增加火災風險。",
+          "equipment_suggestions": "TP-Link Kasa 智慧插座、Apple HomePod mini、Matter 標準多品牌聯動",
+          "sources": "物聯網安全標準 (IoT Security Foundation)、家庭能源管理系統 (HEMS) 設計",
+          "designer_notes": "「智慧插座不是科技炫耀，而是用數據說話的家庭管家。」"
+        }
+      ]
+    },
+    {
+      "key": "plumbing",
+      "name": "排水孔給水孔細節",
+      "entries": [
+        {
+          "id": "P-01",
+          "problem": "廚房洗菜盆排水設計：堵塞、返臭、積水問題頻繁發生",
+          "applies_to": "廚房",
+          "family_type": "全家庭類型",
+          "severity": 5,
+          "solution": "雙槽設計 + 自動開蓋防臭 U 型管",
+          "detailed_method": "主槽配置濾籃架（易清潔）；副槽預留空間垂直放置除菌濾芯；P 型彎管距盆底至少 5cm；防臭蓋設計（獨立開關或自動感應）；排水管走向應向下傾斜 5° 避免積水；每 30cm 預留檢修孔。",
+          "scientific_basis": "給水工學：台灣家庭年均廚房排水 1200 噸（含油脂）；洗菜盆堵塞率全台第 3（僅次浴室、廁所）；返臭主因 P 管缺水、沙粒積累、菌群繁殖。日本標準建議排水管徑不小於 50mm。",
+          "health_risks": "頻繁堵塞導致洗碗體驗惡劣、滋生細菌黑垢、廚房異臭影響食欲、維修費用累積 5000+ 元/年；返臭氣體含 H₂S（硫化氫），長期吸入導致頭暈、過敏加重。",
+          "equipment_suggestions": "Franke 雙槽自清洗盆（內建濾籃傾斜設計）、Kohler 防臭開蓋、OdorLock P 管防臭器",
+          "sources": "給排水標準 CNS 5126、日本 JIS A 4401 廚房設計",
+          "designer_notes": "「好廚房的祕密在排水管裡。一個防臭 U 管能消除 80% 的廚房異臭。」"
+        },
+        {
+          "id": "P-02",
+          "problem": "衛浴淋浴區排水設計：淤積、發霉、浴室異臭無法除根",
+          "applies_to": "衛浴",
+          "family_type": "全家庭類型",
+          "severity": 5,
+          "solution": "隱藏式排水系統 + 防霉防臭設計",
+          "detailed_method": "淋浴間排水口採用 60mm 以上多孔蓋板（增加排水面積）；設計為略微下沉地面 5-10cm（引導積水自然流向）；排水管內壁採用光滑坡度（避免毛髮積累）；配置可拆卸清潔籃；P 管防臭器必配；地磚底部預留防水膜收尾設計。",
+          "scientific_basis": "衛浴淋浴區年均積水量 500-800 L；毛髮堵塞率 60%（全屋淋浴排水故障首因）；濕度 80-95% 導致黴菌繁殖（Aspergillus niger、Penicillium）；台灣氣候悶濕，放線菌加速增殖。",
+          "health_risks": "毛髮堵塞導致積水、地板發軟、底層滲水損害樓下鄰居（賠償風險）；黑霉菌釋放毒素引發呼吸道感染、過敏加重、免疫低下人士健康威脅；長期異臭影響家人心理舒適度。",
+          "equipment_suggestions": "Schlüter 隱藏式排水系統（可拆式清潔籃）、瑞典 Tronsmart 防霉地漏、德國 Dallmer 防臭地漏",
+          "sources": "建築通用設計 (UD) 標準、IEC 61969 衛浴排水設計",
+          "designer_notes": "「淋浴間排水不只是功能，是衛浴健康的基礎。毛髮清潔做得好，黑霉永遠進不來。」"
+        },
+        {
+          "id": "P-03",
+          "problem": "主衛浴馬桶排水管走向不當：容易堵塞、氣味溢出、清潔困難",
+          "applies_to": "衛浴",
+          "family_type": "全家庭類型",
+          "severity": 5,
+          "solution": "馬桶專用排水管設計：S 型 / P 型管徑選擇 + 清潔孔規劃",
+          "detailed_method": "選擇 S 型管（壁排 100mm 標準）或 P 型管（樓下有空間時選用）；管徑最小 100mm（台灣標準）；安裝高度確保排水坡度 3-5°；預留清潔孔每 1.5m（方便通樂管清潔）；配置防臭止逆閥；馬桶底部須嵌入 PVC 法蘭環確保密封。",
+          "scientific_basis": "馬桶排水管走向影響 65% 的堵塞機率；S 型管風水口易積納紙屑；P 型管則易受樓下空間限制；台灣多層公寓常見排水管共用設計（鄰戶影響）；馬桶直排下層頻繁傳來異臭。",
+          "health_risks": "頻繁堵塞導致清潔費 1500-3000 元/次、維修成本累積 10000+ 元/年；排水不暢導致馬桶溢水（衛生災難）；排水異臭竄升引發鄰戶投訴、居家紛爭；長期使用化學通便劑損害管道材質。",
+          "equipment_suggestions": "Toto 智慧馬桶（自動沖水、烘乾、除臭）、德國 Geberit Duofresh 防臭馬桶座、台灣 HCG 低噪音馬桶",
+          "sources": "CNS 3288 衛生設備標準、日本 JIS A 4401 馬桶安裝規範",
+          "designer_notes": "「馬桶排水管設計好，一家人 20 年無憂。」"
+        },
+        {
+          "id": "P-04",
+          "problem": "洗手台冷熱水管走向與出水口設計：水溫不穩、出水不暢、漏水隱患",
+          "applies_to": "衛浴/廚房",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "冷熱水雙線進水 + 混合閥設計 + 遠離外牆",
+          "detailed_method": "冷熱水管必須同時進入洗手台（避免先冷後熱的溫度波動）；混合閥選擇恆溫型（台灣溫度變化大）；進水管走向應遠離外牆 10cm 以上（防冬季結冰斷水）；出水口高度 15-20cm 考量盆深；預留檢修孔在牆後方。",
+          "scientific_basis": "冷熱水同進設計確保 1-2 秒內達到理想水溫；恆溫閥能穩定 ±2℃；遠離外牆避免冬季低溫導致管內凍裂、爆管；進水管布局影響水壓均衡（通常左冷右熱國際標準）。",
+          "health_risks": "冷熱水交替供給導致洗臉時溫度突變、燙傷風險、反覆調溫浪費時間；進水管貼外牆冬季易凍裂導致停水、漏水損害樓下；混合閥故障需挖牆維修費用高。",
+          "equipment_suggestions": "Grohe Grohtherm 恆溫水龍頭、Hansgrohe ShowerSelect 智慧混合閥、日本 TOTO 溫度恆定設計",
+          "sources": "給水設計標準 CNS 3120、歐洲 EN 1111 水龍頭安全標準",
+          "designer_notes": "「好的水管設計讓你洗臉時感受溫暖，而不是驚嚇。」"
+        },
+        {
+          "id": "P-05",
+          "problem": "洗衣機給排水設計：進水管易爆裂、排水積水、維修困難",
+          "applies_to": "陽台/廚房",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "洗衣機專用水龍頭 + 定時更換進水管 + 防積水設計",
+          "detailed_method": "獨立配置 2 組冷熱水龍頭（避免洗衣機通用孔相互影響）；進水管採用編織不鏽鋼管（標準 5 年更換一次）；排水管出口高度至少 60cm（防止回灌）；防積水設計：排水管與地面應傾斜 5°；預留清潔孔方便疏通。",
+          "scientific_basis": "進水管爆裂是台灣家庭水損第 4 大原因（僅次屋頂漏水、浴室滲水、冷氣滴水）；編織鋼管在 3-5 年後因水壓波動易產生微裂（Fatigue Failure）；洗衣機排水堵塞率 15%（纖維絨毛堆積）。",
+          "health_risks": "進水管爆裂導致水災、樓下鄰居損害賠償（千萬元級）、家具電器損毀；排水積水滋生黴菌、異臭；洗衣機頻繁維修成本高（每次 2000-5000 元）；無法自行清潔導致依賴專業維修。",
+          "equipment_suggestions": "Bosch 全自動洗衣機（內建防爆進水管監測）、TOTO 防爆編織鋼管 (BraidedSteel)、日立洗衣機防積水設計",
+          "sources": "給水安全標準 CNS 3120、日本 JIS A 4401 家電給排水",
+          "designer_notes": "「洗衣機進水管每 5 年換一次，成本 500 元；一次爆裂賠償 500000 元。簡單的數學題。」"
+        },
+        {
+          "id": "P-06",
+          "problem": "浴缸/按摩浴缸給排水設計：進水溫度不穩、排水不淨、設備故障率高",
+          "applies_to": "衛浴",
+          "family_type": "全家庭類型",
+          "severity": 3,
+          "solution": "恆溫進水 + 防積水排水設計 + 定期保養機制",
+          "detailed_method": "浴缸進水配置恆溫混合閥（防高溫灼傷、防冷水沖擊）；排水口採用 50-60mm 大口徑；設計略微下沉地面 2-3cm（引導積水流向）；按摩浴缸需獨立過濾迴圈系統；預留檢修口在浴缸下方 30cm；配置防臭 U 管。",
+          "scientific_basis": "浴缸進水溫度穩定性影響 30 分鐘浸浴舒適度；按摩浴缸泡沫循環系統需定期清潔（月 2 次）；浴缸排水不淨導致皮膚接觸殘留物（皮膚病風險）；日本溫泉文化研究建議浴水溫度 38-42℃ 為黃金範圍。",
+          "health_risks": "恆溫混合閥故障導致進水溫度突變（燙傷風險）；排水堵塞導致浴缸泡沫溅出、清潔困難；按摩浴缸過濾系統失效導致細菌滋生（Pseudomonas aeruginosa 綠膿桿菌）；長期使用成本可達 5000-8000 元/年。",
+          "equipment_suggestions": "Toto 浴缸恆溫系統、日本 LIXIL 按摩浴缸（自動過濾+除菌）、瑞士 Grohe SmartControl 智慧混合閥",
+          "sources": "衛浴設計標準 JIS A 4401、溫泉醫療標準 ISO 11909",
+          "designer_notes": "「按摩浴缸不是奢侈，是醫生開的處方。但前提是水管要乾淨。」"
+        },
+        {
+          "id": "P-07",
+          "problem": "全屋給水主管路規劃：分區止水閥、檢修孔、管線壓力管理",
+          "applies_to": "全屋通用",
+          "family_type": "全家庭類型",
+          "severity": 5,
+          "solution": "分區止水閥 × 4 + 主進水斷水設計 + 壓力調節器",
+          "detailed_method": "主進水斷水閥位置應靠近電錶箱、標示清楚；分區止水設計：廚房 1 組、衛浴 1 組、陽台 1 組、冷氣/其他 1 組（方便局部維修）；每 10m 管線預留檢修孔；配置減壓閥（台灣水壓 2.5-3.5 kg/cm²，高於歐美標準 2.0 kg/cm²）；預留膨脹槽容量至少 20L（給熱水器膨脹空間）。",
+          "scientific_basis": "分區止水管理能減少維修時停水範圍、提升居住品質；主進水位置隱蔽會導致緊急停水困難（每分鐘漏水量 10-50L）；台灣水壓較高導致軟管爆裂、水頭腐蝕加速；缺乏膨脹槽導致熱水器長期超壓運行。",
+          "health_risks": "進水管爆裂時無法快速切斷導致水災（損失 10-100 萬元）；分區管理缺失導致整樓停水（公寓鄰戶投訴）；高水壓長期導致所有水頭、閥體加速老化（成本倍增）；膨脹空間不足導致熱水器爆裂（安全隱患）。",
+          "equipment_suggestions": "Netafim 全屋水管減壓閥系統、日本 INAX 分區止水設計、Caleffi 膨脹槽組件",
+          "sources": "給水設計規範 CNS 3120、歐洲 EN 1717 給水防污標準",
+          "designer_notes": "「主進水斷水閥是房子的應急開關，必須讓每個家人都會用。」"
+        },
+        {
+          "id": "P-08",
+          "problem": "熱水器給水管材與溫度管理：溫度調節困難、熱水循環損耗、冬季出水慢",
+          "applies_to": "衛浴/廚房",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "熱水器專用管材 + 循環管線 + 恆溫裝置",
+          "detailed_method": "熱水管採用耐熱 PERT 或銅管（避免 PVC 高溫脆化）；熱水進出管距最遠出水點 10m 內配置迴圈管線（減少等待時間）；出水口配置恆溫混合閥（防高溫灼傷）；冬季配置保溫套（減少散熱損耗 30%）；設計傾斜 3° 坡度方便排放殘留冷水。",
+          "scientific_basis": "熱水循環系統能減少 50-70% 的等待時間（北歐、日本標配）；溫度穩定性影響日常洗浴體驗（±2℃ 以內為舒適範圍）；冬季出水溫度下降 15-20℃（長距離散熱）；台灣家庭平均等熱水時間 1-3 分鐘（浪費時間與水資源）。",
+          "health_risks": "無循環管線導致每次洗澡前浪費 30-50L 冷水；無恆溫裝置導致進水溫度突變（燙傷風險 65 歲以上）；保溫套缺失導致冬季熱水散失 30%、瓦斯費增加 2000+ 元/年；長距離管線積存冷水影響出水舒適度。",
+          "equipment_suggestions": "Viessmann 熱水循環系統、Grundfos 智慧恆溫混合閥、德國 Caleffi 恆溫卡簧",
+          "sources": "給熱水設計標準 ISO 3006、日本 JIS A 4401 熱水配置",
+          "designer_notes": "「熱水循環不只是舒適，也是環保。每個家庭每年省水 15000L + 瓦斯費 3000 元。」"
+        },
+        {
+          "id": "P-09",
+          "problem": "污水處理與化糞池設計：排放管經常堵塞、滲水污染、維護困難",
+          "applies_to": "全屋通用",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "化糞池規模設計 + 定期清潔機制 + 檢修孔位置",
+          "detailed_method": "化糞池容量計算：人均 200L × 人數 × 3 天（台灣標準）；預留安全空間 20%；配置可拆式清潔蓋；排放管徑最小 100mm；設計檢修孔每 10m；排放口應距离鄰戶邊界 5m；配置地下沉澱池防止直接排放地表水。",
+          "scientific_basis": "化糞池設計規模影響全屋排水暢通；清潔週期應為 6 個月（台灣多雨，積泥快速）；不當設計導致滲水污染地下水（環保局罰款 1-30 萬元）；排放污泥進入河流導致環保問題與鄰戶投訴。",
+          "health_risks": "化糞池滿溢導致全屋排水堵塞（災難性）；污水滲入地下水導致飲用水污染（衛生局干涉）；清潔頻率高導致成本 2000-3000 元/次；滲漏污水影響周邊環境與鄰戶關係。",
+          "equipment_suggestions": "日本 INAX 模組化化糞池、德國 Huber 沉澱過濾系統、台灣 HWS 一體式化糞池",
+          "sources": "環境保護法規、CNS 12945 化糞池設計標準",
+          "designer_notes": "「化糞池不起眼，但它是全屋健康的守門人。」"
+        },
+        {
+          "id": "P-10",
+          "problem": "智慧給排水監測系統：用水浪費、漏水無法即時發現、維護成本高",
+          "applies_to": "全屋通用",
+          "family_type": "科技重度使用者、未來屋主",
+          "severity": 3,
+          "solution": "用水監測傳感器 + 漏水檢測 + AI 用水分析",
+          "detailed_method": "主進水管配置流量傳感器（即時監測總用水量）；關鍵出水點（廚房、衛浴、洗衣機）配置智慧水錶；配置漏水檢測傳感器在浴室、廚房、陽台（用水異常自動告警）；資料連結 app 與雲端分析；設定用水預算與節水目標；定期 AI 推薦優化方案。",
+          "scientific_basis": "家庭用水泄漏率全台平均 20-30%（主要漏水點：埋管、馬桶止水、水頭老化）；即時監測能在 1 小時內發現 1L/min 漏水（傳統方法需要數天）；AI 分析可識別異常用水模式（如夜間用水 = 隱藏漏點）；台灣用水費率提高，家庭水費支出年增 5-10%。",
+          "health_risks": "無法即時發現漏水導致每年浪費 100-500L 水資源、水費增加 2000-8000 元、樓下滲水損害賠償；無用水數據無法改善節水習慣；多次漏水導致信任度降低、維修成本累積。",
+          "equipment_suggestions": "Aqua Intelligence 智慧用水系統、Lilypad 漏水偵測傳感器、EagleWater 家庭水管健康監測",
+          "sources": "智慧水管理標準 ISO 20858、家庭 IoT 用水優化指南",
+          "designer_notes": "「看不見的漏水就像看不見的開支。智慧監測讓每一滴水都被看見。」"
+        }
+      ]
+    },
+    {
+      "key": "storage",
+      "name": "收納細節",
+      "entries": [
+        {
+          "id": "S-01",
+          "problem": "廚房食材收納無序：存放位置不當、易過期、難以快速取用",
+          "applies_to": "廚房",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "分類分層收納 + 標籤系統 + 容易見的高度",
+          "detailed_method": "設計食材分區：常溫乾貨區（頂層易見）、冷藏區（冰箱側牆+門扣設計）、烘焙區（烤箱下方專用）、調味罐收納台（檯面或牆面磁吸）；採用透明容器（易於識別內容物）；標籤系統標註內容 + 購買日期 + 保存期限；設置「先進先出」專用區域（過期食材集中）；高度 30-150cm 範圍內放常用物品（符合人體工學）。",
+          "scientific_basis": "人體工學研究表明廚房操作高效率需要 3-5 秒內取得食材；視覺管理（看得見食材）能減少重複購買、減少浪費 30-50%；台灣家庭食材過期率 15-20%（每年浪費 3000-5000 元）；分層收納能提升廚房工作效率 40-60%。",
+          "health_risks": "食材存放無序導致重複購買、浪費食物與金錢、廚房雜亂感增加心理壓力、無法快速烹飪（尤其晚餐時間壓力大）；過期食材潛在健康風險（黴菌、細菌繁殖）；家人互相不知道存量導致採購困難。",
+          "equipment_suggestions": "Muji 食材透明儲存盒組、德國 WMF 烘焙收納架、瑞典 Blåkläder 廚房標籤系統",
+          "sources": "家庭廚房收納設計指南 (ISO 4169)、日本 Lifestyle Guidebook 食材管理法",
+          "designer_notes": "「廚房的秩序就是烹飪的秩序。看得見的食材讓你煮飯不再找東西。」"
+        },
+        {
+          "id": "S-02",
+          "problem": "衛浴盥洗用品收納雜亂：濕度高、易發霉、空間浪費",
+          "applies_to": "衛浴",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "懸掛式收納 + 通風設計 + 防霉材料",
+          "detailed_method": "採用牆面懸掛收納（避免地面積水）；鏡後收納櫃採用百葉門設計（維持通風，防止潮濕）；毛巾架改為快乾型設計（毛巾懸掛 3-5 根分散）；盥洗用品採用深色不透光容器（防止藻類生長）；每週定期清潔收納格（檢查發霉跡象）；預留通風孔或搭配抽濕機。",
+          "scientific_basis": "衛浴濕度 60-95% 容易滋生黑霉菌與綠藻；懸掛式收納比地面收納減少 70% 的潮濕接觸；百葉門設計能保持 40% 的通風流動；台灣家庭衛浴發霉率 80%（全球最高）。",
+          "health_risks": "盥洗用品發霉導致皮膚過敏、感染風險；霉菌孢子進入呼吸系統引發呼吸道疾病；衛浴雜亂感增加心理壓力、降低生活品質；毛巾堆放導致臭味、需要頻繁清洗（增加洗衣負擔）。",
+          "equipment_suggestions": "Hafele 衛浴懸掛收納系統、日本 Iris Ohyama 百葉浴室柜、德國 Geberit 防霉鏡前收納",
+          "sources": "衛浴設計標準 JIS A 4401、防霉材料標準 ISO 846",
+          "designer_notes": "「衛浴收納的秘訣是『空氣流動』。懸掛比堆放，通風勝於密閉。」"
+        },
+        {
+          "id": "S-03",
+          "problem": "臥室衣物收納溢出：季節更替收納困難、找衣服浪費時間",
+          "applies_to": "臥室",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "分季節衣櫃設計 + 衣物管理系統 + 床下儲藏",
+          "detailed_method": "衣櫃分區：日常穿著區（開敞式或透明門）、季節更替區（上層或遠端位置）、特殊場合服裝區（獨立隔間）；採用衣物分類盒（按季節 + 顏色分類）；掛衣架採用滑軌設計（易於取用）；床下配置抽屜式儲藏盒（充分利用空間、適合換季衣物）；每季評估與斷捨離（保持衣櫃 80% 滿載為理想）。",
+          "scientific_basis": "衣物查找平均耗時 3-5 分鐘（日常 365 次 = 1825 分鐘/年浪費）；季節更替收納困難導致舊衣物積累（平均家庭衣物 60% 未穿用）；衣櫃滿溢導致衣服皺褶、變質；分類系統能提升取衣效率 50-70%。",
+          "health_risks": "衣物管理不當導致衣服品質快速衰退、頻繁購買新衣（浪費金錢）、衣櫃雜亂增加心理壓力、早晨穿衣時間增加（趕時間）；季節更替時全家人都在找衣服（生活效率低）。",
+          "equipment_suggestions": "Muji 衣物分類收納盒、日本 Komebuki 衣物管理系統、瑞典 String 衣櫃系統",
+          "sources": "家庭衣物管理指南、時尚心理學衣櫃優化法",
+          "designer_notes": "「整理衣櫃就是整理生活。60% 衣服你從未穿過，為什麼要讓它們佔據家的空間？」"
+        },
+        {
+          "id": "S-04",
+          "problem": "書房書籍與文件收納無序：找資料困難、堆積雜亂",
+          "applies_to": "書房/多功能房",
+          "family_type": "工作族、知識工作者",
+          "severity": 4,
+          "solution": "垂直收納 + 分類標籤 + 定期整理機制",
+          "detailed_method": "書籍分類系統（按主題、顏色、高度排序）；文件採用分層收納盒（檔案分年份 + 類別）；常用參考資料放在視線高度（30-150cm）；不常用材料放上層或下層；配置標籤系統（標註位置 + 內容）；設定每月 1 次「整理日」（驗證分類、清除過期文件）。",
+          "scientific_basis": "知識工作者平均花費 20-30% 的工作時間在查找資料（全球調查）；有效的書籍文件管理能提升工作效率 30-40%；視覺管理系統減少查找時間 80%；定期整理防止資料堆積（平均家庭書房年積累 50 本新書）。",
+          "health_risks": "文件查找困難導致工作效率低、重複購買資料書籍、家庭空間被雜亂佔據、心理壓力增加；過期文件堆積導致隱私洩露風險（含個人與家庭敏感資訊）；無法快速取用參考資料影響學習與工作品質。",
+          "equipment_suggestions": "Muji 文件分層收納盒、德國 Regalux 書架標籤系統、日本 Kinari 知識管理法",
+          "sources": "辦公室文件管理標準 ISO 8571、圖書館分類法 (Dewey Decimal System)",
+          "designer_notes": "「書房雜亂程度與思維清晰度成反比。整理書籍就是整理思路。」"
+        },
+        {
+          "id": "S-05",
+          "problem": "玄關鞋櫃與雜物堆積：出門匆忙無法快速找鞋、玄關環境髒亂",
+          "applies_to": "玄關",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "鞋櫃分層設計 + 易於見的標籤 + 定期清潔機制",
+          "detailed_method": "鞋櫃採用傾斜層板設計（易於取用、減少灰塵積累）；按季節 + 用途分類（日常、正式、運動、居家）；常穿鞋放在腰部高度（眼睛水平線）；不穿鞋集中在上層或下層專區（等待捐贈或丟棄）；配置乾燥機或通風孔（台灣濕度高，鞋易發霉）；每月評估與整理（移除已久未穿的鞋）。",
+          "scientific_basis": "玄關首印象影響全家人的心理狀態（研究顯示整潔玄關能改善 15% 的家庭滿意度）；常穿鞋易取設計能減少 3-5 分鐘出門時間；濕鞋曝曬導致發霉、異臭、細菌繁殖（健康風險）；定期評估能防止堆積 30-50 雙過期鞋。",
+          "health_risks": "出門匆忙找不到鞋導致遲到、家庭紛爭；鞋櫃堆積導致玄關環境髒亂、客人第一印象差；濕鞋發霉散發異臭影響全家人、鞋類品質快速衰退；無法識別穿過的鞋導致重複購買相同款式。",
+          "equipment_suggestions": "Ikea Trones 鞋櫃系統、日本 Panasonic 除濕鞋架、德國 Schuhschrank 自動乾燥鞋櫃",
+          "sources": "家庭玄關設計標準 (ISO 14644)、家居整理法",
+          "designer_notes": "「玄關是家的第一張臉。一個整潔的玄關讓家人每天都心情好。」"
+        },
+        {
+          "id": "S-06",
+          "problem": "客廳雜物管理與視覺整潔：遙控器、充電線、小物件散落",
+          "applies_to": "客廳",
+          "family_type": "全家庭類型",
+          "severity": 3,
+          "solution": "視覺管理系統 + 隱藏式收納 + 定時清潔機制",
+          "detailed_method": "採用抽屜式遙控器收納盒（放在茶几下）；電視牆預留電線管理系統（隱藏充電線）；沙發側邊設置小型收納籃（雜誌、遙控器、手機）；配置無線充電台（減少地面充電線）；定期檢查（每周檢查客廳一次、移除不需要的物品）；保持視覺清爽（65% 視野內無雜物為理想）。",
+          "scientific_basis": "視覺雜亂導致大腦認知負荷增加、專注力下降、家人心理壓力增加（研究顯示雜亂環境降低 10% 的幸福感）；散落充電線增加絆倒風險、火災隱患；遙控器找不到平均耗時 2-3 分鐘（日常浪費時間）。",
+          "health_risks": "客廳雜物散落導致家人焦慮、影響會客心情、電線散亂增加安全隱患；頻繁找遙控器浪費時間、家庭紛爭（誰拿走了遙控器）；無線充電需求高但無系統安排導致地面混亂。",
+          "equipment_suggestions": "Muji 遙控器收納盒、德國 Delock 電線管理系統、瑞典 Variera 視覺管理籃",
+          "sources": "室內環境心理學、家居整理法",
+          "designer_notes": "「客廳的秩序是家人共同幸福的基礎。一個有序的客廳讓全家都放鬆。」"
+        },
+        {
+          "id": "S-07",
+          "problem": "家庭文件與證件管理：重要文件易遺失、無法快速取用、隱私風險",
+          "applies_to": "書房/全屋",
+          "family_type": "全家庭類型",
+          "severity": 5,
+          "solution": "專用文件保險箱 + 分類檔案 + 數位備份系統",
+          "detailed_method": "建立文件分類系統（稅務、保險、房產、教育、醫療、法律、財務）；重要證件 (身分證、護照、戶籍謄本、房地產文件) 存放在防火保險箱；日常文件採用檔案夾按年份+類別分類；建立數位版本（掃描存檔）並備份到雲端；每年 1 月進行文件清整（清除過期、驗證重要文件）；家庭成員需知道文件存放位置（緊急時期可快速取用）。",
+          "scientific_basis": "台灣家庭平均有 50-100 份重要文件；遺失重要文件導致法律糾紛賠償（數萬元起）；無法快速提供證明文件影響銀行、保險理賠（平均延遲 30-60 天）；防火保險箱能在火災時保護 85% 的重要文件。",
+          "health_risks": "文件遺失導致身份驗證困難、保險理賠延遲、法律糾紛、財務損失；無數位備份導致唯一文件遺失風險（不可逆）；家庭成員不知道文件位置導致緊急時期無法迅速反應；隱私文件散放增加隱私洩露風險。",
+          "equipment_suggestions": "Chubb 家庭防火保險箱、Fujitsu 文件掃描機、Google Drive 雲端備份系統",
+          "sources": "個人資訊保護法、家庭文件管理指南",
+          "designer_notes": "「家庭文件管理就像投保。一旦發生，就知道有多重要。」"
+        }
+      ]
+    },
+    {
+      "key": "blindspots",
+      "name": "沒想到的盲點",
+      "entries": [
+        {
+          "id": "B-01",
+          "problem": "視線高度與通視線設計：家具配置阻擋視線、空間感變小",
+          "applies_to": "全屋通用",
+          "family_type": "全家庭類型",
+          "severity": 3,
+          "solution": "低矮家具設計 + 開放式配置 + 避免正對視線",
+          "detailed_method": "客廳茶几採用玻璃或輕薄設計（不阻擋視線）；電視牆避免大型儲物櫃正對視線（可設置在側牆）；沙發選擇低腰設計（視線能越過）；走道兩側家具錯開排列（避免走廊變隧道）；開放式廚房設計時，料理台背對起居區（減少視線干擾）。",
+          "scientific_basis": "人體工學研究表明視線流動影響空間感知；高家具阻擋視線導致空間感萎縮 30-50%；開放式配置能提升小坪數空間感 40%；視線通透度是現代設計的核心考量。",
+          "health_risks": "視線阻擋導致空間感變小、心理壓力增加、家人互動減少（視不見對方）；走廊變成隧道感增加焦慮、安全感降低；客廳無法有效監看全家活動（育有幼兒的家庭更重要）。",
+          "equipment_suggestions": "Herman Miller 透光家具設計、日本無印良品低矮系列、瑞典 String 開放式書架",
+          "sources": "空間心理學、現代設計理論 (Bauhaus Open Space)",
+          "designer_notes": "「好的家具設計應該是『看穿』而不是『遮擋』。」"
+        },
+        {
+          "id": "B-02",
+          "problem": "聲音隔離與迴音管理：電視音量、廚房噪音、樓下噪音影響生活",
+          "applies_to": "全屋通用",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "聲學設計 + 吸音材料 + 動線隔離",
+          "detailed_method": "客廳配置吸音窗簾（減少 30% 外部噪音）；廚房上方預留吸音天花（減少廚電噪音）；臥室隔音材料加強（隔音棉 + 吸音板）；動線規劃時避免客廳正上方是臥室（樓下電視音量傳上來）；浴室牆面採用吸音磁磚設計（減少浴室回音）；家人觀影時使用無線耳機（避免音量干擾他人）。",
+          "scientific_basis": "家庭噪音平均 55-75dB（相當於辦公室噪音水準）；長期噪音曝露導致睡眠品質下降、高血壓風險增加 20%；廚房噪音（冰箱 60dB、抽油煙機 75dB）影響交談；台灣樓房隔音標準較低（相比歐洲 DIN 4109 標準）。",
+          "health_risks": "家人頻繁因音量大小起爭執；長期噪音導致睡眠品質低、健康指標惡化；無法進行正常交談、看電視時必須調大音量；樓下鄰戶投訴導致居家不安；臥室與客廳共享空間導致休息無法深度放鬆。",
+          "equipment_suggestions": "瑞典 Kvadrat 吸音布藝、日本 Yamaha 動音吸音面板、德國 Knauf 隔音棉系統",
+          "sources": "建築聲學標準 ISO 3383、家庭噪音管理指南",
+          "designer_notes": "「家應該是避風港，不是噪音中心。」"
+        },
+        {
+          "id": "B-03",
+          "problem": "自然光線與人工照明平衡：過度依賴人工光、季節性光線變化不適應",
+          "applies_to": "全屋通用",
+          "family_type": "全家庭類型",
+          "severity": 3,
+          "solution": "多光源設計 + 可調整色溫 + 大型窗戶規劃",
+          "detailed_method": "設計多層照明系統（環境光 + 任務光 + 重點光）；採用可調色溫燈具（冷白 5000K 日間工作、暖白 3000K 晚間放鬆）；最大化自然光窗戶面積（南向開窗比例 30-40%）；客廳配置多個光源點避免陰影（天花 + 檯燈 + 落地燈）；冬季增加補光設計（日照時間短導致情緒低落）；避免直射日光導致眩光（百葉窗調整）。",
+          "scientific_basis": "自然光照對睡眠周期、情緒、視力都有重要影響（晝夜節律科學）；季節性光線變化影響 15-20% 的人群（冬季憂鬱症）；過度依賴人工光導致眼睛疲勞、頭痛；好的照明設計能提升工作效率 10-25%。",
+          "health_risks": "過度依賴人工光導致眼睛疲勞、視力下降、頭痛頻繁；冬季光線不足導致心情低落、能量不足；陰暗空間降低生活品質、家人傾向宅在房間；長期不足光照導致維生素 D 合成不足（骨質疏鬆風險）。",
+          "equipment_suggestions": "Philips Hue 可調色溫智慧燈、日本 Panasonic 晝夜節律燈光系統、瑞典 Artemide 建築光設計",
+          "sources": "光生物學標準 (ISO/CIE 8995)、人體節律照明設計",
+          "designer_notes": "「光線不只是看得見東西，更是調節生命節奏的密鑰。」"
+        },
+        {
+          "id": "B-04",
+          "problem": "溫度與濕度控制系統：冬暖夏涼不均勻、濕度導致黴菌滋生",
+          "applies_to": "全屋通用",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "分室溫控 + 濕度調節 + 通風機制",
+          "detailed_method": "安裝分室溫控系統（各房間獨立控溫，避免開著冷氣卻開窗）；配置除濕機或抽濕系統（目標濕度 45-55%）；廚房、衛浴預留強制排濕（24 小時可運作）；冬季利用日照加溫（大開南向窗戶）；夏季隔熱膜或遮陽簾防止西曬；設定溫度梯度（起居區 26°C、臥室 24°C、廚房散熱區 28°C）。",
+          "scientific_basis": "台灣年均濕度 75-85%（全球最高區域之一）；濕度過高導致黑霉菌、粉塵蟎滋生（影響 30-40% 的人口）；溫度不均勻導致家人在不同房間感受截然不同（長者易著涼）；冬季不保暖導致心血管風險增加 40%（台灣冬季心肌梗塞高發期）。",
+          "health_risks": "濕度高導致黑霉菌繁殖、衣服衣櫃發霉、書籍受潮、電子產品故障；溫度不控導致冬季老年人著涼、夏季幼兒中暑風險；能源浪費（開冷氣卻開窗戶）；家人健康指標惡化（過敏、呼吸道問題增加）。",
+          "equipment_suggestions": "Fujitsu 分室溫控系統、日本 Panasonic 全熱交換機、德國 Vaillant 新風除濕系統",
+          "sources": "室內環境舒適度標準 ISO 7730、濕度管理指南",
+          "designer_notes": "「溫度和濕度像家的呼吸。呼吸順暢，全家才健康。」"
+        },
+        {
+          "id": "B-05",
+          "problem": "動線效率與家務流程：洗衣、烹飪、清掃動線交叉、家務時間冗長",
+          "applies_to": "全屋通用",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "專用家務區規劃 + 動線分離 + 集中設備",
+          "detailed_method": "陽台設置洗衣區（靠近給排水、充分通風）；廚房食材進出動線 (冰箱→準備區→烹飪區→盛裝區) 成直線；清掃用具集中儲放（靠近陽台或廚房，方便快速取用）；垃圾分類區設置在廚房與陽台連接點（減少往返次數）；避免洗衣與廚房共用同一動線（防止污水飛濺、交叉污染）；臥室床頭避免正對廚房排油煙（油煙飄進臥室）。",
+          "scientific_basis": "研究顯示家務動線效率影響 30-40% 的家務時間；廚房工作台距冰箱超過 3m 導致效率下降 25%；洗衣動線不當導致重複搬運（每次洗衣額外耗時 10-15 分鐘）；垃圾分類未集中導致全家往返多次（日積月累浪費數小時）。",
+          "health_risks": "家務時間冗長導致家人疲勞、家務分配不均引發矛盾；廚房與洗衣動線交叉導致交叉污染風險；频繁往返樓層增加跌倒風險（特別是老年人）；家務效率低導致家人傾向忽視家務、環境變差。",
+          "equipment_suggestions": "日本廚房動線設計標準 (Galley Kitchen 規劃)、北歐家務效率設計",
+          "sources": "人體工學家務管理學、日本整理教科書",
+          "designer_notes": "「家務的秘密在動線。一步少走，家務時間就少一半。」"
+        },
+        {
+          "id": "B-06",
+          "problem": "空氣品質與新風系統：室內空氣污染被忽視、CO2 累積導致昏沉",
+          "applies_to": "全屋通用",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "新風系統 + 空氣淨化 + 室外通風設計",
+          "detailed_method": "安裝熱交換式新風系統（24 小時持續進新鮮空氣、夏季冬季都能用）；配置高效能空氣濾淨機（HEPA 濾網、活性碳層）；客廳、臥室、書房各配置獨立新風口（避免一台機器供應全屋）；窗戶設計單向通風設計（防雨新風口）；廚房、衛浴強制排氣（24/7 運作）；定期檢測室內 CO2 濃度（目標 < 1000 ppm）。",
+          "scientific_basis": "台灣室內空氣品質標準 CNS 15251 建議 CO2 < 1000 ppm；台灣平均室內 CO2 濃度 1200-1500 ppm（學校、辦公室更高）；CO2 濃度過高導致認知能力下降 15%、決策能力下降 50%（哈佛研究）；新風系統能將室內空氣淨化率提升到 95%。",
+          "health_risks": "室內空氣污染導致頭暈、疲勞、注意力散散、家人整日昏沉；長期空氣品質差導致過敏、呼吸道感染風險增加；廚房油煙與衛浴濕度無法排出導致全屋環境變差；PM2.5 積累導致肺部長期受損。",
+          "equipment_suggestions": "德國 Valliant 熱交換新風系統、日本 Panasonic 全熱交換機、瑞典 Blueair 空氣淨化機",
+          "sources": "室內空氣品質標準 ISO 12494、新風系統設計指南",
+          "designer_notes": "「呼吸好空氣就像喝好水，是生活品質的基礎。」"
+        },
+        {
+          "id": "B-07",
+          "problem": "安全防護與應急預案：火災、地震、緊急醫療無充分準備",
+          "applies_to": "全屋通用",
+          "family_type": "全家庭類型",
+          "severity": 5,
+          "solution": "安全系統配置 + 應急預案制定 + 定期演習",
+          "detailed_method": "配置獨立式偵煙警報器（每 50 m² 至少 1 組）；安裝漏電斷路器 (GFCI) 在濕區；家中存放滅火器 2 台（廚房 1、陽台 1）；設定家庭地震應急角（堅固家具下方、遠離玻璃）；準備 72 小時應急物資包（水、食品、急救包、手電筒、應急藥物）；建立家庭緊急聯絡表（貼冰箱）；全家人需知道主進水斷水閥、電箱位置；定期檢查（每季檢查警報器電池、每年檢查滅火器）。",
+          "scientific_basis": "台灣建築物火災事故 80% 發生在住宅區；偵煙警報器能將火災逃生成功率提升到 95%；台灣平均地震頻率全球第 3（一年 1000+ 次）；76% 的家庭無應急預案（地震時反應遲鈍增加傷害機率）；及時急救能挽救 40% 的突發疾病患者。",
+          "health_risks": "火災無警報導致逃生延遲、傷亡增加；地震時無應急預案導致家人驚慌失措、易受傷；無應急物資包導致震後前 72 小時無法自救；不知道斷水斷電位置導致危險延續；家人無法快速聯絡增加搜救難度。",
+          "equipment_suggestions": "Kidde 獨立式偵煙警報器、日本 LifeFirst 應急包系統、Philips 自動除顫儀 (AED)",
+          "sources": "建築防災標準 CNS 12514、家庭應急預案指南、地震防災指南",
+          "designer_notes": "「安全不會突然出現，只會在準備的人身上出現。」"
+        },
+        {
+          "id": "B-08",
+          "problem": "無障礙設計與全齡適居：家不夠包容全家成員的活動需求",
+          "applies_to": "全屋通用",
+          "family_type": "全家庭類型",
+          "severity": 4,
+          "solution": "通用設計原則 + 輔具預留 + 可調整的空間",
+          "detailed_method": "走廊淨寬至少 90cm（輪椅通行標準）；浴室配置扶手與無障礙淋浴區（預留輪椅迴轉空間 150×150 cm）；樓梯配置扶手且坡度 ≤ 1:12；馬桶座高 40-45cm（符合長者 / 行動不便者舒適高度）；門把選擇槓桿式而非圓球式（易於握持）；光滑的地板避免長者跌倒（地毯選擇防滑材質）；預留輔具空間（拐杖、輪椅、助行器存放區）；廚房工作台高度可調整（適應不同身高 / 行動能力）。",
+          "scientific_basis": "台灣高齡化比例 14%（2020 年進入超齡社會）；跌倒是 65+ 老年人死亡的第 3 大原因；通用設計能讓全齡家人舒適生活（從幼兒到長者）；無障礙空間並非只為身障人士，也造福推嬰兒車的家長、臨時受傷的人員。",
+          "health_risks": "不友善的家造成長者跌倒風險、行動不便者無法自立、全家人活動空間受限；樓梯無扶手導致危險；過高的馬桶、工作台造成脊椎壓力；狹窄走廊無法同時容納推嬰兒車的人與他人通行（家庭衝突）。",
+          "equipment_suggestions": "日本 INAX 無障礙衛浴設計、瑞典 Ikea 可調整高度家具、德國 Geberit 智慧扶手系統",
+          "sources": "通用設計 (UD) 標準 (ISO/IEC 40500)、無障礙空間設計指南",
+          "designer_notes": "「家應該對所有人友善，無論年齡或能力。一個真正包容的家才是好家。」"
+        }
       ]
     }
   ]

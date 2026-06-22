@@ -1,3 +1,33 @@
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# 原始照片（過大不推 GitHub，僅本機保留）
+assets/photos-original/
+
+# 編輯器
+.vscode/
+.idea/
 *.swp
+*.swo
+
+# 環境變數 / 機密
+.env
+.env.local
+*.key
+*.pem
+
+# Node（如未來加入）
 node_modules/
+npm-debug.log*
+
+# 暫存
+*.tmp
+*.bak
+*.demo-backup
+
+# Apps Script clasp 設定（如未來用 clasp）
+.clasp.json
+.claspignore

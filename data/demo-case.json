@@ -96,6 +96,11 @@
     "eq_whole_house_____brand": "DAIKIN 大金",
 
     "designer_notes": "",
-    "director_override": {}
+    "director_override": {},
+
+    "_feeling_likes": "[1,4,10,11,15,18,21,22,26,29,31,35,38,41,42,47,48,51,56,58]",
+    "_feeling_nopes": "[3,6,9,14,16,17,24,25,30,33,37,44,45,54,55,60]",
+    "_feeling_skips": "[2,5,8,12,13,19,20,23,27,28,32,34,36,39,40,43,46,49,50,52,53,57,59]",
+    "_feeling_spectrum": "[{\"key\":\"warm\",\"label\":\"溫潤\",\"color\":\"#C89B7B\",\"desc\":\"木質、暖光、織物\",\"axis\":\"temperature\",\"pct\":82,\"liked\":9,\"total\":11},{\"key\":\"healing\",\"label\":\"療癒\",\"color\":\"#D9B89C\",\"desc\":\"柔軟線條、暖中性色\",\"axis\":\"mood\",\"pct\":75,\"liked\":9,\"total\":12},{\"key\":\"natural\",\"label\":\"自然\",\"color\":\"#7C837B\",\"desc\":\"植物、石材、有機形狀\",\"axis\":\"texture\",\"pct\":71,\"liked\":10,\"total\":14},{\"key\":\"rustic\",\"label\":\"樸質\",\"color\":\"#9B8268\",\"desc\":\"原始材質、不修邊、手感\",\"axis\":\"texture\",\"pct\":67,\"liked\":6,\"total\":9},{\"key\":\"cafe\",\"label\":\"咖啡館感\",\"color\":\"#A07C5A\",\"desc\":\"小巧、暖光、慢活\",\"axis\":\"scene\",\"pct\":63,\"liked\":5,\"total\":8},{\"key\":\"resort\",\"label\":\"度假感\",\"color\":\"#A8B89F\",\"desc\":\"開放、藤編、海岸/山林\",\"axis\":\"scene\",\"pct\":43,\"liked\":3,\"total\":7},{\"key\":\"serene\",\"label\":\"寧靜\",\"color\":\"#B8B6B0\",\"desc\":\"留白、低彩度、簡單線條\",\"axis\":\"mood\",\"pct\":22,\"liked\":2,\"total\":9},{\"key\":\"bright\",\"label\":\"明亮\",\"color\":\"#E8DCC4\",\"desc\":\"高採光、白為主、清爽\",\"axis\":\"light\",\"pct\":18,\"liked\":2,\"total\":11},{\"key\":\"distinctive\",\"label\":\"個性\",\"color\":\"#7A4F3A\",\"desc\":\"強烈材質對比、收藏感\",\"axis\":\"personality\",\"pct\":14,\"liked\":1,\"total\":7},{\"key\":\"refined\",\"label\":\"細緻\",\"color\":\"#8E877D\",\"desc\":\"工藝感、精細收邊\",\"axis\":\"texture\",\"pct\":10,\"liked\":1,\"total\":10},{\"key\":\"museum\",\"label\":\"美術館感\",\"color\":\"#D8D4CC\",\"desc\":\"留白、聚光、藝術品為主角\",\"axis\":\"scene\",\"pct\":0,\"liked\":0,\"total\":8},{\"key\":\"silent\",\"label\":\"靜謐\",\"color\":\"#5C5A57\",\"desc\":\"暗色、低光、沉穩\",\"axis\":\"light_dark\",\"pct\":0,\"liked\":0,\"total\":9},{\"key\":\"elegant\",\"label\":\"優雅\",\"color\":\"#5E5347\",\"desc\":\"對稱、品質感、深調\",\"axis\":\"personality\",\"pct\":0,\"liked\":0,\"total\":11},{\"key\":\"hotel\",\"label\":\"飯店感\",\"color\":\"#6B5D4F\",\"desc\":\"訂製感、精緻、儀式感\",\"axis\":\"scene\",\"pct\":0,\"liked\":0,\"total\":7},{\"key\":\"avantgarde\",\"label\":\"前衛\",\"color\":\"#3D4744\",\"desc\":\"異材質、雕塑造型、實驗感\",\"axis\":\"personality\",\"pct\":0,\"liked\":0,\"total\":4}]"
   }
 }
