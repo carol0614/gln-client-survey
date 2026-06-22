@@ -136,6 +136,66 @@
       color: var(--gln-taupe);
       flex-shrink: 0;
     }
+    .note-type-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.85rem;
+      margin: 0.6rem 0 0.5rem;
+      font-size: 0.82rem;
+    }
+    .note-type-label { font-weight: 600; color: var(--gln-ink); }
+    .note-type-opt { display: inline-flex; align-items: center; gap: 0.25rem; cursor: pointer; }
+    .note-type-hint { font-size: 0.72rem; color: var(--gln-taupe); width: 100%; }
+    .note-group { margin-bottom: 0.9rem; }
+    .note-group-head {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.3rem 0.55rem;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+    .note-group-internal { background: var(--gln-mist); color: var(--gln-taupe); }
+    .note-group-client { background: rgba(111, 106, 60, 0.12); color: var(--gln-olive, #6f6a3c); }
+    .comment-thread {
+      margin-top: 0.6rem;
+      padding: 0.6rem 0.7rem;
+      background: #faf8f3;
+      border: 1px solid var(--gln-mist);
+      border-radius: 8px;
+    }
+    .comment-thread-head { font-size: 0.78rem; font-weight: 600; color: var(--gln-ink); margin-bottom: 0.45rem; }
+    .comment-item {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px dashed var(--gln-mist);
+    }
+    .comment-author {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.05rem 0.4rem;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .comment-director .comment-author { background: rgba(111,106,60,0.18); color: var(--gln-olive,#6f6a3c); }
+    .comment-designer .comment-author { background: #e3ebe1; color: #4a7040; }
+    .comment-client   .comment-author { background: #f3e3e8; color: #a05068; }
+    .comment-text { flex: 1; min-width: 60%; color: var(--gln-ink); }
+    .comment-ts { font-size: 0.7rem; color: var(--gln-taupe); margin-left: auto; }
+    .comment-add-row { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+    .comment-add-input {
+      flex: 1;
+      padding: 0.35rem 0.6rem;
+      border: 1px solid var(--gln-mist);
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-family: inherit;
+    }
+    .comment-add-input:focus { border-color: var(--gln-olive); outline: none; }
     .case-actions {
       display: flex;
       flex-direction: row;

@@ -42,9 +42,14 @@ function doPost(e) {
       return handlePrefillFromNotes(payload);
     }
 
-    // Admin：新增案件筆記
+    // Admin / 設計師：新增案件筆記（內部 / 客戶會議）
     if (payload.action === 'add_note') {
       return handleAddNote(payload);
+    }
+
+    // 備註（總監 / 設計師 / 客戶皆可，掛在客戶會議筆記下）
+    if (payload.action === 'add_comment') {
+      return handleAddComment(payload);
     }
 
     // Admin：手動重跑 AI 分析（需要 adminKey；會再收一次 AI 費）
@@ -245,9 +250,13 @@ function doGet(e) {
     if (e.parameter.action === 'list_cases') {
       return handleListCases(e.parameter.admin_token);
     }
-    // 後台案件筆記列表
+    // 案件筆記列表（總監 admin_token 或 設計師 designer_token）
     if (e.parameter.action === 'get_notes') {
-      return handleGetNotes(e.parameter.case_id, e.parameter.admin_token);
+      return handleGetNotes(e.parameter.case_id, e.parameter.admin_token, e.parameter.designer_token);
+    }
+    // 客戶報告頁專用：只回客戶會議筆記重點 + 備註（免 admin / designer token）
+    if (e.parameter.action === 'get_client_notes') {
+      return handleGetClientNotes(e.parameter.case_id);
     }
 
     const caseId = e.parameter.id;
@@ -287,6 +296,12 @@ function handleListCases(adminToken) {
     if (!anaMap[id]) anaMap[id] = anaRows[i][2];
   }
 
+  // clientToken → designerToken 對映（組設計師工作連結用）
+  const tokSh = getOrCreateSheet(TOKENS_SHEET);
+  const tokRows = tokSh.getDataRange().getValues();
+  const dtMap = {};
+  for (let i = 1; i < tokRows.length; i++) dtMap[tokRows[i][0]] = tokRows[i][4] || '';
+
   const baseUrl = getReportBaseUrl();
   const cases = [];
   for (let i = 1; i < subRows.length; i++) {
@@ -301,6 +316,7 @@ function handleListCases(adminToken) {
       if (data['member-1_occupation']) clientName += (clientName ? '・' : '') + data['member-1_occupation'];
     } catch (e) {}
     const tokenVal = row[2] || '';
+    const dt = dtMap[tokenVal] || '';
     cases.push({
       caseId,
       timestamp: row[1] ? new Date(row[1]).toLocaleString('zh-TW') : '',
@@ -309,6 +325,7 @@ function handleListCases(adminToken) {
       designerReportUrl: baseUrl + '/report.html?id=' + caseId + '&v=designer',
       clientReportUrl: baseUrl + '/report.html?id=' + caseId + '&v=client',
       clientUrl: tokenVal ? baseUrl + '/?t=' + tokenVal : '',
+      designerUrl: baseUrl + '/designer.html?id=' + caseId + (dt ? '&t=' + dt : ''),
     });
   }
   cases.reverse();
@@ -1527,58 +1544,156 @@ ${notes}`;
 
 const NOTES_SHEET = 'Notes';
 
+// === 筆記 / 備註 權限工具 ===
+function isAdminKey(key) {
+  const expected = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
+  return !!key && key === expected;
+}
+
+// 由 caseId 反查當初提交時用的 clientToken（submissions 第 3 欄）
+function getClientTokenForCase(caseId) {
+  if (!caseId) return null;
+  const sh = getOrCreateSheet(SUBMISSIONS_SHEET);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === caseId) return rows[i][2] || null;
+  }
+  return null;
+}
+
+// 由 caseId 取得對應的 designerToken（Tokens 第 5 欄，靠 clientToken 對映）
+function getDesignerTokenForCase(caseId) {
+  const ct = getClientTokenForCase(caseId);
+  if (!ct) return null;
+  const sh = getOrCreateSheet(TOKENS_SHEET);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] === ct) return rows[i][4] || null;
+  }
+  return null;
+}
+
+// 驗證設計師 token 是否屬於該案件（客戶報告連結拿不到 dt，因此可區分客戶 / 設計師）
+function validateDesignerTokenForCase(caseId, dt) {
+  if (!caseId || !dt) return false;
+  const real = getDesignerTokenForCase(caseId);
+  return !!real && real === dt;
+}
+
 function getOrCreateNotesSheet() {
   const ss = SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('SHEET_ID'));
   let sheet = ss.getSheetByName(NOTES_SHEET);
   if (!sheet) {
     sheet = ss.insertSheet(NOTES_SHEET);
-    sheet.appendRow(['CaseId', 'Timestamp', 'NoteText', 'ParsedFields']);
+    sheet.appendRow(['CaseId', 'Timestamp', 'NoteText', 'ParsedFields', 'NoteType', 'Author']);
     sheet.setFrozenRows(1);
   }
   return sheet;
 }
 
 /**
- * 新增筆記到指定案件，並用 AI 重新解析所有筆記回傳更新的 prefill
- * Payload: { action, adminKey, caseId, noteText }
+ * 新增會議筆記（內部 / 客戶會議）。
+ * 權限：總監(adminKey) 或 設計師(designerToken)。客戶不可新增筆記（只能加備註）。
+ * Payload: { action, adminKey?, designerToken?, caseId, noteText, noteType }
+ *   noteType: 'internal'（內部開會筆記）| 'client'（客戶會議筆記，會出現在客戶報告頁）
  */
 function handleAddNote(payload) {
-  const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
-  if (payload.adminKey !== adminKey) return jsonResponse({ ok: false, error: 'unauthorized' });
   const caseId = (payload.caseId || '').trim();
   const noteText = (payload.noteText || '').trim();
+  const noteType = (payload.noteType === 'client') ? 'client' : 'internal';
+
+  let author;
+  if (isAdminKey(payload.adminKey)) author = 'director';
+  else if (validateDesignerTokenForCase(caseId, payload.designerToken)) author = 'designer';
+  else return jsonResponse({ ok: false, error: 'unauthorized' });
+
   if (!caseId || !noteText) return jsonResponse({ ok: false, error: 'missing_params' });
 
   const sheet = getOrCreateNotesSheet();
   const ts = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
 
-  // AI 解析這筆筆記
+  // AI 解析這筆筆記（產生統整重點 meeting_summary）
   let parsedJson = '{}';
   try {
     const parsed = extractFormDataFromNotes(noteText, caseId);
     parsedJson = JSON.stringify(parsed);
   } catch (e) { /* 解析失敗也繼續存筆記 */ }
 
-  sheet.appendRow([caseId, ts, noteText, parsedJson]);
+  sheet.appendRow([caseId, ts, noteText, parsedJson, noteType, author]);
 
-  // 取得此案件全部筆記，合併 AI 解析結果
+  // 合併 prefill 只看會議筆記（排除備註）
   const allNotes = getNotesForCase(sheet, caseId);
-  const mergedPrefill = mergeNoteParsedFields(allNotes);
+  const mergedPrefill = mergeNoteParsedFields(allNotes.filter(n => n.noteType !== 'comment'));
 
-  return jsonResponse({ ok: true, caseId, timestamp: ts, mergedPrefill, totalNotes: allNotes.length });
+  return jsonResponse({ ok: true, caseId, timestamp: ts, mergedPrefill, noteType, author, totalNotes: allNotes.filter(n => n.noteType !== 'comment').length });
 }
 
 /**
- * 取得指定案件的所有筆記
+ * 新增備註（掛在客戶會議筆記下）。
+ * 權限：總監(adminKey) / 設計師(designerToken) / 客戶(持有報告連結即 caseId 有效)。
+ * Payload: { action, adminKey?, designerToken?, caseId, commentText }
  */
-function handleGetNotes(caseId, adminToken) {
-  const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
-  if (adminToken !== adminKey) return jsonResponse({ ok: false, error: 'unauthorized' });
-  if (!caseId) return jsonResponse({ ok: false, error: 'missing_case_id' });
+function handleAddComment(payload) {
+  const caseId = (payload.caseId || '').trim();
+  const text = (payload.commentText || '').trim();
+  if (!caseId || !text) return jsonResponse({ ok: false, error: 'missing_params' });
 
+  let author;
+  if (isAdminKey(payload.adminKey)) author = 'director';
+  else if (validateDesignerTokenForCase(caseId, payload.designerToken)) author = 'designer';
+  else if (findSubmissionByCaseId(caseId)) author = 'client'; // 客戶用報告連結，caseId 即憑證
+  else return jsonResponse({ ok: false, error: 'unauthorized' });
+
+  const sheet = getOrCreateNotesSheet();
+  const ts = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
+  sheet.appendRow([caseId, ts, text, '{}', 'comment', author]);
+
+  const all = getNotesForCase(sheet, caseId);
+  return jsonResponse({ ok: true, caseId, timestamp: ts, author, totalComments: all.filter(n => n.noteType === 'comment').length });
+}
+
+/**
+ * 取得指定案件全部筆記（含內部 / 客戶會議 / 備註）。
+ * 權限：總監(adminToken) 或 設計師(designerToken)。
+ */
+function handleGetNotes(caseId, adminToken, designerToken) {
+  if (!caseId) return jsonResponse({ ok: false, error: 'missing_case_id' });
+  if (!isAdminKey(adminToken) && !validateDesignerTokenForCase(caseId, designerToken)) {
+    return jsonResponse({ ok: false, error: 'unauthorized' });
+  }
   const sheet = getOrCreateNotesSheet();
   const notes = getNotesForCase(sheet, caseId);
   return jsonResponse({ ok: true, caseId, notes });
+}
+
+/**
+ * 客戶報告頁專用：只回客戶會議筆記的 AI 統整重點（不給逐字稿）+ 備註。
+ * 免 admin / designer token，靠 caseId（報告連結即憑證）。
+ */
+function handleGetClientNotes(caseId) {
+  if (!caseId) return jsonResponse({ ok: false, error: 'missing_case_id' });
+  if (caseId !== 'GLN-DEMO' && !findSubmissionByCaseId(caseId)) {
+    return jsonResponse({ ok: false, error: 'not_found' });
+  }
+  const sheet = getOrCreateNotesSheet();
+  const all = getNotesForCase(sheet, caseId);
+
+  const meetings = all.filter(n => n.noteType === 'client').map(n => {
+    let summary = [];
+    try {
+      const pf = JSON.parse(n.parsedFields || '{}');
+      if (pf.meeting_summary) {
+        summary = Array.isArray(pf.meeting_summary)
+          ? pf.meeting_summary
+          : String(pf.meeting_summary).split(/\n|；|;/).map(s => s.trim()).filter(Boolean);
+      }
+    } catch (e) {}
+    return { timestamp: n.timestamp, summary };
+  });
+  const comments = all.filter(n => n.noteType === 'comment')
+    .map(n => ({ timestamp: n.timestamp, author: n.author, text: n.noteText }));
+
+  return jsonResponse({ ok: true, caseId, meetings, comments });
 }
 
 function getNotesForCase(sheet, caseId) {
@@ -1586,7 +1701,13 @@ function getNotesForCase(sheet, caseId) {
   const notes = [];
   for (let i = 1; i < data.length; i++) {
     if (String(data[i][0]) === caseId) {
-      notes.push({ timestamp: data[i][1], noteText: data[i][2], parsedFields: data[i][3] });
+      notes.push({
+        timestamp: data[i][1],
+        noteText: data[i][2],
+        parsedFields: data[i][3],
+        noteType: data[i][4] || 'internal', // 舊資料無此欄 → 視為內部筆記
+        author: data[i][5] || 'director',
+      });
     }
   }
   return notes;

@@ -223,6 +223,153 @@ $('#save-btn').addEventListener('click', async () => {
 // === 報告連結 ===
 $('#view-report').href = `report.html?id=${caseId}&v=designer${demoMode ? '&demo=1' : ''}`;
 
+// ============================================================
+// === 會議紀錄（內部開會筆記 / 客戶會議筆記 + 備註）===
+// ============================================================
+const MN_AUTHOR_LABEL = { director: '總監', designer: '設計師', client: '客戶' };
+
+const MN_DEMO = [
+  {
+    timestamp: '2026-06-20 15:10', noteType: 'internal', author: 'director',
+    noteText: '丈量現場：客廳採光偏暗，屋主希望開放式廚房；主臥要增設更衣室；長輩房需無障礙動線。預算抓 250 萬。',
+    parsedFields: JSON.stringify({ meeting_summary: [
+      '客廳採光不足，考慮拆牆引光 / 玻璃隔間',
+      '廚房改開放式，需確認管線與抽油煙排煙',
+      '主臥增設更衣室',
+    ] }),
+  },
+  {
+    timestamp: '2026-06-21 11:00', noteType: 'client', author: 'designer',
+    noteText: '第一次設計提案會議：客戶確認開放式廚房方向，玄關要加鞋櫃與穿鞋椅。',
+    parsedFields: JSON.stringify({ meeting_summary: ['確認開放式廚房，中島含電陶爐', '玄關增設鞋櫃 + 穿鞋椅'] }),
+  },
+  { timestamp: '2026-06-21 15:30', noteType: 'comment', author: 'client', noteText: '中島想再大一點，可以坐 3 個人嗎？' },
+];
+
+function mnSummaryHtml(n) {
+  try {
+    const pf = typeof n.parsedFields === 'string' ? JSON.parse(n.parsedFields || '{}') : (n.parsedFields || {});
+    if (pf.meeting_summary) {
+      const items = Array.isArray(pf.meeting_summary)
+        ? pf.meeting_summary
+        : String(pf.meeting_summary).split(/\n|；|;/).map(s => s.trim()).filter(Boolean);
+      return `<div class="mn-summary"><strong>📌 統整重點</strong><ul>${
+        items.map(s => `<li>${s.replace(/^[-・•\s]+/, '')}</li>`).join('')
+      }</ul></div>`;
+    }
+  } catch (e) {}
+  return '';
+}
+
+function renderMeetingNotes(notes) {
+  const root = $('#mn-history');
+  if (!root) return;
+  const internal = (notes || []).filter(n => n.noteType === 'internal' || !n.noteType);
+  const client = (notes || []).filter(n => n.noteType === 'client');
+  const comments = (notes || []).filter(n => n.noteType === 'comment');
+
+  const item = (n) => `
+    <div class="mn-item">
+      <div class="mn-item-ts">${n.timestamp}${n.author ? ` · ${MN_AUTHOR_LABEL[n.author] || n.author}` : ''}</div>
+      ${mnSummaryHtml(n)}
+      <div>${(n.noteText || '').replace(/\n/g, '<br>')}</div>
+    </div>`;
+
+  const internalBlock = `<div class="mn-group"><div class="mn-group-head mn-group-internal">🔒 內部開會筆記（總監＋設計師）</div>${
+    internal.length ? internal.map(item).join('') : '<p class="muted" style="font-size:.82rem;">尚無內部筆記</p>'
+  }</div>`;
+
+  const commentItem = (c) => `
+    <div class="mn-comment ${c.author}">
+      <span class="mn-comment-author">${MN_AUTHOR_LABEL[c.author] || c.author}</span>
+      <span class="mn-comment-text">${(c.text || c.noteText || '').replace(/\n/g, '<br>')}</span>
+      <span class="mn-comment-ts">${c.timestamp}</span>
+    </div>`;
+
+  const commentsBlock = `
+    <div class="mn-comment-thread">
+      <div class="mn-comment-head">💬 備註（總監／設計師／客戶皆可留言）</div>
+      ${comments.length ? comments.map(commentItem).join('') : '<p class="muted" style="font-size:.78rem;">尚無備註</p>'}
+      <div class="mn-comment-add">
+        <input id="mn-comment-input" type="text" placeholder="以設計師身分新增備註…" />
+        <button type="button" class="btn btn-ghost" id="mn-comment-send">送出備註</button>
+      </div>
+      <p class="muted" id="mn-comment-status" style="font-size:.78rem;margin-top:.3rem;"></p>
+    </div>`;
+
+  const clientBlock = `<div class="mn-group"><div class="mn-group-head mn-group-client">👤 客戶會議筆記（重點條列會顯示在客戶報告頁）</div>${
+    client.length ? client.map(item).join('') : '<p class="muted" style="font-size:.82rem;">尚無客戶會議筆記</p>'
+  }${commentsBlock}</div>`;
+
+  root.innerHTML = internalBlock + clientBlock;
+  $('#mn-comment-send')?.addEventListener('click', submitMeetingComment);
+}
+
+async function loadMeetingNotes() {
+  const root = $('#mn-history');
+  if (!root) return;
+  if (demoMode) { renderMeetingNotes(MN_DEMO); return; }
+  if (!designerToken) { root.innerHTML = '<p class="muted" style="font-size:.85rem;">缺少設計師 token，無法載入會議紀錄。</p>'; return; }
+  try {
+    const url = `${GAS_ENDPOINT}?action=get_notes&case_id=${encodeURIComponent(caseId)}&designer_token=${encodeURIComponent(designerToken)}`;
+    const res = await fetch(url);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    renderMeetingNotes(json.notes || []);
+  } catch (err) {
+    root.innerHTML = `<p class="muted" style="font-size:.85rem;color:#a03030;">載入失敗：${err.message}</p>`;
+  }
+}
+
+async function submitMeetingNote() {
+  const statusEl = $('#mn-status');
+  const text = ($('#mn-text')?.value || '').trim();
+  if (!text) { if (statusEl) statusEl.textContent = '請先輸入筆記內容'; return; }
+  const noteType = document.querySelector('input[name="mn-type"]:checked')?.value || 'internal';
+  if (demoMode) { if (statusEl) statusEl.textContent = '（demo 模式）實際送出會跑 AI 分析並寫入資料庫。'; return; }
+  if (statusEl) statusEl.textContent = 'AI 分析中（約 10–20 秒）…';
+  try {
+    const res = await fetch(GAS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'add_note', designerToken, caseId, noteText: text, noteType }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    $('#mn-text').value = '';
+    const typeLabel = noteType === 'client' ? '客戶會議筆記' : '內部開會筆記';
+    if (statusEl) statusEl.textContent = `✅ 已儲存為${typeLabel}`;
+    await loadMeetingNotes();
+  } catch (err) {
+    if (statusEl) statusEl.textContent = '❌ 儲存失敗：' + err.message;
+  }
+}
+
+async function submitMeetingComment() {
+  const statusEl = $('#mn-comment-status');
+  const input = $('#mn-comment-input');
+  const text = (input?.value || '').trim();
+  if (!text) { if (statusEl) statusEl.textContent = '請先輸入備註內容'; return; }
+  if (demoMode) { if (statusEl) statusEl.textContent = '（demo 模式）實際送出會寫入資料庫。'; return; }
+  if (statusEl) statusEl.textContent = '送出中…';
+  try {
+    const res = await fetch(GAS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'add_comment', designerToken, caseId, commentText: text }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    input.value = '';
+    if (statusEl) statusEl.textContent = '✅ 備註已送出';
+    await loadMeetingNotes();
+  } catch (err) {
+    if (statusEl) statusEl.textContent = '❌ 送出失敗：' + err.message;
+  }
+}
+
+$('#mn-save')?.addEventListener('click', submitMeetingNote);
+
 // === Init ===
 (async () => {
   try {
@@ -231,4 +378,5 @@ $('#view-report').href = `report.html?id=${caseId}&v=designer${demoMode ? '&demo
   } catch (err) {
     $('#designer-content').innerHTML = `<div class="status-banner error">載入失敗：${err.message}</div>`;
   }
+  loadMeetingNotes();
 })();

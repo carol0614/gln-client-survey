@@ -9,6 +9,37 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    .meeting-notes-card { background:#fff; border:1px solid #e6e1d6; border-radius:10px; padding:1.2rem 1.4rem; margin:1.5rem 0; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+    .mn-title { font-family:'Noto Serif TC',serif; font-size:1.15rem; margin:0 0 .3rem; color:#3a362e; }
+    .mn-intro { font-size:.82rem; color:#8a8472; margin:0 0 1rem; }
+    .mn-group { margin-bottom:1rem; }
+    .mn-group-head { font-size:.82rem; font-weight:600; padding:.3rem .55rem; border-radius:6px; margin-bottom:.5rem; }
+    .mn-group-internal { background:#efece4; color:#8a8472; }
+    .mn-group-client { background:rgba(111,106,60,.12); color:#6f6a3c; }
+    .mn-item { padding:.5rem .2rem; border-bottom:1px dashed #e6e1d6; }
+    .mn-item-ts { font-size:.75rem; color:#8a8472; margin-bottom:.25rem; }
+    .mn-summary { background:#faf8f3; border-left:3px solid #c8a96a; padding:.5rem .7rem; border-radius:4px; margin-bottom:.4rem; }
+    .mn-summary strong { color:#a8743a; font-size:.85rem; }
+    .mn-summary ul { margin:.3rem 0 0; padding-left:1.2rem; }
+    .mn-summary li { font-size:.88rem; margin:.15rem 0; }
+    .mn-comment-thread { margin-top:.6rem; padding:.6rem .7rem; background:#faf8f3; border:1px solid #e6e1d6; border-radius:8px; }
+    .mn-comment-head { font-size:.78rem; font-weight:600; margin-bottom:.45rem; color:#3a362e; }
+    .mn-comment { display:flex; flex-wrap:wrap; align-items:baseline; gap:.4rem; font-size:.85rem; padding:.3rem 0; border-bottom:1px dashed #e6e1d6; }
+    .mn-comment-author { font-size:.7rem; font-weight:600; padding:.05rem .4rem; border-radius:999px; flex-shrink:0; }
+    .mn-comment.director .mn-comment-author { background:rgba(111,106,60,.18); color:#6f6a3c; }
+    .mn-comment.designer .mn-comment-author { background:#e3ebe1; color:#4a7040; }
+    .mn-comment.client .mn-comment-author { background:#f3e3e8; color:#a05068; }
+    .mn-comment-text { flex:1; min-width:60%; }
+    .mn-comment-ts { font-size:.7rem; color:#8a8472; margin-left:auto; }
+    .mn-comment-add { display:flex; gap:.4rem; margin-top:.5rem; }
+    .mn-comment-add input { flex:1; padding:.35rem .6rem; border:1px solid #e6e1d6; border-radius:6px; font-size:.85rem; font-family:inherit; }
+    .mn-type-row { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .85rem; margin-bottom:.5rem; font-size:.85rem; }
+    .mn-type-label { font-weight:600; }
+    .mn-type-opt { display:inline-flex; align-items:center; gap:.25rem; cursor:pointer; }
+    .mn-add textarea { width:100%; box-sizing:border-box; padding:.5rem .7rem; border:1px solid #e6e1d6; border-radius:6px; font-family:inherit; font-size:.9rem; resize:vertical; }
+    .mn-add { border-top:1px solid #e6e1d6; padding-top:1rem; margin-top:1rem; }
+  </style>
 </head>
 <body>
 
@@ -28,6 +59,22 @@
       此頁面顯示客戶提交內容，並開放設計師補填品牌型號、收納位置、配電資訊與備註。
       <strong>客戶答案不可修改</strong>（總監模式 <code>?admin=1</code> 可覆寫）。
     </p>
+
+    <section id="meeting-notes" class="meeting-notes-card">
+      <h2 class="mn-title">會議紀錄</h2>
+      <p class="mn-intro">內部開會筆記只有總監＋設計師看得到；客戶會議筆記的重點條列會出現在客戶報告頁。</p>
+      <div id="mn-history"><p class="muted" style="font-size:0.85rem;">載入會議紀錄中…</p></div>
+      <div class="mn-add">
+        <div class="mn-type-row">
+          <span class="mn-type-label">筆記類型</span>
+          <label class="mn-type-opt"><input type="radio" name="mn-type" value="internal" checked /> 內部開會筆記</label>
+          <label class="mn-type-opt"><input type="radio" name="mn-type" value="client" /> 客戶會議筆記</label>
+        </div>
+        <textarea id="mn-text" rows="3" placeholder="貼上會談逐字稿或錄音連結，或手動輸入筆記…"></textarea>
+        <button type="button" id="mn-save" class="btn btn-primary">儲存筆記</button>
+        <p class="muted" id="mn-status" style="font-size:0.85rem;margin-top:0.4rem;"></p>
+      </div>
+    </section>
 
     <div id="designer-content">
       <p class="muted" style="text-align:center; padding: 3rem 0;">載入中…</p>

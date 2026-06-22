@@ -9,6 +9,24 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;600&family=Ibarra+Real+Nova:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    .cmn-meeting { margin-bottom: 1rem; }
+    .cmn-meeting-ts { font-size: .8rem; color: #8a8472; margin-bottom: .3rem; }
+    .cmn-summary { background: #faf8f3; border-left: 3px solid #c8a96a; padding: .7rem 1rem; border-radius: 4px; margin: 0; list-style-position: inside; }
+    .cmn-summary li { margin: .25rem 0; }
+    .cmn-comment-thread { margin-top: 1.2rem; padding: .8rem 1rem; background: #faf8f3; border: 1px solid #e6e1d6; border-radius: 8px; }
+    .cmn-comment-head { font-weight: 600; margin-bottom: .5rem; color: #3a362e; }
+    .cmn-comment { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem; padding: .35rem 0; border-bottom: 1px dashed #e6e1d6; }
+    .cmn-comment-author { font-size: .72rem; font-weight: 600; padding: .05rem .45rem; border-radius: 999px; flex-shrink: 0; }
+    .cmn-comment.director .cmn-comment-author { background: rgba(111,106,60,.18); color: #6f6a3c; }
+    .cmn-comment.designer .cmn-comment-author { background: #e3ebe1; color: #4a7040; }
+    .cmn-comment.client .cmn-comment-author { background: #f3e3e8; color: #a05068; }
+    .cmn-comment-text { flex: 1; min-width: 60%; }
+    .cmn-comment-ts { font-size: .72rem; color: #8a8472; margin-left: auto; }
+    .cmn-comment-add { display: flex; gap: .5rem; margin-top: .7rem; }
+    .cmn-comment-add input { flex: 1; padding: .45rem .7rem; border: 1px solid #e6e1d6; border-radius: 6px; font-size: .9rem; font-family: inherit; }
+    .cmn-comment-add input:focus { border-color: #6f6a3c; outline: none; }
+  </style>
 </head>
 <body class="report-body">
 

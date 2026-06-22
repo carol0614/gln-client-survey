@@ -105,6 +105,7 @@ function renderCasesList(loadError) {
         const fillUrl     = `${base}designer.html?id=${c.caseId}${d}`;
         // 範例卡片用一條示意連結，讓 Carol 看到「問卷連結 + 複製」長相
         const surveyUrl   = c.clientUrl || (casesAreDemo ? `${base}?t=DEMO-RANGE-TOKEN` : '');
+        const designerLinkUrl = c.designerUrl || (casesAreDemo ? `${base}designer.html?id=${c.caseId}&t=DEMO-DESIGNER-TOKEN` : '');
         return `
           <div class="case-card" data-case-id="${c.caseId}">
             <div class="case-meta">
@@ -113,9 +114,15 @@ function renderCasesList(loadError) {
               <p class="case-time">${c.timestamp}</p>
               ${surveyUrl ? `
               <div class="case-survey">
-                <span class="case-survey-label">問卷連結</span>
+                <span class="case-survey-label">客戶問卷連結</span>
                 <a class="token-url" id="survey-url-${c.caseId}" href="${surveyUrl}" target="_blank" rel="noopener">${surveyUrl}</a>
                 <button class="btn-copy" data-copy="survey-url-${c.caseId}">複製</button>
+              </div>` : ''}
+              ${designerLinkUrl ? `
+              <div class="case-survey">
+                <span class="case-survey-label">設計師連結</span>
+                <a class="token-url" id="designer-url-${c.caseId}" href="${designerLinkUrl}" target="_blank" rel="noopener">${designerLinkUrl}</a>
+                <button class="btn-copy" data-copy="designer-url-${c.caseId}">複製</button>
               </div>` : ''}
             </div>
             <div class="case-actions">
@@ -129,6 +136,12 @@ function renderCasesList(loadError) {
             <div class="case-notes-area" id="notes-area-${c.caseId}">
               <div class="note-history" id="note-history-${c.caseId}">
                 <p class="muted" style="font-size:0.8rem;">載入筆記中…</p>
+              </div>
+              <div class="note-type-row">
+                <span class="note-type-label">筆記類型</span>
+                <label class="note-type-opt"><input type="radio" name="note-type-${c.caseId}" value="internal" checked /> 內部開會筆記</label>
+                <label class="note-type-opt"><input type="radio" name="note-type-${c.caseId}" value="client" /> 客戶會議筆記</label>
+                <span class="note-type-hint">內部＝只有總監＋設計師看得到；客戶會議＝重點條列會出現在客戶報告頁</span>
               </div>
               <div class="note-add-row">
                 <textarea class="note-add-ta" id="${taId}" rows="3" placeholder="貼上會談逐字稿或錄音連結（用手機 / Otter / 超級轉錄等錄完，再貼回這裡），或手動輸入筆記…"></textarea>
@@ -431,17 +444,30 @@ async function loadNotes(caseId) {
   const histEl = $('#note-history-' + caseId);
   if (!histEl) return;
   if (casesAreDemo) {
-    renderNoteHistory(caseId, [{
-      timestamp: '2026-06-20 15:10',
-      noteText: '丈量現場：客廳採光偏暗，屋主希望開放式廚房；主臥要增設更衣室；長輩房需無障礙動線。預算抓 250 萬。',
-      parsedFields: JSON.stringify({ meeting_summary: [
-        '客廳採光不足，考慮拆牆引光 / 玻璃隔間',
-        '廚房改開放式，需確認管線與抽油煙排煙',
-        '主臥增設更衣室',
-        '長輩房無障礙動線（地坪齊平、扶手）',
-        '預算上限約 NT$2,500,000',
-      ] }),
-    }]);
+    renderNoteHistory(caseId, [
+      {
+        timestamp: '2026-06-20 15:10', noteType: 'internal', author: 'director',
+        noteText: '丈量現場：客廳採光偏暗，屋主希望開放式廚房；主臥要增設更衣室；長輩房需無障礙動線。預算抓 250 萬。',
+        parsedFields: JSON.stringify({ meeting_summary: [
+          '客廳採光不足，考慮拆牆引光 / 玻璃隔間',
+          '廚房改開放式，需確認管線與抽油煙排煙',
+          '主臥增設更衣室',
+          '長輩房無障礙動線（地坪齊平、扶手）',
+          '預算上限約 NT$2,500,000',
+        ] }),
+      },
+      {
+        timestamp: '2026-06-21 11:00', noteType: 'client', author: 'designer',
+        noteText: '第一次設計提案會議：客戶確認開放式廚房方向，主臥更衣室改為獨立小房，玄關要加鞋櫃與穿鞋椅。',
+        parsedFields: JSON.stringify({ meeting_summary: [
+          '確認開放式廚房，中島含電陶爐',
+          '主臥更衣室改獨立小房（約 1.5 坪）',
+          '玄關增設鞋櫃 + 穿鞋椅',
+        ] }),
+      },
+      { timestamp: '2026-06-21 15:30', noteType: 'comment', author: 'client', noteText: '中島想再大一點，可以坐 3 個人嗎？' },
+      { timestamp: '2026-06-21 16:10', noteType: 'comment', author: 'director', noteText: '已記下，下次提案會評估中島加大到 240cm。' },
+    ]);
     return;
   }
   histEl.innerHTML = '<p class="muted" style="font-size:0.8rem;">載入中…</p>';
@@ -456,34 +482,70 @@ async function loadNotes(caseId) {
   }
 }
 
+const AUTHOR_LABEL = { director: '總監', designer: '設計師', client: '客戶' };
+
+function noteSummaryHtml(n) {
+  try {
+    const pf = typeof n.parsedFields === 'string' ? JSON.parse(n.parsedFields || '{}') : (n.parsedFields || {});
+    if (pf.meeting_summary) {
+      const items = Array.isArray(pf.meeting_summary)
+        ? pf.meeting_summary
+        : String(pf.meeting_summary).split(/\n|；|;/).map(s => s.trim()).filter(Boolean);
+      return `<div class="note-summary"><strong>📌 統整重點</strong><ul>${
+        items.map(s => `<li>${s.replace(/^[-・•\s]+/, '')}</li>`).join('')
+      }</ul></div>`;
+    }
+  } catch (e) {}
+  return '';
+}
+
 function renderNoteHistory(caseId, notes) {
   const histEl = $('#note-history-' + caseId);
   if (!histEl) return;
-  if (notes.length === 0) {
+  if (!notes || notes.length === 0) {
     histEl.innerHTML = '<p class="muted" style="font-size:0.8rem;">尚無筆記記錄</p>';
     return;
   }
-  histEl.innerHTML = notes.map(n => {
-    let summary = '';
-    try {
-      const pf = typeof n.parsedFields === 'string' ? JSON.parse(n.parsedFields || '{}') : (n.parsedFields || {});
-      if (pf.meeting_summary) {
-        const items = Array.isArray(pf.meeting_summary)
-          ? pf.meeting_summary
-          : String(pf.meeting_summary).split(/\n|；|;/).map(s => s.trim()).filter(Boolean);
-        summary = `<div class="note-summary"><strong>📌 統整重點</strong><ul>${
-          items.map(s => `<li>${s.replace(/^[-・•\s]+/, '')}</li>`).join('')
-        }</ul></div>`;
-      }
-    } catch (e) { /* parsedFields 解析失敗就只顯示原文 */ }
-    return `
+  const internal = notes.filter(n => n.noteType === 'internal' || (!n.noteType && n.noteType !== 'comment'));
+  const client   = notes.filter(n => n.noteType === 'client');
+  const comments = notes.filter(n => n.noteType === 'comment');
+
+  const noteItem = (n) => `
     <div class="note-item">
-      <div class="note-item-ts">${n.timestamp}</div>
-      ${summary}
-      <div>${n.noteText.replace(/\n/g, '<br>')}</div>
-    </div>
-  `;
-  }).join('');
+      <div class="note-item-ts">${n.timestamp}${n.author ? ` · ${AUTHOR_LABEL[n.author] || n.author}` : ''}</div>
+      ${noteSummaryHtml(n)}
+      <div>${(n.noteText || '').replace(/\n/g, '<br>')}</div>
+    </div>`;
+
+  const internalBlock = internal.length
+    ? `<div class="note-group"><div class="note-group-head note-group-internal">🔒 內部開會筆記（總監＋設計師）</div>${internal.map(noteItem).join('')}</div>`
+    : '';
+
+  const commentItem = (c) => `
+    <div class="comment-item comment-${c.author}">
+      <span class="comment-author">${AUTHOR_LABEL[c.author] || c.author}</span>
+      <span class="comment-text">${(c.text || c.noteText || '').replace(/\n/g, '<br>')}</span>
+      <span class="comment-ts">${c.timestamp}</span>
+    </div>`;
+
+  const commentsBlock = `
+    <div class="comment-thread">
+      <div class="comment-thread-head">💬 備註（總監／設計師／客戶皆可留言）</div>
+      ${comments.length ? comments.map(commentItem).join('') : '<p class="muted" style="font-size:0.78rem;">尚無備註</p>'}
+      <div class="comment-add-row">
+        <input class="comment-add-input" id="comment-input-${caseId}" type="text" placeholder="以總監身分新增備註…" />
+        <button class="btn btn-ghost btn-sm" onclick="submitComment('${caseId}')">送出備註</button>
+      </div>
+      <p class="muted" id="comment-status-${caseId}" style="font-size:0.78rem;margin-top:0.3rem;"></p>
+    </div>`;
+
+  const clientBlock = (client.length || true)
+    ? `<div class="note-group"><div class="note-group-head note-group-client">👤 客戶會議筆記（重點條列會顯示在客戶報告頁）</div>${
+        client.length ? client.map(noteItem).join('') : '<p class="muted" style="font-size:0.78rem;">尚無客戶會議筆記</p>'
+      }${commentsBlock}</div>`
+    : '';
+
+  histEl.innerHTML = internalBlock + clientBlock;
 }
 
 async function submitNote(caseId) {
@@ -495,20 +557,48 @@ async function submitNote(caseId) {
     if (statusEl) statusEl.textContent = '🅓 範例展示模式：實際送出會跑 AI 分析並寫入資料庫。有真實案件後即可使用。';
     return;
   }
+  const noteType = (document.querySelector(`input[name="note-type-${caseId}"]:checked`)?.value) || 'internal';
   if (statusEl) statusEl.textContent = 'AI 分析中（約 10–20 秒）…';
   try {
     const res = await fetch(GAS_ENDPOINT_ADMIN, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'add_note', adminKey: ADMIN_KEY, caseId, noteText: text }),
+      body: JSON.stringify({ action: 'add_note', adminKey: ADMIN_KEY, caseId, noteText: text, noteType }),
     });
     const json = await res.json();
     if (!json.ok) throw new Error(json.error);
     ta.value = '';
-    if (statusEl) statusEl.textContent = `✅ 已儲存（共 ${json.totalNotes} 筆筆記）`;
+    const typeLabel = noteType === 'client' ? '客戶會議筆記' : '內部開會筆記';
+    if (statusEl) statusEl.textContent = `✅ 已儲存為${typeLabel}（共 ${json.totalNotes} 筆會議筆記）`;
     await loadNotes(caseId); // 重新讀取歷史
   } catch (err) {
     if (statusEl) statusEl.textContent = '❌ 儲存失敗：' + err.message;
+  }
+}
+
+async function submitComment(caseId) {
+  const input = $('#comment-input-' + caseId);
+  const statusEl = $('#comment-status-' + caseId);
+  const text = (input?.value || '').trim();
+  if (!text) { if (statusEl) statusEl.textContent = '請先輸入備註內容'; return; }
+  if (casesAreDemo) {
+    if (statusEl) statusEl.textContent = '🅓 範例展示模式：實際送出會寫入資料庫。有真實案件後即可使用。';
+    return;
+  }
+  if (statusEl) statusEl.textContent = '送出中…';
+  try {
+    const res = await fetch(GAS_ENDPOINT_ADMIN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'add_comment', adminKey: ADMIN_KEY, caseId, commentText: text }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    input.value = '';
+    if (statusEl) statusEl.textContent = '✅ 備註已送出';
+    await loadNotes(caseId);
+  } catch (err) {
+    if (statusEl) statusEl.textContent = '❌ 送出失敗：' + err.message;
   }
 }
 

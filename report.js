@@ -780,6 +780,7 @@ function renderReport(caseData, analysis, feelingsData, version) {
       ${powerHtml}
       ${backgroundHtml}
       ${notesHtml}
+      ${!isDesigner ? '<section id="client-meeting-notes" class="report-section"><p class="muted">載入會議紀錄中…</p></section>' : ''}
       ${renderAnalysis(analysis, version)}
       <footer class="report-footer no-print">
         <p class="muted">${isDesigner ? 'GLN 設計師桌面速查版' : '資料無誤嗎？如需修改，請聯絡 GLN 設計團隊。'}</p>
@@ -1008,6 +1009,97 @@ function renderAnalysis(analysis, version) {
 }
 
 
+// === 客戶會議紀錄（只顯示客戶會議筆記的重點條列 + 備註，客戶可留言）===
+const RPT_AUTHOR_LABEL = { director: '總監', designer: '設計師', client: '您' };
+
+const RPT_NOTES_DEMO = {
+  meetings: [
+    { timestamp: '2026-06-21 11:00', summary: ['確認開放式廚房，中島含電陶爐', '主臥更衣室改獨立小房（約 1.5 坪）', '玄關增設鞋櫃 + 穿鞋椅'] },
+  ],
+  comments: [
+    { timestamp: '2026-06-21 15:30', author: 'client', text: '中島想再大一點，可以坐 3 個人嗎？' },
+    { timestamp: '2026-06-21 16:10', author: 'director', text: '已記下，下次提案會評估中島加大到 240cm。' },
+  ],
+};
+
+function renderClientMeetingNotes(payload) {
+  const root = $('#client-meeting-notes');
+  if (!root) return;
+  const meetings = payload.meetings || [];
+  const comments = payload.comments || [];
+
+  const meetingHtml = meetings.length
+    ? meetings.map(m => `
+        <div class="cmn-meeting">
+          <div class="cmn-meeting-ts">${m.timestamp}</div>
+          <ul class="cmn-summary">${(m.summary || []).map(s => `<li>${s}</li>`).join('')}</ul>
+        </div>`).join('')
+    : '<p class="muted">目前還沒有會議紀錄。設計師完成會議後會整理在這裡。</p>';
+
+  const commentHtml = comments.length
+    ? comments.map(c => `
+        <div class="cmn-comment ${c.author}">
+          <span class="cmn-comment-author">${RPT_AUTHOR_LABEL[c.author] || c.author}</span>
+          <span class="cmn-comment-text">${(c.text || '').replace(/\n/g, '<br>')}</span>
+          <span class="cmn-comment-ts">${c.timestamp}</span>
+        </div>`).join('')
+    : '<p class="muted" style="font-size:.85rem;">尚無備註，有任何想補充的都可以寫在下方。</p>';
+
+  root.innerHTML = `
+    <h2>會議紀錄</h2>
+    <p class="section-meta">以下是與設計師討論後整理的重點。有任何想補充或修正的，歡迎在下方留言。</p>
+    ${meetingHtml}
+    <div class="cmn-comment-thread">
+      <div class="cmn-comment-head">💬 備註</div>
+      ${commentHtml}
+      <div class="cmn-comment-add no-print">
+        <input id="cmn-comment-input" type="text" placeholder="輸入您的備註 / 補充…" />
+        <button type="button" class="btn btn-primary" id="cmn-comment-send">送出</button>
+      </div>
+      <p class="muted" id="cmn-comment-status" style="font-size:.8rem;margin-top:.3rem;"></p>
+    </div>
+  `;
+  $('#cmn-comment-send')?.addEventListener('click', submitClientComment);
+}
+
+async function loadClientMeetingNotes() {
+  const root = $('#client-meeting-notes');
+  if (!root) return;
+  if (demoMode) { renderClientMeetingNotes(RPT_NOTES_DEMO); return; }
+  try {
+    const url = `${GAS_ENDPOINT}?action=get_client_notes&case_id=${encodeURIComponent(caseId)}`;
+    const res = await fetch(url);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    renderClientMeetingNotes(json);
+  } catch (err) {
+    root.innerHTML = `<h2>會議紀錄</h2><p class="muted">載入失敗：${err.message}</p>`;
+  }
+}
+
+async function submitClientComment() {
+  const statusEl = $('#cmn-comment-status');
+  const input = $('#cmn-comment-input');
+  const text = (input?.value || '').trim();
+  if (!text) { if (statusEl) statusEl.textContent = '請先輸入備註內容'; return; }
+  if (demoMode) { if (statusEl) statusEl.textContent = '（demo 模式）實際送出會寫入資料庫。'; return; }
+  if (statusEl) statusEl.textContent = '送出中…';
+  try {
+    const res = await fetch(GAS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'add_comment', caseId, commentText: text }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    input.value = '';
+    if (statusEl) statusEl.textContent = '✅ 已送出，謝謝您的補充！';
+    await loadClientMeetingNotes();
+  } catch (err) {
+    if (statusEl) statusEl.textContent = '❌ 送出失敗：' + err.message;
+  }
+}
+
 // === 載入並渲染 ===
 async function init() {
   try {
@@ -1019,6 +1111,7 @@ async function init() {
     const html = renderReport(caseData, analysis, feelingsData, version);
     $('#report-root').innerHTML = html;
     updateToggle();
+    if (version !== 'designer') loadClientMeetingNotes();
   } catch (err) {
     $('#report-root').innerHTML = `<div class="status-banner error">載入失敗：${err.message}</div>`;
   }
