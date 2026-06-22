@@ -628,6 +628,18 @@ function enrichDataWithFeelingLabels(data, feelingsMap) {
       }));
     }
   } catch (e) { /* ignore */ }
+  // 樓層空間規劃：把 _floor_plan JSON 字串轉成可讀陣列，方便 AI 逐層分析
+  try {
+    if (clone._floor_plan) {
+      const floors = typeof clone._floor_plan === 'string'
+        ? JSON.parse(clone._floor_plan) : clone._floor_plan;
+      if (Array.isArray(floors) && floors.length) {
+        clone._floor_plan_readable = floors
+          .filter(f => f && (f.name || f.desc))
+          .map(f => ({ 樓層: f.name || '', 想要的空間機能: f.desc || '' }));
+      }
+    }
+  } catch (e) { /* ignore */ }
   return clone;
 }
 

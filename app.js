@@ -450,11 +450,57 @@ function loadDraft() {
         if (input) input.value = val;
       }
     });
+    // Restore 樓層空間規劃（hidden _floor_plan 以 _ 開頭，上面迴圈會跳過，這裡單獨還原）
+    try {
+      const floors = JSON.parse(data._floor_plan || '[]');
+      if (Array.isArray(floors)) floors.forEach(f => addFloor(f.name || '', f.desc || ''));
+    } catch (e) { /* ignore */ }
     return true;
   } catch (e) {
     console.warn('loadDraft failed', e);
     return false;
   }
+}
+
+// === 樓層空間規劃（動態新增樓層區塊）===
+function addFloor(name = '', desc = '') {
+  const list = $('#floor-plan-list');
+  if (!list) return;
+  const block = document.createElement('div');
+  block.className = 'floor-block';
+  block.innerHTML = `
+    <div class="floor-block-head">
+      <input type="text" class="floor-name" placeholder="樓層（例：一樓 / B1 / 頂樓）" />
+      <button type="button" class="floor-remove" title="刪除這層" aria-label="刪除這層">✕</button>
+    </div>
+    <textarea class="floor-desc" placeholder="這層想要的空間、機能…例：開放式廚房、中島、客餐廚＋工作區"></textarea>
+  `;
+  block.querySelector('.floor-name').value = name;
+  block.querySelector('.floor-desc').value = desc;
+  block.querySelector('.floor-remove').addEventListener('click', () => {
+    block.remove();
+    syncFloorPlan();
+  });
+  block.querySelectorAll('.floor-name, .floor-desc').forEach(el => {
+    el.addEventListener('input', syncFloorPlan);
+  });
+  list.appendChild(block);
+  syncFloorPlan();
+}
+
+function syncFloorPlan() {
+  const field = $('#floor-plan-data');
+  if (!field) return;
+  const floors = $$('#floor-plan-list .floor-block').map(b => ({
+    name: (b.querySelector('.floor-name')?.value || '').trim(),
+    desc: (b.querySelector('.floor-desc')?.value || '').trim(),
+  })).filter(f => f.name || f.desc);
+  field.value = floors.length ? JSON.stringify(floors) : '';
+}
+
+function bindFloorPlan() {
+  const btn = $('#floor-add-btn');
+  if (btn) btn.addEventListener('click', () => addFloor());
 }
 
 // Listen for any input change
@@ -1305,6 +1351,7 @@ async function init() {
   bindSwipeControls();
   bindReferenceUpload();
   bindChipBehavior();
+  bindFloorPlan();
 
   // Accordion 必須在所有 DOM 渲染完成後才包 section-body（避免 dynamic 渲染斷裂）
   initAccordion();
@@ -1319,6 +1366,10 @@ async function init() {
   const restored = loadDraft();
   if (!restored) {
     addMember(); // 至少給一張成員卡
+  }
+  // 樓層空間規劃：若草稿沒有任何樓層，給一個空白樓層引導
+  if ($('#floor-plan-list') && $$('#floor-plan-list .floor-block').length === 0) {
+    addFloor();
   }
 
   // 3. 從 GAS 拉 prefill（首次）或舊答案（修改模式）

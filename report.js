@@ -650,6 +650,25 @@ function renderReport(caseData, analysis, feelingsData, version) {
     </section>
   `;
 
+  // 樓層空間規劃
+  let floorPlanRows = '';
+  try {
+    const floors = typeof d._floor_plan === 'string'
+      ? JSON.parse(d._floor_plan || '[]')
+      : (Array.isArray(d._floor_plan) ? d._floor_plan : []);
+    floorPlanRows = (floors || [])
+      .filter(f => f && (f.name || f.desc))
+      .map(f => `<tr><th>${val(f.name)}</th><td>${val(f.desc)}</td></tr>`)
+      .join('');
+  } catch (e) { floorPlanRows = ''; }
+  const floorPlanHtml = floorPlanRows ? `
+    <div class="report-floor-plan">
+      <strong>樓層空間規劃</strong>
+      <table class="report-table"><tbody>${floorPlanRows}</tbody></table>
+      ${d.floor_priority ? `<p class="muted" style="margin-top:0.5rem;"><strong>整體優先順序：</strong>${val(d.floor_priority)}</p>` : ''}
+    </div>
+  ` : '';
+
   // Section E: 空間需求
   const needsHtml = `
     <section class="report-section">
@@ -659,6 +678,7 @@ function renderReport(caseData, analysis, feelingsData, version) {
         <li>${val(d.priority_2)}</li>
         <li>${val(d.priority_3)}</li>
       </ol>
+      ${floorPlanHtml}
       <div class="report-paragraph">
         <strong>痛點：</strong>${val(d.pain_points)}<br />
         <strong>翻新原因：</strong>${val(d.renovation_reason)}<br />

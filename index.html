@@ -447,7 +447,7 @@
 
       <!-- ============ Section D+：感覺光譜（原 C+/C2）============ -->
       <section class="section collapsible swipe-section" data-section="D2">
-        <h2>Section D+ — 感覺光譜 <span class="optional-badge">選填</span></h2>
+        <h2>Section E — 感覺光譜 <span class="optional-badge">選填</span></h2>
         <p class="section-meta swipe-intro">
           看到喜歡的「感覺」往右滑、不喜歡的往左滑、沒感覺可以跳過。<br />
           這不是選風格，是讓我們捕捉你說不出口的居住氛圍偏好。<strong>不滑也沒關係</strong>，下方可上傳你心目中的圖。
@@ -515,7 +515,23 @@
 
       <!-- ============ Section E：你對空間和合作的期待 ============ -->
       <section class="section collapsible" data-section="E">
-        <h2>Section E — 你對空間和合作的期待</h2>
+        <h2>Section F — 你對空間和合作的期待</h2>
+
+        <!-- 樓層空間規劃（透天 / 多樓層適用）-->
+        <div class="field floor-plan-field">
+          <label>樓層空間規劃 <span class="optional-badge">選填</span></label>
+          <p class="section-meta">
+            每層樓想要的空間、機能、想做的事，逐層寫下來（透天或多樓層最適合；單層公寓填一層即可）。<br />
+            例：<em>一樓</em> 開放式廚房、中島、客餐廚＋工作區；<em>二樓</em> 大主臥、浴缸；<em>三樓</em> 兩套房給父母住。
+          </p>
+          <div id="floor-plan-list"><!-- 由 app.js 動態渲染樓層區塊 --></div>
+          <button type="button" class="floor-add-btn" id="floor-add-btn">＋ 新增樓層</button>
+          <input type="hidden" name="_floor_plan" id="floor-plan-data" />
+        </div>
+        <div class="field">
+          <label>整體優先順序</label>
+          <textarea name="floor_priority" placeholder="例：以 1-3 樓為主，4 樓衛浴翻新，5 樓油漆"></textarea>
+        </div>
 
         <div class="field">
           <label>空間許願清單</label>
@@ -586,7 +602,7 @@
 
       <!-- ============ 設備品牌規劃（選填）============ -->
       <section class="section collapsible" data-section="EQ">
-        <h2>設備需求 — 品牌規劃 <span class="optional-badge">選填</span></h2>
+        <h2>Section G — 設備需求 · 品牌規劃 <span class="optional-badge">選填</span></h2>
         <p class="section-meta">
           <strong>這部分為選填</strong>，可以邊找邊填、或留空與設計師討論。我們會將你填的資料保留在案件報告中，後續隨時調整。<br />
           請從下拉選單挑選你想要的品牌；沒看到偏好品牌可選「其他」自填；用不到的選「不需要」；不確定可留空。
@@ -602,7 +618,7 @@
 
       <!-- ============ 房間收納需求（選填）============ -->
       <section class="section" data-section="STORAGE">
-        <h2>房間收納需求 <span class="optional-badge">選填</span></h2>
+        <h2>Section H — 房間收納需求 <span class="optional-badge">選填</span></h2>
         <p class="section-meta">
           <strong>這部分為選填</strong>，可以邊找邊填、或留空與設計師討論。我們會將你填的資料保留在案件報告中。<br />
           各區域物品的數量與收納位置，沒有的可跳過。

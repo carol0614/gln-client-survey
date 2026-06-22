@@ -2417,3 +2417,63 @@ footer.site-footer {
     grid-column: auto;
   }
 }
+
+/* ── 樓層空間規劃 ── */
+.floor-plan-field #floor-plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.floor-block {
+  border: 1px solid var(--gln-mist);
+  border-left: 3px solid var(--gln-olive);
+  border-radius: var(--radius);
+  background: var(--gln-warm-white);
+  padding: 0.75rem;
+}
+.floor-block-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.floor-block-head .floor-name {
+  flex: 1;
+  font-weight: 500;
+}
+.floor-remove {
+  flex-shrink: 0;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid var(--gln-mist);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--gln-taupe);
+  cursor: pointer;
+  line-height: 1;
+}
+.floor-remove:hover {
+  background: #fbeaea;
+  border-color: #c79a9a;
+  color: #a85050;
+}
+.floor-block .floor-desc {
+  min-height: 3.5rem;
+}
+.floor-add-btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px dashed var(--gln-olive);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--gln-olive);
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.floor-add-btn:hover {
+  background: var(--gln-olive);
+  color: #fff;
+}
