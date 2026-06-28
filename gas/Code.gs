@@ -30,6 +30,10 @@ const ANTHROPIC_VERSION = '2023-06-01';
 // === 入口：POST 收問卷 ===
 function doPost(e) {
   try {
+    // 防呆：缺 postData 直接回明確錯誤，避免 undefined 爆炸
+    if (!e || !e.postData || !e.postData.contents) {
+      return jsonResponse({ ok: false, error: 'missing_post_data' });
+    }
     const payload = JSON.parse(e.postData.contents);
 
     // 草稿同步路徑（不需 token 驗證，用 draftToken 自己識別）
@@ -174,12 +178,17 @@ function doPost(e) {
 
     sendNotifications(caseId, data);
 
-    // 自動觸發 AI 分析（同步、可能 10-30 秒）
+    // 自動觸發 AI 分析。
     // 規則：一個案子只自動跑一次。已有成功分析（含重送 / 重複提交）→ 跳過，
     // 之後若要再分析，請在後台「案件列表」按手動重跑（rerun_analysis）。
+    //   ANALYSIS_ENABLED='true' → 啟用分析（預設 true）
+    //   ASYNC_ANALYSIS='true'   → 背景跑（fire-and-forget），doPost 立即回應，
+    //                            避開 GAS 6 分鐘執行上限（高流量建議開）。預設 false＝同步。
     let analysisResult = null;
     let analysisStatus;
-    const analysisEnabled = (PropertiesService.getScriptProperties().getProperty('ANALYSIS_ENABLED') || 'true') === 'true';
+    const props = PropertiesService.getScriptProperties();
+    const analysisEnabled = (props.getProperty('ANALYSIS_ENABLED') || 'true') === 'true';
+    const asyncAnalysis = (props.getProperty('ASYNC_ANALYSIS') || 'false') === 'true';
     const existingAnalysis = findAnalysisByCaseId(caseId);
     if (!analysisEnabled) {
       analysisStatus = 'skipped';
@@ -187,13 +196,36 @@ function doPost(e) {
       // 已分析過 → 不重跑、不收費；保留既有結果
       analysisResult = existingAnalysis;
       analysisStatus = 'already_analyzed';
+    } else if (asyncAnalysis) {
+      // 背景模式：排一個一次性 trigger，runAnalysis 會掃 Sheet 撿沒分析的 case
+      try {
+        scheduleAnalysis();
+        analysisStatus = 'queued';
+      } catch (schedErr) {
+        // 排程失敗（例如 trigger 數量爆表）→ 退回同步跑，至少不漏分析
+        console.error('scheduleAnalysis failed, falling back to sync:', schedErr);
+        notifyOpsAlert('[GLN] AI 分析排程失敗（已退回同步）',
+          '案件：' + caseId + '\n\n背景 trigger 排程失敗，已改為同步分析。\n錯誤：' + (schedErr && schedErr.message || schedErr) +
+          '\n\n可能原因：trigger 數量達上限（20 個）。請到 Apps Script 觸發條件頁清理殘留 trigger。');
+        try {
+          analysisResult = runClaudeAnalysis(caseId, data);
+          analysisStatus = 'success';
+        } catch (analysisErr) {
+          console.error('Analysis failed for ' + caseId + ':', analysisErr);
+          writeAnalysisRecord(caseId, null, 'failed', analysisErr.message);
+          notifyOpsAlert('[GLN] AI 分析失敗 — ' + caseId, '案件：' + caseId + '\n錯誤：' + analysisErr.message);
+          analysisStatus = 'failed';
+        }
+      }
     } else {
+      // 同步模式（預設）：可能 10-30 秒
       try {
         analysisResult = runClaudeAnalysis(caseId, data);
         analysisStatus = 'success';
       } catch (analysisErr) {
         console.error('Analysis failed for ' + caseId + ':', analysisErr);
         writeAnalysisRecord(caseId, null, 'failed', analysisErr.message);
+        notifyOpsAlert('[GLN] AI 分析失敗 — ' + caseId, '案件：' + caseId + '\n錯誤：' + analysisErr.message);
         analysisStatus = 'failed';
       }
     }
@@ -212,6 +244,11 @@ function doPost(e) {
 
   } catch (err) {
     console.error(err);
+    // 主流程失敗（例如寫入 Sheet 拋例外）→ 寄告警，但告警本身失敗不可炸主流程
+    try {
+      notifyOpsAlert('[GLN] 問卷提交處理失敗', '伺服器端處理 doPost 時拋出例外：\n\n' +
+        (err && err.message || err) + '\n\n' + (err && err.stack || ''));
+    } catch (_) { /* swallow */ }
     return jsonResponse({ ok: false, error: err.message });
   }
 }
@@ -731,18 +768,20 @@ function fetchFeelingsMap() {
 // ============================================================
 
 function writeAnalysisRecord(caseId, analysisJson, status, errorMsg) {
-  const sh = getOrCreateSheet(ANALYSES_SHEET, ['CaseID', 'GeneratedAt', 'Status', 'Model', 'InputTokens', 'OutputTokens', 'AnalysisJSON', 'Error']);
-  const usage = analysisJson && analysisJson._meta && analysisJson._meta.usage;
-  sh.appendRow([
-    caseId,
-    new Date().toISOString(),
-    status,
-    (analysisJson && analysisJson._meta && analysisJson._meta.model) || '',
-    usage ? usage.input_tokens : '',
-    usage ? usage.output_tokens : '',
-    analysisJson ? JSON.stringify(analysisJson) : '',
-    errorMsg || '',
-  ]);
+  withLock(function () {
+    const sh = getOrCreateSheet(ANALYSES_SHEET, ['CaseID', 'GeneratedAt', 'Status', 'Model', 'InputTokens', 'OutputTokens', 'AnalysisJSON', 'Error']);
+    const usage = analysisJson && analysisJson._meta && analysisJson._meta.usage;
+    sh.appendRow([
+      caseId,
+      new Date().toISOString(),
+      status,
+      (analysisJson && analysisJson._meta && analysisJson._meta.model) || '',
+      usage ? usage.input_tokens : '',
+      usage ? usage.output_tokens : '',
+      analysisJson ? JSON.stringify(analysisJson) : '',
+      errorMsg || '',
+    ]);
+  });
 }
 
 function findAnalysisByCaseId(caseId) {
@@ -823,8 +862,10 @@ function generateCaseId() {
 }
 
 function writeSubmission(caseId, token, timestamp, data) {
-  const sh = getOrCreateSheet(SUBMISSIONS_SHEET, ['CaseID', 'Timestamp', 'Token', 'DataJSON']);
-  sh.appendRow([caseId, timestamp, token, JSON.stringify(data)]);
+  withLock(function () {
+    const sh = getOrCreateSheet(SUBMISSIONS_SHEET, ['CaseID', 'Timestamp', 'Token', 'DataJSON']);
+    sh.appendRow([caseId, timestamp, token, JSON.stringify(data)]);
+  });
 }
 
 function findSubmissionByCaseId(caseId) {
@@ -844,13 +885,15 @@ function findSubmissionByCaseId(caseId) {
 
 // === Token 機制（每案一組）===
 function generateTokenPair(projectNumber, prefill, brand, location) {
-  const sh = getOrCreateSheet(TOKENS_SHEET, ['Token', 'CaseSeed', 'CreatedAt', 'UsedAt', 'DesignerToken', 'ProjectNumber', 'Prefill', 'ClientName', 'Brand', 'Location']);
   const clientToken = randomHex(16);
   const designerToken = randomHex(16);
   const prefillJson = prefill ? JSON.stringify(prefill) : '';
   const clientName = prefill ? (prefill.client_name || '') : '';
-  // 第 9、10 欄存 hub 輸入的品牌與地址，讓空白表單流程送出時也能正確分流通知
-  sh.appendRow([clientToken, projectNumber || randomHex(8), new Date().toISOString(), '', designerToken, projectNumber || '', prefillJson, clientName, (brand || 'GLN'), (location || '')]);
+  withLock(function () {
+    const sh = getOrCreateSheet(TOKENS_SHEET, ['Token', 'CaseSeed', 'CreatedAt', 'UsedAt', 'DesignerToken', 'ProjectNumber', 'Prefill', 'ClientName', 'Brand', 'Location']);
+    // 第 9、10 欄存 hub 輸入的品牌與地址，讓空白表單流程送出時也能正確分流通知
+    sh.appendRow([clientToken, projectNumber || randomHex(8), new Date().toISOString(), '', designerToken, projectNumber || '', prefillJson, clientName, (brand || 'GLN'), (location || '')]);
+  });
   return { clientToken, designerToken };
 }
 
@@ -935,14 +978,16 @@ function validateToken(token) {
 function invalidateToken(token) {
   // 僅在第一次送出時記錄 UsedAt，不阻止重複送出
   if (token === 'test') return;
-  const sh = getOrCreateSheet(TOKENS_SHEET);
-  const rows = sh.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] === token && !rows[i][3]) { // 只在尚未記錄時才寫
-      sh.getRange(i + 1, 4).setValue(new Date().toISOString());
-      return;
+  withLock(function () {
+    const sh = getOrCreateSheet(TOKENS_SHEET);
+    const rows = sh.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][0] === token && !rows[i][3]) { // 只在尚未記錄時才寫
+        sh.getRange(i + 1, 4).setValue(new Date().toISOString());
+        return;
+      }
     }
-  }
+  });
 }
 
 // 以 token 查找已提交的案件
@@ -977,9 +1022,11 @@ function findSubmissionByToken(token) {
 
 // 更新已存在的提交（客戶修改後重送）
 function updateSubmission(rowIndex, timestamp, data) {
-  const sh = getOrCreateSheet(SUBMISSIONS_SHEET);
-  sh.getRange(rowIndex, 2).setValue(timestamp);
-  sh.getRange(rowIndex, 4).setValue(JSON.stringify(data));
+  withLock(function () {
+    const sh = getOrCreateSheet(SUBMISSIONS_SHEET);
+    sh.getRange(rowIndex, 2).setValue(timestamp);
+    sh.getRange(rowIndex, 4).setValue(JSON.stringify(data));
+  });
 }
 
 function randomHex(bytes) {
@@ -1110,40 +1157,42 @@ function handleSaveDraft(payload) {
   const { draftToken, originalToken, email, data } = payload;
   if (!draftToken) return jsonResponse({ ok: false, error: 'missing_draft_token' });
 
-  const sh = getOrCreateSheet(DRAFTS_SHEET,
-    ['DraftToken', 'OriginalToken', 'Email', 'CreatedAt', 'UpdatedAt', 'DataJSON', 'Status']);
-  const rows = sh.getDataRange().getValues();
-  const now = new Date().toISOString();
+  withLock(function () {
+    const sh = getOrCreateSheet(DRAFTS_SHEET,
+      ['DraftToken', 'OriginalToken', 'Email', 'CreatedAt', 'UpdatedAt', 'DataJSON', 'Status']);
+    const rows = sh.getDataRange().getValues();
+    const now = new Date().toISOString();
 
-  // 找既有 row
-  let rowIdx = -1;
-  let existingEmail = '';
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] === draftToken) {
-      rowIdx = i + 1; // Sheet 1-indexed
-      existingEmail = rows[i][2];
-      break;
+    // 找既有 row
+    let rowIdx = -1;
+    let existingEmail = '';
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][0] === draftToken) {
+        rowIdx = i + 1; // Sheet 1-indexed
+        existingEmail = rows[i][2];
+        break;
+      }
     }
-  }
 
-  if (rowIdx > 0) {
-    // Update updatedAt + data
-    sh.getRange(rowIdx, 5).setValue(now);
-    sh.getRange(rowIdx, 6).setValue(JSON.stringify(data || {}));
-    if (email && email !== existingEmail) {
-      sh.getRange(rowIdx, 3).setValue(email);
+    if (rowIdx > 0) {
+      // Update updatedAt + data
+      sh.getRange(rowIdx, 5).setValue(now);
+      sh.getRange(rowIdx, 6).setValue(JSON.stringify(data || {}));
+      if (email && email !== existingEmail) {
+        sh.getRange(rowIdx, 3).setValue(email);
+      }
+    } else {
+      sh.appendRow([
+        draftToken,
+        originalToken || '',
+        email || '',
+        now,
+        now,
+        JSON.stringify(data || {}),
+        'active'
+      ]);
     }
-  } else {
-    sh.appendRow([
-      draftToken,
-      originalToken || '',
-      email || '',
-      now,
-      now,
-      JSON.stringify(data || {}),
-      'active'
-    ]);
-  }
+  });
 
   // 有給 email 就寄（重複按也會重寄，方便使用者；GAS quota 每日 100 封應該夠）
   let emailSent = false;
@@ -1180,14 +1229,16 @@ function handleLoadDraft(draftToken) {
 function markDraftSubmitted(draftToken) {
   if (!draftToken) return;
   try {
-    const sh = getOrCreateSheet(DRAFTS_SHEET);
-    const rows = sh.getDataRange().getValues();
-    for (let i = 1; i < rows.length; i++) {
-      if (rows[i][0] === draftToken) {
-        sh.getRange(i + 1, 7).setValue('submitted');
-        return;
+    withLock(function () {
+      const sh = getOrCreateSheet(DRAFTS_SHEET);
+      const rows = sh.getDataRange().getValues();
+      for (let i = 1; i < rows.length; i++) {
+        if (rows[i][0] === draftToken) {
+          sh.getRange(i + 1, 7).setValue('submitted');
+          return;
+        }
       }
-    }
+    });
   } catch (e) {
     console.warn('markDraftSubmitted failed', e);
   }
@@ -1841,4 +1892,233 @@ function mergeNoteParsedFields(notes) {
     } catch (e) {}
   });
   return merged;
+}
+
+// ============================================================
+// ============================================================
+// === 失效點修補 / Resilience（fix/survey-resilience）=========
+// ============================================================
+// === 新增 Script Properties（選用）：
+// ===   ASYNC_ANALYSIS   → 'true' 把 AI 分析改背景跑（避開 6 分鐘上限）；預設 false
+// ===   BACKUP_FOLDER_ID → 每日備份要存的 Drive 資料夾 ID；不設則自動建
+// ===                      雲端硬碟根目錄的「GLN_問卷_每日備份」資料夾
+// === 安裝步驟（在 Apps Script 編輯器各跑一次）：
+// ===   installBackupTrigger()  → 建立每日 03:00 自動備份
+// ===   （改背景分析才需）把 ASYNC_ANALYSIS 設成 'true'
+// ============================================================
+// ============================================================
+
+// ------------------------------------------------------------
+// 共用：併發鎖。所有對 Sheet 的寫入都包這個，避免兩個請求
+// 同時 append/setValue 互相覆蓋造成掉資料。
+// waitLock 逾時不靜默吞掉——拋明確錯誤讓上層處理（回錯誤給前端）。
+// ------------------------------------------------------------
+function withLock(fn, timeoutMs) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(timeoutMs || 10000); // 預設等 10 秒
+  } catch (e) {
+    throw new Error('系統忙碌中，請稍後再試（lock timeout）');
+  }
+  try {
+    return fn();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ------------------------------------------------------------
+// 共用：營運告警信。複用 NOTIFY_EMAILS（與 sendNotifications 同收件人）。
+// 告警本身失敗絕不可炸主流程，故整段包 try/catch 吞掉。
+// ------------------------------------------------------------
+function notifyOpsAlert(subject, body) {
+  try {
+    const raw = PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAILS') || '';
+    const emails = raw.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    if (!emails.length) return;
+    const fullBody = (body || '') +
+      '\n\n時間：' + new Date().toLocaleString('zh-TW') +
+      '\n\n— GLN 客戶問卷系統自動告警';
+    // 只寄第一個收件人即可（告警不需群發），避免額外消耗 MailApp 配額
+    MailApp.sendEmail(emails[0], subject, fullBody.trim());
+  } catch (e) {
+    console.error('notifyOpsAlert failed:', e);
+  }
+}
+
+// ============================================================
+// === 背景 AI 分析（fire-and-forget，避開 6 分鐘上限）=========
+// ============================================================
+
+// doPost 在 ASYNC_ANALYSIS='true' 時呼叫：排一個一次性 trigger。
+// runAnalysis 會自己掃 Sheet 撿出「有 submission 但還沒分析」的 case，
+// 因此這裡不需要（也無法）把 caseId 傳進 trigger handler。
+function scheduleAnalysis() {
+  ScriptApp.newTrigger('runAnalysis').timeBased().after(1000).create();
+}
+
+// 背景分析 handler。設計重點：
+//   1. 進來先用 e.triggerUid 刪掉「呼叫自己的這個一次性 trigger」，
+//      避免一次性 trigger 殘留累積撞上 20 個上限（GAS 不會自動刪）。
+//   2. 用 LockService 避免兩個 trigger 同時撿到同一個 pending case。
+//   3. 掃 Submissions 找出沒有對應 success/failed 分析紀錄的 case，
+//      逐一補跑（self-healing：失敗的 case 已記 failed，不會無限重試）。
+function runAnalysis(e) {
+  // 1. 先刪掉觸發自己的一次性 trigger
+  try {
+    if (e && e.triggerUid) {
+      const triggers = ScriptApp.getProjectTriggers();
+      for (let i = 0; i < triggers.length; i++) {
+        if (triggers[i].getUniqueId() === e.triggerUid) {
+          ScriptApp.deleteTrigger(triggers[i]);
+          break;
+        }
+      }
+    }
+  } catch (delErr) {
+    console.warn('runAnalysis: 刪 trigger 失敗（不影響分析）:', delErr);
+  }
+
+  const analysisEnabled = (PropertiesService.getScriptProperties().getProperty('ANALYSIS_ENABLED') || 'true') === 'true';
+  if (!analysisEnabled) return;
+
+  // 2. 取出待分析清單（在鎖內讀，避免和 doPost 寫入打架）
+  let pending;
+  try {
+    pending = withLock(function () { return listPendingAnalysisCaseIds(); });
+  } catch (lockErr) {
+    console.error('runAnalysis: 取 pending 失敗:', lockErr);
+    return;
+  }
+  if (!pending || !pending.length) return;
+
+  // 3. 逐一補跑。單一 case 失敗不阻斷其他 case。
+  //    注意：runClaudeAnalysis 內含 10-30 秒 API 呼叫，不放在鎖內。
+  pending.forEach(function (caseId) {
+    try {
+      const sub = findSubmissionByCaseId(caseId);
+      if (!sub) return;
+      runClaudeAnalysis(caseId, sub.data); // 內部會 writeAnalysisRecord(success)
+    } catch (err) {
+      console.error('背景分析失敗 ' + caseId + ':', err);
+      writeAnalysisRecord(caseId, null, 'failed', String(err && err.message || err));
+      notifyOpsAlert('[GLN] 背景 AI 分析失敗 — ' + caseId, '案件：' + caseId + '\n錯誤：' + (err && err.message || err));
+    }
+  });
+}
+
+// 掃出有 submission 但還沒有 success/failed 分析紀錄的 caseId。
+// 'failed' 也算「已處理過」，避免每次背景跑都無限重試壞掉的 case
+// 而狂打 API / 狂寄告警（要重跑請用後台 rerun_analysis）。
+function listPendingAnalysisCaseIds() {
+  const subSh = getOrCreateSheet(SUBMISSIONS_SHEET, ['CaseID', 'Timestamp', 'Token', 'DataJSON']);
+  const subRows = subSh.getDataRange().getValues();
+  if (subRows.length < 2) return [];
+
+  const anSh = getOrCreateSheet(ANALYSES_SHEET, ['CaseID', 'GeneratedAt', 'Status', 'Model', 'InputTokens', 'OutputTokens', 'AnalysisJSON', 'Error']);
+  const anRows = anSh.getDataRange().getValues();
+  const processed = {};
+  for (let i = 1; i < anRows.length; i++) {
+    const cid = anRows[i][0];
+    const st = anRows[i][2];
+    if (cid && (st === 'success' || st === 'failed')) processed[cid] = true;
+  }
+
+  const pending = [];
+  for (let i = 1; i < subRows.length; i++) {
+    const cid = subRows[i][0];
+    if (cid && !processed[cid]) pending.push(cid);
+  }
+  return pending;
+}
+
+// ============================================================
+// === 每日自動備份主 Sheet（零備份 → 滾動保留 N 份）===========
+// ============================================================
+
+const BACKUP_KEEP = 30; // 滾動保留份數
+
+// time-driven trigger 每日呼叫：複製主 Sheet 到備份資料夾，並刪掉超過 N 份的舊備份。
+function dailyBackup() {
+  const props = PropertiesService.getScriptProperties();
+  const sheetId = props.getProperty('SHEET_ID');
+  if (!sheetId) {
+    notifyOpsAlert('[GLN] 每日備份失敗', 'SHEET_ID 未設定，無法備份。');
+    throw new Error('SHEET_ID not set');
+  }
+
+  try {
+    const folder = getBackupFolder();
+    const stamp = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd');
+    const name = 'GLN問卷備份-' + stamp;
+    DriveApp.getFileById(sheetId).makeCopy(name, folder);
+    pruneOldBackups(folder, BACKUP_KEEP);
+    console.log('每日備份完成：' + name);
+  } catch (err) {
+    console.error('dailyBackup failed:', err);
+    notifyOpsAlert('[GLN] 每日備份失敗', '備份主 Sheet 時發生錯誤：\n' + (err && err.message || err));
+    throw err;
+  }
+}
+
+// 取得備份資料夾：優先用 BACKUP_FOLDER_ID（Script Property），
+// 沒設就在雲端硬碟根目錄建/找一個固定名稱資料夾，零設定也能跑。
+function getBackupFolder() {
+  const props = PropertiesService.getScriptProperties();
+  const folderId = props.getProperty('BACKUP_FOLDER_ID');
+  if (folderId) {
+    try {
+      return DriveApp.getFolderById(folderId);
+    } catch (e) {
+      console.warn('BACKUP_FOLDER_ID 無效，改用預設資料夾:', e);
+    }
+  }
+  const DEFAULT_NAME = 'GLN_問卷_每日備份';
+  const it = DriveApp.getFoldersByName(DEFAULT_NAME);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(DEFAULT_NAME);
+}
+
+// 刪掉資料夾內超過 keep 份的舊備份（依建立時間排序，留最新的）。
+function pruneOldBackups(folder, keep) {
+  const files = [];
+  const it = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
+  while (it.hasNext()) {
+    const f = it.next();
+    if (f.getName().indexOf('GLN問卷備份-') === 0) {
+      files.push(f);
+    }
+  }
+  if (files.length <= keep) return;
+  // 依建立時間新→舊排序，刪掉第 keep 份之後的
+  files.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); });
+  for (let i = keep; i < files.length; i++) {
+    try {
+      files[i].setTrashed(true);
+    } catch (e) {
+      console.warn('刪舊備份失敗 ' + files[i].getName() + ':', e);
+    }
+  }
+}
+
+// 一次性安裝：在 Apps Script 編輯器選這個函式按執行，建立每日 03:00 備份 trigger。
+// 會先清掉既有的 dailyBackup trigger，避免重複安裝（可重複執行＝idempotent）。
+function installBackupTrigger() {
+  const triggers = ScriptApp.getProjectTriggers();
+  for (let i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'dailyBackup') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+  ScriptApp.newTrigger('dailyBackup').timeBased().everyDays(1).atHour(3).create();
+  Logger.log('✅ 已安裝每日備份 trigger（每天約 03:00）。');
+  Logger.log('現有 trigger：');
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    Logger.log('  - ' + t.getHandlerFunction() + ' (' + t.getEventType() + ')');
+  });
+}
+
+// 手動測試備份（立即跑一次，不等 trigger）。
+function testBackupNow() {
+  dailyBackup();
+  Logger.log('✅ 手動備份完成，請到備份資料夾確認。');
 }
