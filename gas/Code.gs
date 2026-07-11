@@ -64,8 +64,7 @@ function doPost(e) {
 
     // Admin：手動重跑 AI 分析（需要 adminKey；會再收一次 AI 費）
     if (payload.action === 'rerun_analysis') {
-      const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
-      if (payload.adminKey !== adminKey) return jsonResponse({ ok: false, error: 'unauthorized' });
+      if (!isAdminKey(payload.adminKey)) return jsonResponse({ ok: false, error: 'unauthorized' });
       const caseId = (payload.caseId || '').trim();
       if (!caseId) return jsonResponse({ ok: false, error: 'missing_caseId' });
       try {
@@ -80,8 +79,7 @@ function doPost(e) {
 
     // Admin：產生新案件 Token（需要 adminKey 驗證）
     if (payload.action === 'create_token') {
-      const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
-      if (payload.adminKey !== adminKey) return jsonResponse({ ok: false, error: 'unauthorized' });
+      if (!isAdminKey(payload.adminKey)) return jsonResponse({ ok: false, error: 'unauthorized' });
       const projectNumber = generateProjectNumber();
       const location = (payload.location || payload.note || '').trim();
       const brand = (payload.brand || 'GLN').toUpperCase();
@@ -309,8 +307,7 @@ function doGet(e) {
 }
 
 function handleListCases(adminToken) {
-  const expected = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
-  if (adminToken !== expected) return jsonResponse({ ok: false, error: 'unauthorized' });
+  if (!isAdminKey(adminToken)) return jsonResponse({ ok: false, error: 'unauthorized' });
 
   const subSh = getOrCreateSheet(SUBMISSIONS_SHEET, ['CaseID', 'Timestamp', 'Token', 'DataJSON']);
   const subRows = subSh.getDataRange().getValues();
@@ -1415,8 +1412,7 @@ function createNewCaseTokens() {
  *   location  : string（案件地址/簡稱，例 "屏東市明中新村"）
  */
 function handlePrefillFromNotes(payload) {
-  const adminKey = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
-  if (payload.adminKey !== adminKey) {
+  if (!isAdminKey(payload.adminKey)) {
     return jsonResponse({ ok: false, error: 'unauthorized' });
   }
 
@@ -1573,9 +1569,16 @@ ${notes}`;
 const NOTES_SHEET = 'Notes';
 
 // === 筆記 / 備註 權限工具 ===
+// ADMIN_KEY 只能來自 Script Properties；未設定時一律拒絕，禁止任何預設密碼 fallback
+// （本 repo 為公開 repo，寫死的密碼等同外洩）
+function getAdminKey_() {
+  const key = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY');
+  return key && key.trim() ? key.trim() : null;
+}
+
 function isAdminKey(key) {
-  const expected = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'gln-admin-2026';
-  return !!key && key === expected;
+  const expected = getAdminKey_();
+  return !!expected && !!key && key === expected;
 }
 
 // 由 caseId 反查當初提交時用的 clientToken（submissions 第 3 欄）

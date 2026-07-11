@@ -7,7 +7,8 @@ const ADMIN_TOKEN = 'admin';
 const PHOTOS_DIR = 'assets/photos/';
 const IMG_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.heic'];
 const GAS_ENDPOINT_ADMIN = 'https://script.google.com/macros/s/AKfycbzCpoKgXvana8_6cxxB1jrn0qCW8ulw7iX-vVrDJbqCQZ36KjAhHJRNAd489N_z564zsw/exec';
-const ADMIN_KEY = 'gln-admin-2026';
+// 管理員金鑰不寫死在前端（公開 repo + Pages 等同外洩）；進入 admin 頁時輸入一次，存 localStorage
+let ADMIN_KEY = localStorage.getItem('gln_admin_key') || '';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -23,6 +24,10 @@ let tagState = {};      // { filename: [feeling_keys] }
 if (token !== ADMIN_TOKEN) {
   $('#auth-gate').style.display = 'block';
 } else {
+  if (!ADMIN_KEY) {
+    ADMIN_KEY = (prompt('請輸入管理員金鑰（ADMIN_KEY）') || '').trim();
+    if (ADMIN_KEY) localStorage.setItem('gln_admin_key', ADMIN_KEY);
+  }
   $('#admin-app').style.display = 'block';
   initTabs();
   init();

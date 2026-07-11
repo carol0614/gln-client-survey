@@ -314,7 +314,7 @@
       <div class="key-row">
         <div class="field">
           <label>管理員金鑰</label>
-          <input type="password" id="adminKey" placeholder="gln-admin-2026" autocomplete="off">
+          <input type="password" id="adminKey" placeholder="請輸入管理員金鑰" autocomplete="off">
         </div>
       </div>
 
@@ -448,13 +448,18 @@
   }
 
   async function generateLink() {
-    const adminKey = document.getElementById('adminKey').value.trim() || 'gln-admin-2026';
+    const adminKey = document.getElementById('adminKey').value.trim();
     const location = document.getElementById('location').value.trim();
     const brand    = document.getElementById('brand').value;
     const notes    = document.getElementById('notes').value.trim();
     const btn      = document.getElementById('genBtn');
     const statusEl = document.getElementById('genStatus');
     const result   = document.getElementById('genResult');
+
+    if (!adminKey) {
+      showStatus(statusEl, 'error', '請先輸入管理員金鑰');
+      return;
+    }
 
     btn.disabled = true;
     result.classList.remove('show');
